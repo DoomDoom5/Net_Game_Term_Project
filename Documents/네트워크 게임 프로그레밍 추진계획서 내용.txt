@@ -58,8 +58,8 @@ ex)샘플
 
 Hgih Level
 1. 시작 전
-Game Server	|	log in server|	Client
-소켓 시작		소켓 시작	소켓시작
+Game Server	|	Client
+소켓 시작		소켓시작
 
 2. 시작 후
 
