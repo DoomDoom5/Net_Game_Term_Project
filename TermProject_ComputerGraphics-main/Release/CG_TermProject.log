@@ -1,7 +1,0 @@
-﻿D:\Visual Studio\MSBuild\Microsoft\VC\v160\Microsoft.CppCommon.targets(687,5): error MSB6003: 지정한 작업 실행 파일 "CL.exe"을(를) 실행할 수 없습니다. System.IO.IOException: 'C:\USERS\ALSEH\DESKTOP\TERMPROJECT_COMPUTERGRAPHICS\RELEASE\BULLET.OBJ' 파일은 다른 프로세스에서 사용 중이므로 프로세스에서 액세스할 수 없습니다.
-D:\Visual Studio\MSBuild\Microsoft\VC\v160\Microsoft.CppCommon.targets(687,5): error MSB6003:    위치: System.IO.__Error.WinIOError(Int32 errorCode, String maybeFullPath)
-D:\Visual Studio\MSBuild\Microsoft\VC\v160\Microsoft.CppCommon.targets(687,5): error MSB6003:    위치: System.IO.FileInfo.Delete()
-D:\Visual Studio\MSBuild\Microsoft\VC\v160\Microsoft.CppCommon.targets(687,5): error MSB6003:    위치: Microsoft.Build.CPPTasks.TrackedVCToolTask.DeleteFiles(ITaskItem[] filesToDelete)
-D:\Visual Studio\MSBuild\Microsoft\VC\v160\Microsoft.CppCommon.targets(687,5): error MSB6003:    위치: Microsoft.Build.CPPTasks.CL.ComputeOutOfDateSources()
-D:\Visual Studio\MSBuild\Microsoft\VC\v160\Microsoft.CppCommon.targets(687,5): error MSB6003:    위치: Microsoft.Build.CPPTasks.TrackedVCToolTask.SkipTaskExecution()
-D:\Visual Studio\MSBuild\Microsoft\VC\v160\Microsoft.CppCommon.targets(687,5): error MSB6003:    위치: Microsoft.Build.Utilities.ToolTask.Execute()
