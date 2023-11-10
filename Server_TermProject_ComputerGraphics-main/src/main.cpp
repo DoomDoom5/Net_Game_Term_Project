@@ -80,6 +80,8 @@ ModelObject* cubeMap = nullptr;
 
 // extern
 
+int test = 5;
+
 GLint main(GLint argc, GLchar** argv)
 {
 	srand((unsigned int)time(NULL));
