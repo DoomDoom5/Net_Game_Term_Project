@@ -91,7 +91,7 @@ GLint main(GLint argc, GLchar** argv)
 	glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
 	glShadeModel(GL_SMOOTH);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glutCreateWindow("TestServerProject");
+	glutCreateWindow("TestProject");
 
 	glewExperimental = GL_TRUE;
 
