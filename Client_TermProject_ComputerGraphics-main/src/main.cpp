@@ -16,6 +16,12 @@
 #include "Wave.h"
 #include "UI.h"
 
+
+char* SERVERIP = (char*)"127.0.0.1";
+#define SERVERPORT 9000
+#define BUFSIZE 50
+
+
 const Camera* crntCamera = nullptr;
 Camera* cameraMain = nullptr;
 Camera* cameraFree = nullptr;
@@ -80,8 +86,23 @@ ModelObject* cubeMap = nullptr;
 
 // extern
 
+//네트워킹
+
+SOCKET InitNetwork();
+void SendtoServer(SOCKET sock);
+
+int retval;
+
+struct BulletInfo {
+	int type;
+};
+
 GLint main(GLint argc, GLchar** argv)
 {
+
+
+
+
 	srand((unsigned int)time(NULL));
 
 	glutInit(&argc, argv);
@@ -98,6 +119,8 @@ GLint main(GLint argc, GLchar** argv)
 	Init();
 
 	glutIdleFunc(Update);
+	SOCKET sock = InitNetwork();
+	SendtoServer(sock);
 	glutDisplayFunc(DrawScene);
 	glutReshapeFunc(Reshape);
 	glutSetCursor(GLUT_CURSOR_NONE);
@@ -369,6 +392,11 @@ GLvoid DrawScene()
 ///// [ HANDLE EVENTS ] /////
 GLvoid Update()
 {
+
+	int len;
+
+	len = sizeof(BulletInfo);
+
 	if (IsGameOver() == GL_TRUE)
 	{
 		glutPostRedisplay();
@@ -444,6 +472,8 @@ GLvoid Update()
 			}
 		}
 	}
+
+	
 	
 	glutPostRedisplay();
 }
@@ -698,4 +728,32 @@ GLvoid SetCameraMode(const CameraMode& mode)
 	}
 
 	cameraMode = mode;
+}
+
+SOCKET InitNetwork() {
+
+	//윈속 초기화
+	WSADATA wsa;
+	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+		return 0;
+
+	//소켓생성
+	SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (sock == INVALID_SOCKET) err_quit("socket()");
+
+	//connect(미완성)
+	struct sockaddr_in serveraddr;
+	memset(&serveraddr, 0, sizeof(serveraddr));
+	serveraddr.sin_family = AF_INET;
+
+	return sock;
+}
+
+void SendtoServer(SOCKET sock) {
+
+	int len;
+
+	len = sizeof(BulletInfo);
+
+	retval = send(sock, len, sizeof(int), 0);
 }

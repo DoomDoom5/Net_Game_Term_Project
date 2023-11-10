@@ -18,3 +18,5 @@ TermProject_ComputerGraphics-main/Debug/CG_TermProject.exe.recipe
 TermProject_ComputerGraphics-main/.vs/CG_TermProject/FileContentIndex/read.lock
 TermProject_ComputerGraphics-main/.vs/CG_TermProject/v17/Browse.VC.db-wal
 TermProject_ComputerGraphics-main/Debug/CG_TermProject.vcxproj.FileListAbsolute.txt
+*.db-shm
+*.db-wal
