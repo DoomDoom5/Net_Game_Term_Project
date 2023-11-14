@@ -2,7 +2,6 @@
 #include "Bullet.h"
 #include "Timer.h"
 #include "Sound.h"
-#include "Common.h"
 
 #define BULLET_RADIUS 10.0f
 

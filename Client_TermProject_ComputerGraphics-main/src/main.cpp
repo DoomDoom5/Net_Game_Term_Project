@@ -15,6 +15,11 @@
 #include "Sound.h"
 #include "Wave.h"
 #include "UI.h"
+#include "Common.h"
+
+char* SERVERIP = (char*)"127.0.0.1";
+#define SERVERPORT 9000
+#define BUFSIZE    512
 
 const Camera* crntCamera = nullptr;
 Camera* cameraMain = nullptr;
@@ -79,7 +84,6 @@ GLboolean isRightDown = GL_FALSE;
 ModelObject* cubeMap = nullptr;
 
 // extern
-
 GLint main(GLint argc, GLchar** argv)
 {
 	srand((unsigned int)time(NULL));
@@ -116,12 +120,8 @@ GLint main(GLint argc, GLchar** argv)
 	glutMainLoop();
 }
 
-
-
-
-
-
-
+// sock
+SOCKET sock = NULL;
 
 
 ///// INIT /////
@@ -158,9 +158,13 @@ GLvoid Init()
 
 	waveManager->Start();
 	soundManager->PlayBGMSound(BGMSound::Normal, 0.2f, GL_TRUE);
+
+	//******************************//
+	if (sock == NULL)Initsock(sock);
+
+
 	//system("cls");
 }
-
 GLvoid InitMeshes()
 {
 	InitModels();
@@ -219,7 +223,6 @@ GLvoid InitMeshes()
 	monsterManager->SetPlayer(player);
 	waveManager->SetPlayer(player);
 }
-
 GLvoid Reset()
 {
 	DeleteObjects();
@@ -259,14 +262,7 @@ GLvoid Reset()
 }
 
 
-
-
-
-
-
-
 ///// Draw /////
-
 GLvoid SetWindow(GLint index)
 {
 	const GLint halfWidth = screenWidth / 2;
@@ -287,7 +283,6 @@ GLvoid SetWindow(GLint index)
 		assert(0);
 	}
 }
-
 GLvoid DrawScene()
 {
 	glClearColor(backColor.r, backColor.g, backColor.b, 1.0f);
@@ -349,40 +344,69 @@ GLvoid DrawScene()
 	glutSwapBuffers();
 }
 
+GLvoid Initsock(SOCKET& sock)
+{
+	int retval;
+	WSADATA wsa;
+	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+		return;
 
+	 sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (sock == INVALID_SOCKET) err_quit("socket()");
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	// connect()
+	struct sockaddr_in serveraddr;
+	memset(&serveraddr, 0, sizeof(serveraddr));
+	serveraddr.sin_family = AF_INET;
+	inet_pton(AF_INET, SERVERIP, &serveraddr.sin_addr);
+	serveraddr.sin_port = htons(SERVERPORT);
+	retval = connect(sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
+	if (retval == SOCKET_ERROR) err_quit("connect()");
+}
 
 ///// [ HANDLE EVENTS ] /////
 GLvoid Update()
 {
+
 	if (IsGameOver() == GL_TRUE)
 	{
 		glutPostRedisplay();
+
+		// 소켓 닫기
+		closesocket(sock);
+		// 윈속 종료
+		WSACleanup();
+
 		return;
+	}
+
+	// 데이터 수신
+	{
+		// 데이터 통신에 사용할 변수
+		int retval;
+		glm::vec3 PlayerPostion = player->GetPosition();
+
+		// glm::vec3를 문자열로 변환
+		std::string vec3AsString =
+			std::to_string(PlayerPostion.x) + " " +
+			std::to_string(PlayerPostion.y) + " " +
+			std::to_string(PlayerPostion.z);
+
+		// 문자열을 C 스타일의 문자열로 변환
+		const char* buf = vec3AsString.c_str();
+
+		// 데이터 보내기
+		retval = send(sock, buf, (int)strlen(buf), 0);
+		if (retval == SOCKET_ERROR) {
+			err_display("send()");
+			return;
+		}
+		printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
 	}
 
 	timer::CalculateFPS();
 	timer::Update();
-
-	if (player != nullptr)
-	{
-		player->Update();
-	}
-
+	if (player != nullptr) player->Update();
 	bulletManager->Update();
 	monsterManager->Update();
 	buildingManager->Update();
@@ -391,7 +415,6 @@ GLvoid Update()
 
 	constexpr GLfloat cameraMovement = 100.0f;
 	GLfloat cameraSpeed = cameraMovement;
-
 	// movement
 	if (cameraMain == cameraFree)
 	{
@@ -445,12 +468,12 @@ GLvoid Update()
 		}
 	}
 	
+	// 데이터 송신
+
 	glutPostRedisplay();
 }
 
-
-
-
+// 대상 컴퓨터에서 연결을 거부 했으므로 연결하지 못했습니다.
 GLvoid Mouse(GLint button, GLint state, GLint x, GLint y)
 {
 	if (IsGameOver() == GL_TRUE)
@@ -487,8 +510,6 @@ GLvoid Mouse(GLint button, GLint state, GLint x, GLint y)
 		player->ProcessMouse(button, state, x, y);
 	}
 }
-
-
 GLvoid MouseMotion(GLint x, GLint y)
 {
 	if (IsGameOver() == GL_TRUE)
@@ -530,8 +551,6 @@ GLvoid MousePassiveMotion(GLint x, GLint y)
 
 	SetCursorPos(mouseCenter.x, mouseCenter.y);
 }
-
-
 
 // interlock with a control key
 static unordered_map<unsigned char, unsigned char> CtrlMap = {

@@ -5,10 +5,6 @@ extern GLint screenPosY;
 extern GLsizei screenWidth;
 extern GLsizei screenHeight;
 
-
-
-
-
 extern GLpoint mouseCenter;
 GLvoid Reshape(GLint w, GLint h)
 {
