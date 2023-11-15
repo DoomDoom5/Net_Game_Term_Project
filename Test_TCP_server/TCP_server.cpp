@@ -36,9 +36,9 @@ int main(int argc, char* argv[])
 	SOCKET client_sock;
 	struct sockaddr_in clientaddr;
 	int addrlen;
-	char buf[512];
 
 	while (1) {
+
 		// accept()
 		addrlen = sizeof(clientaddr);
 		client_sock = accept(listen_sock, (struct sockaddr*)&clientaddr, &addrlen);
@@ -53,27 +53,36 @@ int main(int argc, char* argv[])
 		printf("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\n",
 			addr, ntohs(clientaddr.sin_port));
 
+		// ============ 클라이언트와 데이터 통신 ==================
 		char buffer[BUFSIZE];
-		// 클라이언트와 데이터 통신
+		float PlayerX = 0.0f;
+		float PlayerY = 0.0f;
+		float PlayerZ = 0.0f;
 		while (1) {
-			// 데이터 받기
-			retval = recv(client_sock, buffer, BUFSIZE, 0);
-			if (retval == SOCKET_ERROR) {
-				err_display("recv()");
-				break;
-			}
-			else if (retval == 0)
-				break;
-
+			// 데이터 송신
 			// 데이터 수신
-			// 문자열을 스트림에 넣어 공백을 기준으로 분리
-			std::istringstream iss(buffer);
-			float x, y, z;
-			iss >> x >> y >> z;
-			// 받은 데이터를 출력
-			std::cout << "Received Vector: (" << x << ", " << y << ", " << z << ")\n";
-		}
+			{
+				// 데이터 통신에 사용할 변수
+				PlayerX += 0.2f;
+				// glm::vec3를 문자열로 변환
+				std::string vec3AsString =
+					std::to_string(PlayerX) + " " +
+					std::to_string(PlayerY) + " " +
+					std::to_string(PlayerZ);
 
+				// 문자열을 C 스타일의 문자열로 변환
+				const char* buf = vec3AsString.c_str();
+
+				// 데이터 보내기
+				retval = send(client_sock, buf, (int)strlen(buf), 0);
+				if (retval == SOCKET_ERROR) {
+					err_display("send()");
+					break;
+				}
+				printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
+				Sleep(500);
+			}
+		}
 		// 소켓 닫기
 		closesocket(client_sock);
 		printf("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n",

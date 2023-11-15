@@ -43,6 +43,7 @@ GLvoid ProcessSpecialKeyUp(GLint key, GLint x, GLint y);
 GLvoid ToggleDepthTest();
 GLvoid SetCameraMode(const CameraMode& cameraMode);
 
+GLvoid Initsock(SOCKET& sock);
 // values
 GLint screenPosX = DEFAULT_SCREEN_POS_X;
 GLint screenPosY = DEFAULT_SCREEN_POS_Y;
@@ -344,6 +345,7 @@ GLvoid DrawScene()
 	glutSwapBuffers();
 }
 
+/// Network
 GLvoid Initsock(SOCKET& sock)
 {
 	int retval;
@@ -363,11 +365,33 @@ GLvoid Initsock(SOCKET& sock)
 	retval = connect(sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
 	if (retval == SOCKET_ERROR) err_quit("connect()");
 }
+glm::vec3 recvVector(SOCKET& sock)
+{
+	char buffer[512];
+	int retval = 0;
+	// 데이터 받기
+	retval = recv(sock, buffer, BUFSIZE, 0);
+	if (retval == SOCKET_ERROR) {
+		err_display("recv()");
+		return glm::vec3(0, 0, 0);
+	}
+	else if (retval == 0)
+		return glm::vec3(0,0,0);
+
+	// 데이터 수신
+	// 문자열을 스트림에 넣어 공백을 기준으로 분리
+	std::istringstream iss(buffer);
+	float x, y, z;
+	iss >> x >> y >> z;
+	// 받은 데이터를 출력
+	std::cout << "Received Vector: (" << x << ", " << y << ", " << z << ")\n";
+	return glm::vec3(x, y, z);
+
+}
 
 ///// [ HANDLE EVENTS ] /////
 GLvoid Update()
 {
-
 	if (IsGameOver() == GL_TRUE)
 	{
 		glutPostRedisplay();
@@ -380,30 +404,8 @@ GLvoid Update()
 		return;
 	}
 
-	// 데이터 수신
-	{
-		// 데이터 통신에 사용할 변수
-		int retval;
-		glm::vec3 PlayerPostion = player->GetPosition();
-
-		// glm::vec3를 문자열로 변환
-		std::string vec3AsString =
-			std::to_string(PlayerPostion.x) + " " +
-			std::to_string(PlayerPostion.y) + " " +
-			std::to_string(PlayerPostion.z);
-
-		// 문자열을 C 스타일의 문자열로 변환
-		const char* buf = vec3AsString.c_str();
-
-		// 데이터 보내기
-		retval = send(sock, buf, (int)strlen(buf), 0);
-		if (retval == SOCKET_ERROR) {
-			err_display("send()");
-			return;
-		}
-		printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
-	}
-
+	player->SetPosition(recvVector(sock));
+	std::cout << "Player Vector: (" << player->GetPosition().x << ", " << player->GetPosition().y << ", " << player->GetPosition().z << ")\n";
 	timer::CalculateFPS();
 	timer::Update();
 	if (player != nullptr) player->Update();
