@@ -140,8 +140,15 @@ GLvoid BulletManager::CreateExplosion(const COLORREF& color, const glm::vec3& po
 	}
 }
 
-GLvoid BulletManager::Draw() const
-{
+GLvoid BulletManager::Draw(SOCKET sock) const
+{	
+	int retval;
+	char buf[513];
+
+	retval = recv(sock, buf, sizeof(int), MSG_WAITALL);
+
+	mBulletList = buf;
+
 	for (const Bullet* bullet : mBulletList)
 	{
 		bullet->Draw();
@@ -270,6 +277,20 @@ GLvoid BulletManager::Update()
 		}
 	}
 }
+
+/*
+GLvoid BulletManager::Send(SOCKET sock) {
+	int retval;
+
+
+
+	retval = send(sock, (char*)&len, sizeof(GunType), 0);
+}
+GLvoid BulletManager::Recv(SOCKET sock) {
+
+}
+*/
+
 //GLvoid ProcessCollision(Bullet* bullet, IBulletCollisionable* object, vector<PaintPlane*>& paints)
 //{
 //	constexpr GLfloat NO_NORMAL = 9;

@@ -147,7 +147,7 @@ public:
 	// Process
 	GLvoid ProcessKeyDown(const GLint& key);
 	GLvoid ProcessKeyUp(const GLint& key);
-	GLvoid ProcessMouse(GLint button, GLint state, GLint x, GLint y);
+	GLvoid ProcessMouse(GLint button, GLint state, GLint x, GLint y, SOCKET sock);
 
 	// Movement
 	GLvoid Move();

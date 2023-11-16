@@ -24,6 +24,11 @@ const set<GLint> movFB = { 'w', 'W', 's', 'S' };
 const set<GLint> movLR = { 'a', 'A', 'd', 'D' };
 const set<GLint> movKeys = { 'w', 'W', 's', 'S', 'a', 'A', 's', 'S', 'd', 'D' };
 
+// send to server
+
+
+
+
 ////////////////////////////// [ State ] //////////////////////////////
 /********** [ IDLE ] **********/
 GLvoid Idle::Enter(const Event& e, const GLint& value)
@@ -439,19 +444,71 @@ GLvoid Player::ProcessKeyUp(const GLint& key)
 {
 	mCrntState->HandleEvent(Event::KeyUp, key);
 }
-GLvoid Player::ProcessMouse(GLint button, GLint state, GLint x, GLint y)
+GLvoid Player::ProcessMouse(GLint button, GLint state, GLint x, GLint y, SOCKET sock)
 {
+	/*
+			sendtype = 1 move
+					 = 2 rotate
+					 = 3 shot
+			shot	 = 1 start
+					 = 2 stop
+			guntype  = 1 rifle
+					 = 2 shotgun
+					 = 3 luncher
+					 = 4 sniper
+	*/
+
+	int retval;
+	//int len = 0;
+	int	sendtype = 3;
+
+	retval = send(sock, (char*)&sendtype, sizeof(sendtype), 0);
+	if (retval == SOCKET_ERROR) {
+		err_display("send()");
+	}
+
+	char shot_info[2];
+
+
 	switch (button)
 	{
 	case GLUT_LEFT_BUTTON:
 		if (state == GLUT_DOWN)
 		{
 			mCrntGun->StartFire();
+
+			shot_info[0] = '0';
 		}
 		else if (state == GLUT_UP)
 		{
 			mCrntGun->StopFire();
+
+			shot_info[0] = '1';
 		}
+		
+		//mCrntGun->GetType()
+		switch (mCrntGun->GetType())
+		{
+		case GunType::Rifle:
+			shot_info[1] = 1;
+			break;
+		case GunType::Shotgun:
+			shot_info[1] = 2;
+			break;
+		case GunType::Launcher:
+			shot_info[1] = 3;
+			break;
+		case GunType::Sniper:
+			shot_info[1] = 4;
+			break;
+		}
+
+
+		retval = send(sock, (char*)&shot_info, sizeof(shot_info), 0);
+		if (retval == SOCKET_ERROR) {
+			err_display("send()");
+		}
+
 		break;
 	}
 }

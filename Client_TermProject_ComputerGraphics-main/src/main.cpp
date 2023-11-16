@@ -87,15 +87,16 @@ ModelObject* cubeMap = nullptr;
 // extern
 
 //네트워킹
-
+SOCKET sock;
 SOCKET InitNetwork();
-void SendtoServer(SOCKET sock);
+void SendtoServer();
+void RecvfromServer();
 
 int retval;
 
-struct BulletInfo {
+struct guntype {
 	int type;
-};
+}GunType;
 
 GLint main(GLint argc, GLchar** argv)
 {
@@ -117,10 +118,9 @@ GLint main(GLint argc, GLchar** argv)
 	glewExperimental = GL_TRUE;
 
 	Init();
+	sock = InitNetwork();
 
-	glutIdleFunc(Update);
-	SOCKET sock = InitNetwork();
-	SendtoServer(sock);
+	glutIdleFunc(Update);	
 	glutDisplayFunc(DrawScene);
 	glutReshapeFunc(Reshape);
 	glutSetCursor(GLUT_CURSOR_NONE);
@@ -339,7 +339,7 @@ GLvoid DrawScene()
 	shd::SetShader(crntShader, "light.pos", light->GetPviotedPosition());
 	shd::SetShader(crntShader, "viewPos", crntCamera->GetPviotedPosition());
 	DrawObjects(crntShader);
-	bulletManager->Draw();
+	bulletManager->Draw(sock);
 
 	//light->Draw();
 
@@ -393,9 +393,8 @@ GLvoid DrawScene()
 GLvoid Update()
 {
 
-	int len;
-
-	len = sizeof(BulletInfo);
+	// 데이터 수신
+	//RecvfromServer();
 
 	if (IsGameOver() == GL_TRUE)
 	{
@@ -473,6 +472,9 @@ GLvoid Update()
 		}
 	}
 
+	// 데이터 송신
+	SendtoServer();
+
 	
 	
 	glutPostRedisplay();
@@ -514,7 +516,7 @@ GLvoid Mouse(GLint button, GLint state, GLint x, GLint y)
 
 	if (player != nullptr)
 	{
-		player->ProcessMouse(button, state, x, y);
+		player->ProcessMouse(button, state, x, y, sock);
 	}
 }
 
@@ -741,19 +743,32 @@ SOCKET InitNetwork() {
 	SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock == INVALID_SOCKET) err_quit("socket()");
 
-	//connect(미완성)
+	//connect
 	struct sockaddr_in serveraddr;
 	memset(&serveraddr, 0, sizeof(serveraddr));
 	serveraddr.sin_family = AF_INET;
+	inet_pton(AF_INET, SERVERIP, &serveraddr.sin_addr);
+	serveraddr.sin_port = htons(SERVERPORT);
+	retval = connect(sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
+	if (retval == SOCKET_ERROR) err_quit("connect()");
 
 	return sock;
 }
 
-void SendtoServer(SOCKET sock) {
 
-	int len;
+void RecvfromServer() {
 
-	len = sizeof(BulletInfo);
-
-	retval = send(sock, len, sizeof(int), 0);
 }
+
+/*
+void SendtoServer() {
+
+	//int len =0;
+
+	//len = (char*)GunType;
+
+	//retval = send(sock, (char*)&len, sizeof(GunType), 0);
+	bulletManager->Send(sock);
+}
+
+*/

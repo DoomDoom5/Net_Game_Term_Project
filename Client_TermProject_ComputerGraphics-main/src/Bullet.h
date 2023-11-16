@@ -89,8 +89,12 @@ public:
 	~BulletManager();
 	GLvoid Create(const BulletData& data, const glm::vec3& origin, const glm::vec3& position, const GLfloat& yaw, const GLfloat& pitch);
 	GLvoid CreateExplosion(const COLORREF& color, const glm::vec3& position, const GLfloat& radius, const GLint& amount = 20);
-	GLvoid Draw() const;
+	GLvoid Draw(SOCKET sock) const;
 	GLvoid Update();
+	//GLvoid Send(SOCKET sock);
+	//GLvoid Recv(SOCKET sock);
+
+
 
 	/* Read only */
 	inline constexpr const vector<PaintPlane*>& GetPaints() const { return mPaints; }
