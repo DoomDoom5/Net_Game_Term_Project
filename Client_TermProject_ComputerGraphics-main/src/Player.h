@@ -167,6 +167,7 @@ public:
 	GLvoid ReleaseLegRotation();
 
 	// Variables
+	// ======= Get ======
 	const glm::vec3* GetRefPos() const { return &mPosition; }
 	glm::vec3 GetPosition() const;
 	inline constexpr Camera* GetFirstPersonCamera() { return mFpCamera; }
@@ -180,6 +181,8 @@ public:
 	GLfloat GetHp() const;
 	GunType GetGunType() const;
 
+	// ======= Set ======
+	GLvoid SetPosition(glm::vec3);
 
 	// Add
 	GLvoid AddHoldturret(const GLint& value);

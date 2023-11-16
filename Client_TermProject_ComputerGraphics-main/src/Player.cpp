@@ -608,6 +608,11 @@ GunType Player::GetGunType() const
 	else return GunType::None;
 }
 
+GLvoid Player::SetPosition(glm::vec3 newPos)
+{
+	mBody->SetPosition(newPos);
+}
+
 
 GLint Player::GetHoldTullet() const
 {

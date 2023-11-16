@@ -22,6 +22,7 @@
     <ClInclude Include="src\Building.h" />
     <ClInclude Include="src\Bullet.h" />
     <ClInclude Include="src\Camera.h" />
+    <ClInclude Include="src\Common.h" />
     <ClInclude Include="src\File.h" />
     <ClInclude Include="src\Gun.h" />
     <ClInclude Include="src\Light.h" />

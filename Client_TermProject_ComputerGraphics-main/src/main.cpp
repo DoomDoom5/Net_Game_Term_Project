@@ -15,6 +15,11 @@
 #include "Sound.h"
 #include "Wave.h"
 #include "UI.h"
+#include "Common.h"
+
+char* SERVERIP = (char*)"127.0.0.1";
+#define SERVERPORT 9000
+#define BUFSIZE    512
 
 const Camera* crntCamera = nullptr;
 Camera* cameraMain = nullptr;
@@ -38,6 +43,7 @@ GLvoid ProcessSpecialKeyUp(GLint key, GLint x, GLint y);
 GLvoid ToggleDepthTest();
 GLvoid SetCameraMode(const CameraMode& cameraMode);
 
+GLvoid Initsock(SOCKET& sock);
 // values
 GLint screenPosX = DEFAULT_SCREEN_POS_X;
 GLint screenPosY = DEFAULT_SCREEN_POS_Y;
@@ -79,7 +85,6 @@ GLboolean isRightDown = GL_FALSE;
 ModelObject* cubeMap = nullptr;
 
 // extern
-
 GLint main(GLint argc, GLchar** argv)
 {
 	srand((unsigned int)time(NULL));
@@ -116,12 +121,8 @@ GLint main(GLint argc, GLchar** argv)
 	glutMainLoop();
 }
 
-
-
-
-
-
-
+// sock
+SOCKET sock = NULL;
 
 
 ///// INIT /////
@@ -158,9 +159,13 @@ GLvoid Init()
 
 	waveManager->Start();
 	soundManager->PlayBGMSound(BGMSound::Normal, 0.2f, GL_TRUE);
+
+	//******************************//
+	if (sock == NULL)Initsock(sock);
+
+
 	//system("cls");
 }
-
 GLvoid InitMeshes()
 {
 	InitModels();
@@ -219,7 +224,6 @@ GLvoid InitMeshes()
 	monsterManager->SetPlayer(player);
 	waveManager->SetPlayer(player);
 }
-
 GLvoid Reset()
 {
 	DeleteObjects();
@@ -259,14 +263,7 @@ GLvoid Reset()
 }
 
 
-
-
-
-
-
-
 ///// Draw /////
-
 GLvoid SetWindow(GLint index)
 {
 	const GLint halfWidth = screenWidth / 2;
@@ -287,7 +284,6 @@ GLvoid SetWindow(GLint index)
 		assert(0);
 	}
 }
-
 GLvoid DrawScene()
 {
 	glClearColor(backColor.r, backColor.g, backColor.b, 1.0f);
@@ -349,22 +345,49 @@ GLvoid DrawScene()
 	glutSwapBuffers();
 }
 
+/// Network
+GLvoid Initsock(SOCKET& sock)
+{
+	int retval;
+	WSADATA wsa;
+	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+		return;
 
+	 sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (sock == INVALID_SOCKET) err_quit("socket()");
 
+	// connect()
+	struct sockaddr_in serveraddr;
+	memset(&serveraddr, 0, sizeof(serveraddr));
+	serveraddr.sin_family = AF_INET;
+	inet_pton(AF_INET, SERVERIP, &serveraddr.sin_addr);
+	serveraddr.sin_port = htons(SERVERPORT);
+	retval = connect(sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
+	if (retval == SOCKET_ERROR) err_quit("connect()");
+}
+glm::vec3 recvVector(SOCKET& sock)
+{
+	char buffer[512];
+	int retval = 0;
+	// 데이터 받기
+	retval = recv(sock, buffer, BUFSIZE, 0);
+	if (retval == SOCKET_ERROR) {
+		err_display("recv()");
+		return glm::vec3(0, 0, 0);
+	}
+	else if (retval == 0)
+		return glm::vec3(0,0,0);
 
+	// 데이터 수신
+	// 문자열을 스트림에 넣어 공백을 기준으로 분리
+	std::istringstream iss(buffer);
+	float x, y, z;
+	iss >> x >> y >> z;
+	// 받은 데이터를 출력
+	std::cout << "Received Vector: (" << x << ", " << y << ", " << z << ")\n";
+	return glm::vec3(x, y, z);
 
-
-
-
-
-
-
-
-
-
-
-
-
+}
 
 ///// [ HANDLE EVENTS ] /////
 GLvoid Update()
@@ -372,17 +395,20 @@ GLvoid Update()
 	if (IsGameOver() == GL_TRUE)
 	{
 		glutPostRedisplay();
+
+		// 소켓 닫기
+		closesocket(sock);
+		// 윈속 종료
+		WSACleanup();
+
 		return;
 	}
 
+	player->SetPosition(recvVector(sock));
+	std::cout << "Player Vector: (" << player->GetPosition().x << ", " << player->GetPosition().y << ", " << player->GetPosition().z << ")\n";
 	timer::CalculateFPS();
 	timer::Update();
-
-	if (player != nullptr)
-	{
-		player->Update();
-	}
-
+	if (player != nullptr) player->Update();
 	bulletManager->Update();
 	monsterManager->Update();
 	buildingManager->Update();
@@ -391,7 +417,6 @@ GLvoid Update()
 
 	constexpr GLfloat cameraMovement = 100.0f;
 	GLfloat cameraSpeed = cameraMovement;
-
 	// movement
 	if (cameraMain == cameraFree)
 	{
@@ -445,12 +470,12 @@ GLvoid Update()
 		}
 	}
 	
+	// 데이터 송신
+
 	glutPostRedisplay();
 }
 
-
-
-
+// 대상 컴퓨터에서 연결을 거부 했으므로 연결하지 못했습니다.
 GLvoid Mouse(GLint button, GLint state, GLint x, GLint y)
 {
 	if (IsGameOver() == GL_TRUE)
@@ -487,8 +512,6 @@ GLvoid Mouse(GLint button, GLint state, GLint x, GLint y)
 		player->ProcessMouse(button, state, x, y);
 	}
 }
-
-
 GLvoid MouseMotion(GLint x, GLint y)
 {
 	if (IsGameOver() == GL_TRUE)
@@ -530,8 +553,6 @@ GLvoid MousePassiveMotion(GLint x, GLint y)
 
 	SetCursorPos(mouseCenter.x, mouseCenter.y);
 }
-
-
 
 // interlock with a control key
 static unordered_map<unsigned char, unsigned char> CtrlMap = {
