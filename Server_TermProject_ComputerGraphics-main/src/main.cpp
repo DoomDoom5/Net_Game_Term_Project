@@ -378,6 +378,41 @@ GLvoid Update()
 	timer::CalculateFPS();
 	timer::Update();
 
+	int retval;
+	int len;
+
+	char buf[513];
+	
+	retval = recv(sock, (char*)&len, sizeof(int), MSG_WAITALL);
+
+	switch (len) {
+	//case 1:
+		
+	//case 2:
+
+	case 3:
+		len = 2;
+	}
+
+	retval = recv(sock, buf, len, MSG_WAITALL);
+
+	switch (buf[0]) {
+	case 0:
+		//start fire
+	case 1:
+		//stop fire
+	}
+	switch (buf[1]) {
+	case 0:
+		//guntype = rifle
+	case 1:
+		//guntype = shotgun
+	case 2:
+		//guntype = luncher
+	case 3:
+		//guntype = sniper
+	}
+
 	if (player != nullptr)
 	{
 		player->Update();
