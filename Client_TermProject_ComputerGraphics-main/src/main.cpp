@@ -354,7 +354,7 @@ GLvoid Initsock(SOCKET& sock)
 		return;
 
 	 sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (sock == INVALID_SOCKET) err_quit("socket()");
+//	if (sock == INVALID_SOCKET) err_quit("socket()");
 
 	// connect()
 	struct sockaddr_in serveraddr;
@@ -410,7 +410,7 @@ GLvoid Update()
 	timer::Update();
 	if (player != nullptr) player->Update();
 	bulletManager->Update();
-	monsterManager->Update();
+	monsterManager->Update(sock);
 	buildingManager->Update();
 	turretManager->Update();
 	waveManager->Update();

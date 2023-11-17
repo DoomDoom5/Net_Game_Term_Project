@@ -106,7 +106,7 @@ GLboolean Monster::CheckCollisionBullet(const BulletAtt& bullet, glm::vec3& hitP
 	{
 		return GL_FALSE;
 	}
-	
+
 	glm::vec3 monsterPos = mObject->GetPosition();
 	GLfloat radius = mObject->GetRadius();
 	/* x로 충돌이 없을 경우 */
@@ -283,7 +283,7 @@ GLvoid Koromon::Update(const glm::vec3* target)
 		return;
 	}
 
-	
+
 
 	constexpr GLfloat yaw = 30.0f;
 	constexpr GLfloat weight = 45.0f;
@@ -374,7 +374,7 @@ GLvoid MonsterManager::Create(const MonsterType& monsterType, const glm::vec3& p
 
 	mMonsterList.emplace_back(monster);
 }
-GLvoid MonsterManager::Update()
+GLvoid MonsterManager::Update(SOCKET& sock)
 {
 	for (auto it = mMonsterList.begin(); it != mMonsterList.end();)
 	{
@@ -392,6 +392,22 @@ GLvoid MonsterManager::Update()
 			++it;
 		}
 	}
+
+	const char* numbuf;
+
+	int num = mMonsterList.size();
+	memcpy(&numbuf, &num, sizeof(int));
+	send(sock, numbuf, (int)strlen(numbuf), 0);
+
+	glm::vec3 monsterlist_pos[10000];
+	for (int i = 0; i < num; ++i)
+	{
+		Monster* monster = mMonsterList[i];
+		monsterlist_pos[i] = monster->GetPosition();
+	}
+	const char* buf;
+	memcpy(&buf, &monsterlist_pos, sizeof(glm::vec3) * num);
+	send(sock, buf, (int)strlen(buf), 0);
 }
 GLvoid MonsterManager::Draw() const
 {
@@ -462,5 +478,5 @@ GLvoid MonsterManager::CheckCollision(Monster* monster)
 
 bool MonsterManager::CheckEnemyEmpty()
 {
-	return mMonsterList.empty(); 
+	return mMonsterList.empty();
 }

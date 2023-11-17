@@ -61,27 +61,50 @@ int main(int argc, char* argv[])
 		while (1) {
 			// 데이터 송신
 			// 데이터 수신
-			{
-				// 데이터 통신에 사용할 변수
-				PlayerX += 0.2f;
-				// glm::vec3를 문자열로 변환
-				std::string vec3AsString =
-					std::to_string(PlayerX) + " " +
-					std::to_string(PlayerY) + " " +
-					std::to_string(PlayerZ);
+			//{
+			//	// 데이터 통신에 사용할 변수
+			//	PlayerX += 0.2f;
+			//	// glm::vec3를 문자열로 변환
+			//	std::string vec3AsString =
+			//		std::to_string(PlayerX) + " " +
+			//		std::to_string(PlayerY) + " " +
+			//		std::to_string(PlayerZ);
 
-				// 문자열을 C 스타일의 문자열로 변환
-				const char* buf = vec3AsString.c_str();
+			//	// 문자열을 C 스타일의 문자열로 변환
+			//	const char* buf = vec3AsString.c_str();
 
-				// 데이터 보내기
-				retval = send(client_sock, buf, (int)strlen(buf), 0);
-				if (retval == SOCKET_ERROR) {
-					err_display("send()");
-					break;
-				}
-				printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
-				Sleep(500);
+			//	// 데이터 보내기
+			//	retval = send(client_sock, buf, (int)strlen(buf), 0);
+			//	if (retval == SOCKET_ERROR) {
+			//		err_display("send()");
+			//		break;
+			//	}
+			//	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
+			//	Sleep(500);
+			//}
+			const char* numbuf;
+			int num;
+			retval = recv(client_sock, buffer, BUFSIZE, 0);
+			memcpy(&num, &numbuf, sizeof(int));
+
+			char buffer[1000];
+			float recvv3[10000][3];
+			int retval = 0;
+			// 데이터 받기
+			retval = recv(client_sock, buffer, BUFSIZE, 0);
+
+			memcpy(&recvv3, &buffer, sizeof(num));
+
+			// 데이터 수신
+			// 문자열을 스트림에 넣어 공백을 기준으로 분리
+			std::istringstream iss(buffer);
+			float x, y, z;
+			iss >> x >> y >> z;
+			// 받은 데이터를 출력
+			for (int i = 0; i < num; ++i) {
+				std::cout << i << ": (" << recvv3[i][0] << ", " << recvv3[i][1] << ", " << recvv3[i][2] << ")\n";
 			}
+
 		}
 		// 소켓 닫기
 		closesocket(client_sock);
