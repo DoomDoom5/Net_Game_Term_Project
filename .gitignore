@@ -3,7 +3,7 @@
 *.exe 
 *.ilk 
 *.pdb 
-*.obj 
+!*.obj 
 *.log 
 *.pch 
 *.idb 

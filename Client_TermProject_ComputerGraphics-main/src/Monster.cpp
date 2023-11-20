@@ -106,7 +106,7 @@ GLboolean Monster::CheckCollisionBullet(const BulletAtt& bullet, glm::vec3& hitP
 	{
 		return GL_FALSE;
 	}
-	
+
 	glm::vec3 monsterPos = mObject->GetPosition();
 	GLfloat radius = mObject->GetRadius();
 	/* x로 충돌이 없을 경우 */
@@ -283,7 +283,7 @@ GLvoid Koromon::Update(const glm::vec3* target)
 		return;
 	}
 
-	
+
 
 	constexpr GLfloat yaw = 30.0f;
 	constexpr GLfloat weight = 45.0f;
@@ -374,8 +374,9 @@ GLvoid MonsterManager::Create(const MonsterType& monsterType, const glm::vec3& p
 
 	mMonsterList.emplace_back(monster);
 }
-GLvoid MonsterManager::Update()
+GLvoid MonsterManager::Update(SOCKET& sock)
 {
+	printf("monster 업데이트 진입\n");
 	for (auto it = mMonsterList.begin(); it != mMonsterList.end();)
 	{
 		Monster* monster = *it;
@@ -392,6 +393,30 @@ GLvoid MonsterManager::Update()
 			++it;
 		}
 	}
+
+	char numbuf[512];
+	int num = 0;
+	if (!mMonsterList.empty())
+		num = mMonsterList.size();
+	//memcpy(&numbuf, &num, sizeof(int));
+	snprintf(numbuf, sizeof(numbuf), "%d", num);
+	printf("%d개의 몬스터 위치가 있음\n", num);
+	send(sock, numbuf, sizeof(int), 0);
+	float* monsterlist_pos = new float[num * 3];
+	glm::vec3 pos;
+	for (int i = 0; i < num; ++i)
+	{
+		Monster* monster = mMonsterList[i];
+		pos = monster->GetPosition();
+		monsterlist_pos[i * 3 + 0] = pos.x;
+		monsterlist_pos[i * 3 + 1] = pos.y;
+		monsterlist_pos[i * 3 + 2] = pos.z;
+		printf("%d: (%f, %f, %f)\n", i, pos.x, pos.y, pos.z);
+	}
+	const char* buf;
+	memcpy(&buf, &monsterlist_pos, sizeof(float) * 3 * num);
+	send(sock, buf, sizeof(float) * 3 * num, 0);
+	delete[] monsterlist_pos;
 }
 GLvoid MonsterManager::Draw() const
 {
@@ -462,5 +487,5 @@ GLvoid MonsterManager::CheckCollision(Monster* monster)
 
 bool MonsterManager::CheckEnemyEmpty()
 {
-	return mMonsterList.empty(); 
+	return mMonsterList.empty();
 }

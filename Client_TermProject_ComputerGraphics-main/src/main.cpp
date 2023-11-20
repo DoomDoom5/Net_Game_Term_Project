@@ -354,7 +354,7 @@ GLvoid Initsock(SOCKET& sock)
 		return;
 
 	 sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (sock == INVALID_SOCKET) err_quit("socket()");
+//	if (sock == INVALID_SOCKET) err_quit("socket()");
 
 	// connect()
 	struct sockaddr_in serveraddr;
@@ -364,6 +364,8 @@ GLvoid Initsock(SOCKET& sock)
 	serveraddr.sin_port = htons(SERVERPORT);
 	retval = connect(sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
 	if (retval == SOCKET_ERROR) err_quit("connect()");
+
+	printf("initsocket ÇÔ¼ö\n");
 }
 glm::vec3 recvVector(SOCKET& sock)
 {
@@ -392,6 +394,7 @@ glm::vec3 recvVector(SOCKET& sock)
 ///// [ HANDLE EVENTS ] /////
 GLvoid Update()
 {
+	Sleep(1000 / 60);
 	if (IsGameOver() == GL_TRUE)
 	{
 		glutPostRedisplay();
@@ -404,13 +407,13 @@ GLvoid Update()
 		return;
 	}
 
-	player->SetPosition(recvVector(sock));
+	//player->SetPosition(recvVector(sock));
 	std::cout << "Player Vector: (" << player->GetPosition().x << ", " << player->GetPosition().y << ", " << player->GetPosition().z << ")\n";
 	timer::CalculateFPS();
 	timer::Update();
 	if (player != nullptr) player->Update();
 	bulletManager->Update();
-	monsterManager->Update();
+	monsterManager->Update(sock);
 	buildingManager->Update();
 	turretManager->Update();
 	waveManager->Update();

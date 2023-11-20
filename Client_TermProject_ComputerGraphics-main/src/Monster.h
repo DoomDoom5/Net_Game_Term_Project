@@ -1,7 +1,8 @@
 #pragma once
+#include <winsock2.h> // 윈속2 메인 헤더
+#include <ws2tcpip.h> // 윈속2 확장 헤더
 #include "stdafx.h"
 #include "Bullet.h"
-
 enum class MonsterType { None, Blooper, Egg, Koromon };
 
 class Player;
@@ -74,7 +75,7 @@ class Egg : public Monster, Floatable {
 private:
 	GLfloat mRotationPerSec = 90.0f;
 
-	
+
 public:
 	Egg(const MonsterType& monsterType, const glm::vec3& position);
 	~Egg();
@@ -105,7 +106,7 @@ public:
 	MonsterManager();
 	~MonsterManager();
 	GLvoid Create(const MonsterType& monsterType, const glm::vec3& position);
-	GLvoid Update();
+	GLvoid Update(SOCKET& sock);
 	GLvoid Draw() const;
 	GLvoid SetPlayer(Player* player);
 	GLboolean GetShortestMonsterPos(const glm::vec3& srcPos, const GLfloat& radius, glm::vec3& targetPos) const;
