@@ -376,6 +376,7 @@ GLvoid MonsterManager::Create(const MonsterType& monsterType, const glm::vec3& p
 }
 GLvoid MonsterManager::Update(SOCKET& sock)
 {
+	printf("monster 업데이트 진입\n");
 	for (auto it = mMonsterList.begin(); it != mMonsterList.end();)
 	{
 		Monster* monster = *it;
@@ -393,21 +394,29 @@ GLvoid MonsterManager::Update(SOCKET& sock)
 		}
 	}
 
-	const char* numbuf;
-
-	int num = mMonsterList.size();
-	memcpy(&numbuf, &num, sizeof(int));
-	send(sock, numbuf, (int)strlen(numbuf), 0);
-
-	glm::vec3 monsterlist_pos[10000];
+	char numbuf[512];
+	int num = 0;
+	if (!mMonsterList.empty())
+		num = mMonsterList.size();
+	//memcpy(&numbuf, &num, sizeof(int));
+	snprintf(numbuf, sizeof(numbuf), "%d", num);
+	printf("%d개의 몬스터 위치가 있음\n", num);
+	send(sock, numbuf, sizeof(int), 0);
+	float* monsterlist_pos = new float[num * 3];
+	glm::vec3 pos;
 	for (int i = 0; i < num; ++i)
 	{
 		Monster* monster = mMonsterList[i];
-		monsterlist_pos[i] = monster->GetPosition();
+		pos = monster->GetPosition();
+		monsterlist_pos[i * 3 + 0] = pos.x;
+		monsterlist_pos[i * 3 + 1] = pos.y;
+		monsterlist_pos[i * 3 + 2] = pos.z;
+		printf("%d: (%f, %f, %f)\n", i, pos.x, pos.y, pos.z);
 	}
 	const char* buf;
-	memcpy(&buf, &monsterlist_pos, sizeof(glm::vec3) * num);
-	send(sock, buf, (int)strlen(buf), 0);
+	memcpy(&buf, &monsterlist_pos, sizeof(float) * 3 * num);
+	send(sock, buf, sizeof(float) * 3 * num, 0);
+	delete[] monsterlist_pos;
 }
 GLvoid MonsterManager::Draw() const
 {
