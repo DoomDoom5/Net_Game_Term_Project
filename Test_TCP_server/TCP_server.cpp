@@ -66,17 +66,24 @@ int main(int argc, char* argv[])
 				int num = atoi(numbuf);
 				//memcpy(&num, &numbuf, sizeof(int));
 				printf("%d개의 데이터를 받을게요\n", num);
-				char* buffer = new char[sizeof(float) * 3 * sizeof(num)];
-				float* recvv3 = new float[num * 3];
+				char buffer[2000];
+				float recvv3[1000] = {};
 				// 데이터 받기
 				retval = 0;
-				retval = recv(client_sock, buffer, sizeof(float) * 3 * sizeof(num), 0);
+				retval = recv(client_sock, buffer, 2000, 0);
 				if (retval == SOCKET_ERROR) {
 					err_display("send()");
 					break;
 				}
-				memcpy(&recvv3, &buffer, sizeof(float) * 3 * sizeof(num));
+				//printf("%s", buffer);
 
+				std::stringstream ss(buffer);
+				std::string token;
+				int i = 0;
+				float currentValue;
+				while (ss >> currentValue) {
+					recvv3[i++] = currentValue;
+				}
 				// 받은 데이터를 출력
 				for (int i = 0; i < num; ++i) {
 					std::cout << i << ": (" << recvv3[3*i + 0] << ", " << recvv3[3*i + 1] << ", " << recvv3[3*i + 2] << ")\n";

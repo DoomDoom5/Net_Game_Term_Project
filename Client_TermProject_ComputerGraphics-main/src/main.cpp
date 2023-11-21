@@ -164,7 +164,7 @@ GLvoid Init()
 	if (sock == NULL)Initsock(sock);
 
 
-	//system("cls");
+	system("cls");
 }
 GLvoid InitMeshes()
 {
@@ -394,7 +394,7 @@ glm::vec3 recvVector(SOCKET& sock)
 ///// [ HANDLE EVENTS ] /////
 GLvoid Update()
 {
-	Sleep(1000 / 60);
+	system("cls");
 	if (IsGameOver() == GL_TRUE)
 	{
 		glutPostRedisplay();
@@ -408,7 +408,7 @@ GLvoid Update()
 	}
 
 	//player->SetPosition(recvVector(sock));
-	std::cout << "Player Vector: (" << player->GetPosition().x << ", " << player->GetPosition().y << ", " << player->GetPosition().z << ")\n";
+	//std::cout << "Player Vector: (" << player->GetPosition().x << ", " << player->GetPosition().y << ", " << player->GetPosition().z << ")\n";
 	timer::CalculateFPS();
 	timer::Update();
 	if (player != nullptr) player->Update();
