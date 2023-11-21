@@ -42,7 +42,7 @@ public:
 	GLboolean CheckCollisionBullet(const BulletAtt& bullet, glm::vec3& hitPoint, glm::vec3& normal);
 	glm::vec3 GetPosition() const;
 	glm::vec3 GetCenter() const;
-
+	GLvoid SetPosition(float x, float y, float z);
 	GLvoid Damage(const GLfloat& damage);
 
 	GLvoid Attack(Player* player);

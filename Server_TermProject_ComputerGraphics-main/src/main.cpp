@@ -17,7 +17,7 @@
 #include "UI.h"
 #include "Common.h"
 
-#define SERVERPORT 8000
+#define SERVERPORT 9000
 #define BUFSIZE    512
 
 const Camera* crntCamera = nullptr;
@@ -30,7 +30,7 @@ GLvoid Init();
 GLvoid InitMeshes();
 GLvoid DrawScene();
 
-GLvoid Update();
+GLvoid Update(SOCKET sock);
 GLvoid Mouse(GLint button, GLint state, GLint x, GLint y);
 GLvoid MouseMotion(GLint x, GLint y);
 GLvoid MousePassiveMotion(GLint x, GLint y);
@@ -38,6 +38,7 @@ GLvoid ProcessKeyDown(unsigned char key, GLint x, GLint y);
 GLvoid ProcessKeyUp(unsigned char key, GLint x, GLint y);
 GLvoid ProcessSpecialKeyDown(GLint key, GLint x, GLint y);
 GLvoid ProcessSpecialKeyUp(GLint key, GLint x, GLint y);
+GLvoid init_Listen_Sock(SOCKET& sock);
 
 GLvoid ToggleDepthTest();
 GLvoid SetCameraMode(const CameraMode& cameraMode);
@@ -82,45 +83,98 @@ GLboolean isRightDown = GL_FALSE;
 // temp
 ModelObject* cubeMap = nullptr;
 
+// Socket
+//SOCKET sock = NULL;
+
 // extern
 GLint main(GLint argc, GLchar** argv)
 {
-	srand((unsigned int)time(NULL));
+	//InitMeshes();
+	//timer::Init();
 
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-	glutInitWindowPosition(DEFAULT_SCREEN_POS_X, DEFAULT_SCREEN_POS_Y);
-	glutInitWindowSize(DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
-	glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
-	glShadeModel(GL_SMOOTH);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glutCreateWindow("TestProject");
+	int retval;
 
-	glewExperimental = GL_TRUE;
+	// 윈속 초기화
+	WSADATA wsa;
+	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+		return 1;
 
-	Init();
+	// 소켓 생성
+	SOCKET listen_sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (listen_sock == INVALID_SOCKET) err_quit("socket()");
 
-	glutIdleFunc(Update);
-	glutDisplayFunc(DrawScene);
-	glutReshapeFunc(Reshape);
-	glutSetCursor(GLUT_CURSOR_NONE);
-	
-	glutMouseFunc(Mouse);
-	glutMotionFunc(MouseMotion);
-	glutPassiveMotionFunc(MousePassiveMotion);
+	// bind()
+	struct sockaddr_in serveraddr;
+	memset(&serveraddr, 0, sizeof(serveraddr));
+	serveraddr.sin_family = AF_INET;
+	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	serveraddr.sin_port = htons(SERVERPORT);
+	retval = ::bind(listen_sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
+	if (retval == SOCKET_ERROR) err_quit("bind()");
 
-	glutPositionFunc(RePosition);
-	glutKeyboardFunc(ProcessKeyDown);
-	glutKeyboardUpFunc(ProcessKeyUp);
-	glutSpecialFunc(ProcessSpecialKeyDown);
-	glutSpecialUpFunc(ProcessSpecialKeyUp);
-	timer::StartUpdate();
+	// listen()
+	retval = listen(listen_sock, SOMAXCONN);
+	if (retval == SOCKET_ERROR) err_quit("listen()");
 
-	glutMainLoop();
+	// 데이터 통신에 사용할 변수
+	SOCKET client_sock;
+	struct sockaddr_in clientaddr;
+	int addrlen;
+
+	while (1) {
+
+		// accept()
+		addrlen = sizeof(clientaddr);
+		client_sock = accept(listen_sock, (struct sockaddr*)&clientaddr, &addrlen);
+		if (client_sock == INVALID_SOCKET) {
+			err_display("accept()");
+			break;
+		}
+
+		// 접속한 클라이언트 정보 출력
+		char addr[INET_ADDRSTRLEN];
+		inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
+		printf("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\n",
+			addr, ntohs(clientaddr.sin_port));
+
+		while (1) {
+			{
+				system("cls");
+				char numbuf[BUFSIZE] = { "4" };
+				int num = 4;
+				retval = 0;
+				retval = send(client_sock, numbuf, sizeof(BUFSIZE), 0);
+				if (retval == SOCKET_ERROR) {
+					err_display("send()");
+					break;
+				}
+				printf("4를 보냈음.\n");
+				char buffer[2000] = {
+					"10.0 0.0 30.0 15.0 0.0 0.0 10.0 10.0 0.0 20.0 0.0 20.0 " };
+				// 데이터 받기
+				retval = 0;
+				retval = send(client_sock, buffer, 2000, 0);
+				if (retval == SOCKET_ERROR) {
+					err_display("send()");
+					break;
+				}
+				//Update(client_sock);
+			}
+
+		}
+		// 소켓 닫기
+		closesocket(client_sock);
+		printf("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n",
+			addr, ntohs(clientaddr.sin_port));
+	}
+
+	// 소켓 닫기
+	closesocket(listen_sock);
+
+	// 윈속 종료
+	WSACleanup();
+	return 0;
 }
-
-// socket
-SOCKET server_sock = NULL;
 
 ///// INIT /////
 MyColor backColor;
@@ -156,20 +210,24 @@ GLvoid Init()
 
 	waveManager->Start();
 	soundManager->PlayBGMSound(BGMSound::Normal, 0.2f, GL_TRUE);
-	//system("cls");
+
+	//******************************//
+	//if (listenSock == NULL)init_Listen_Sock(listenSock);
+
+	system("cls");
 }
 
 GLvoid InitMeshes()
 {
-	InitModels();
-	InitObject();
+	//InitModels();
+	//InitObject();
 	bulletManager = new BulletManager();
 	monsterManager = new MonsterManager();
 	buildingManager = new BuildingManager();
 	turretManager = new TurretManager();
 	soundManager = new SoundManager();
 	waveManager = new WaveManager();
-	uiManager = new UIManager();
+	//uiManager = new UIManager();
 
 	buildingManager->Create(BuildingType::Core, { 0, 0, 550 });
 
@@ -201,11 +259,11 @@ GLvoid InitMeshes()
 	//**************************************************//
 	
 	// test object
-	const Model* cubeMapModel = GetTextureModel(Textures::CubeMap);
-	cubeMap = new ModelObject(cubeMapModel, Shader::Texture);
-	cubeMap->SetTexture(Textures::CubeMap);
-	cubeMap->Scale(150);
-	cubeMap->SetPosY(-cubeMap->GetHeight() / 2);
+	//const Model* cubeMapModel = GetTextureModel(Textures::CubeMap);
+	//cubeMap = new ModelObject(cubeMapModel, Shader::Texture);
+	//cubeMap->SetTexture(Textures::CubeMap);
+	//cubeMap->Scale(150);
+	//cubeMap->SetPosY(-cubeMap->GetHeight() / 2);
 
 	// light object
 	light = new Light();
@@ -341,11 +399,8 @@ GLvoid DrawScene()
 	glutSwapBuffers();
 }
 
-
-
-
 ///// [ HANDLE EVENTS ] /////
-GLvoid Update()
+GLvoid Update(SOCKET sock)
 {
 	if (IsGameOver() == GL_TRUE)
 	{
@@ -361,11 +416,11 @@ GLvoid Update()
 		player->Update();
 	}
 
-	bulletManager->Update();
-	monsterManager->Update();
-	buildingManager->Update();
-	turretManager->Update();
-	waveManager->Update();
+	//bulletManager->Update();
+	monsterManager->Update(sock);
+	//buildingManager->Update();
+	//turretManager->Update();
+	//waveManager->Update();
 
 	constexpr GLfloat cameraMovement = 100.0f;
 	GLfloat cameraSpeed = cameraMovement;
@@ -673,7 +728,7 @@ GLvoid SetCameraMode(const CameraMode& mode)
 	cameraMode = mode;
 }
 
-GLvoid init_Listen_Sock(SOCKET& listen_sock)
+GLvoid init_Listen_Sock(SOCKET& sock)
 {
 	int retval;
 
@@ -683,8 +738,8 @@ GLvoid init_Listen_Sock(SOCKET& listen_sock)
 		return;
 
 	// 소켓 생성
-	 listen_sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (listen_sock == INVALID_SOCKET) err_quit("socket()");
+	sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (sock == INVALID_SOCKET) err_quit("socket()");
 
 	// bind()
 	struct sockaddr_in serveraddr;
@@ -692,22 +747,23 @@ GLvoid init_Listen_Sock(SOCKET& listen_sock)
 	serveraddr.sin_family = AF_INET;
 	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	serveraddr.sin_port = htons(SERVERPORT);
-	bind(listen_sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
+	bind(sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
 
 	// listen()
-	retval = listen(listen_sock, SOMAXCONN);
+	retval = listen(sock, SOMAXCONN);
 	if (retval == SOCKET_ERROR) err_quit("listen()");
 
-	
+	printf("init_listen_socket 함수\n");
 
-	// 소켓 닫기
-	closesocket(listen_sock);
+	//// 소켓 닫기
+	//closesocket(sock);
 
-	// 윈속 종료
-	WSACleanup();
-	return;
+	//// 윈속 종료
+	//WSACleanup();
+	//return;
 }
-GLvoid sendVector(SOCKET& listen_sock)
+
+GLvoid sendVector(SOCKET& sock)
 {
 	int retval;
 
@@ -719,7 +775,7 @@ GLvoid sendVector(SOCKET& listen_sock)
 
 		// accept()
 		addrlen = sizeof(clientaddr);
-		client_sock = accept(listen_sock, (struct sockaddr*)&clientaddr, &addrlen);
+		client_sock = accept(sock, (struct sockaddr*)&clientaddr, &addrlen);
 		if (client_sock == INVALID_SOCKET) {
 			err_display("accept()");
 			break;
