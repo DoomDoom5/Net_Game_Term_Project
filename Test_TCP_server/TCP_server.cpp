@@ -4,7 +4,15 @@
 #include <sstream>
 
 #define SERVERPORT 9000
-#define BUFSIZE    512
+#define BUFSIZE    1024
+
+using namespace std;
+
+// send
+void sendPos(SOCKET& client_sock);
+
+// recv
+void recvClientInfo(SOCKET& client_sock);
 
 int main(int argc, char* argv[])
 {
@@ -32,11 +40,12 @@ int main(int argc, char* argv[])
 	retval = listen(listen_sock, SOMAXCONN);
 	if (retval == SOCKET_ERROR) err_quit("listen()");
 
+	cout << "서버 생성 완료!." << endl;
+
 	// 데이터 통신에 사용할 변수
 	SOCKET client_sock;
 	struct sockaddr_in clientaddr;
 	int addrlen;
-
 	while (1) {
 
 		// accept()
@@ -54,34 +63,26 @@ int main(int argc, char* argv[])
 			addr, ntohs(clientaddr.sin_port));
 
 		// ============ 클라이언트와 데이터 통신 ==================
-		char buffer[BUFSIZE];
-		float PlayerX = 0.0f;
-		float PlayerY = 0.0f;
-		float PlayerZ = 0.0f;
+		
 		while (1) {
-			// 데이터 송신
+		
+			/*
+			게임 연산....
+			*/
+
 			// 데이터 수신
 			{
-				// 데이터 통신에 사용할 변수
-				PlayerX += 0.2f;
-				// glm::vec3를 문자열로 변환
-				std::string vec3AsString =
-					std::to_string(PlayerX) + " " +
-					std::to_string(PlayerY) + " " +
-					std::to_string(PlayerZ);
-
-				// 문자열을 C 스타일의 문자열로 변환
-				const char* buf = vec3AsString.c_str();
-
-				// 데이터 보내기
-				retval = send(client_sock, buf, (int)strlen(buf), 0);
-				if (retval == SOCKET_ERROR) {
-					err_display("send()");
-					break;
-				}
-				printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
-				Sleep(500);
+			//	sendPos(client_sock);
 			}
+
+			// 데이터 송신
+			{
+				recvClientInfo(client_sock);
+			}
+
+
+			Sleep(1000/10);
+
 		}
 		// 소켓 닫기
 		closesocket(client_sock);
@@ -95,4 +96,53 @@ int main(int argc, char* argv[])
 	// 윈속 종료
 	WSACleanup();
 	return 0;
+}
+
+void recvClientInfo(SOCKET& client_sock)
+{
+	char DirX, DirY, DirZ = 0;
+	bool mIsFire = false;
+	float Yaw, Pitch = 0;
+
+	char buffer[BUFSIZE];
+	int retval = 0;
+	retval = recv(client_sock, buffer, BUFSIZE, 0);
+
+	std::istringstream iss(buffer);
+
+	iss >> DirX >> DirY >> DirZ >> mIsFire >> Yaw >> Pitch;
+
+	cout << "방향 벡터 : < " << DirX << " , " << DirY << " , " << DirZ << " > " << endl
+			<< "발사 유무 : " << mIsFire << endl
+			<< " 마우스 좌표 : " << Yaw << " , " << Pitch << endl;
+
+}
+
+void sendPos(SOCKET& client_sock)
+{
+	char buffer[BUFSIZE];
+	float PlayerX = 0.0f;
+	float PlayerY = 0.0f;
+	float PlayerZ = 0.0f;
+
+	int retval;
+
+	// 데이터 통신에 사용할 변수
+	PlayerX += 0.2f;
+	// glm::vec3를 문자열로 변환
+	std::string vec3AsString =
+		std::to_string(PlayerX) + " " +
+		std::to_string(PlayerY) + " " +
+		std::to_string(PlayerZ);
+
+	// 문자열을 C 스타일의 문자열로 변환
+	const char* buf = vec3AsString.c_str();
+
+	// 데이터 보내기
+	retval = send(client_sock, buf, (int)strlen(buf), 0);
+	if (retval == SOCKET_ERROR) {
+		err_display("send()");
+		return;
+	}
+	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
 }

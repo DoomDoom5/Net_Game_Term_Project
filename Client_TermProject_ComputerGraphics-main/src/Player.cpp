@@ -447,10 +447,12 @@ GLvoid Player::ProcessMouse(GLint button, GLint state, GLint x, GLint y)
 		if (state == GLUT_DOWN)
 		{
 			mCrntGun->StartFire();
+			mlsFire = true;
 		}
 		else if (state == GLUT_UP)
 		{
 			mCrntGun->StopFire();
+			mlsFire = false;
 		}
 		break;
 	}

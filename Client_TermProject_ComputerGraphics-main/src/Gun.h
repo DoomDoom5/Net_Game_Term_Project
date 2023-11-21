@@ -46,6 +46,7 @@ public:
 
 	inline constexpr GLfloat GetYaw() const { return mYaw; }
 	inline constexpr GLfloat GetPitch() const { return mPitch; }
+	bool GetFireState() const { return mIsFire; };
 
 	GLvoid Reload();
 	inline constexpr GLboolean IsReloading() const { return mCrntReloadTime > 0; }

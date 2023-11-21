@@ -117,6 +117,7 @@ private:
 	GLfloat mJumpSpeed = PLAYER_JUMP_SPEED;
 	GLint mHoldTurret = 0;
 	GLfloat mFrameTime = 0.0f;
+	bool mlsFire = false;
 
 	// for collision
 	Circle* mBoundingCircle = nullptr;
@@ -180,6 +181,10 @@ public:
 	GLvoid Damage(const GLfloat& damage);
 	GLfloat GetHp() const;
 	GunType GetGunType() const;
+	bool GetIsFIre() { return mlsFire; };
+	GLfloat GetYaw() { return mYaw; };
+	GLfloat GetPitch() { return mPitch; };
+
 
 	// ======= Set ======
 	GLvoid SetPosition(glm::vec3);
