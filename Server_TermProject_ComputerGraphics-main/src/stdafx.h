@@ -31,6 +31,7 @@
 #include <myGL/glm/gtc/matrix_transform.hpp>
 
 #include <fmod.hpp>
+#include <iomanip>
 
 // colors
 #define BLACK RGB(0, 0, 0)

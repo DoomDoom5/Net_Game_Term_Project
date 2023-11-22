@@ -20,6 +20,10 @@
 #define SERVERPORT 9000
 #define BUFSIZE    512
 
+char* SERVERIP = (char*)"127.0.0.1";
+#define SERVERPORT 9000
+#define BUFSIZE 50
+
 const Camera* crntCamera = nullptr;
 Camera* cameraMain = nullptr;
 Camera* cameraFree = nullptr;
@@ -30,7 +34,7 @@ GLvoid Init();
 GLvoid InitMeshes();
 GLvoid DrawScene();
 
-GLvoid Update(SOCKET sock);
+GLvoid Update();
 GLvoid Mouse(GLint button, GLint state, GLint x, GLint y);
 GLvoid MouseMotion(GLint x, GLint y);
 GLvoid MousePassiveMotion(GLint x, GLint y);
@@ -45,7 +49,7 @@ GLvoid SetCameraMode(const CameraMode& cameraMode);
 
 // network
 GLvoid init_Listen_Sock(SOCKET& listen_sock);
-GLvoid init_Client_Sock(SOCKET& listen_sock);
+GLvoid init_Client_Sock(SOCKET& client_sock, sockaddr_in& clientaddr, int addrlen);
 
 
 // values
@@ -88,10 +92,11 @@ GLboolean isRightDown = GL_FALSE;
 // temp
 ModelObject* cubeMap = nullptr;
 
-// Socket
-//SOCKET sock = NULL;
+// socket
+SOCKET listen_sock = NULL;
+SOCKET client_sock = NULL;
+// 일단은 1 : 1 플레이
 
-// extern
 GLint main(GLint argc, GLchar** argv)
 {
 	srand((unsigned int)time(NULL));
@@ -132,84 +137,11 @@ GLint main(GLint argc, GLchar** argv)
 	//glutKeyboardUpFunc(ProcessKeyUp);
 	//glutSpecialFunc(ProcessSpecialKeyDown);
 	//glutSpecialUpFunc(ProcessSpecialKeyUp);
+
 	timer::StartUpdate();
-	// bind()
-	struct sockaddr_in serveraddr;
-	memset(&serveraddr, 0, sizeof(serveraddr));
-	serveraddr.sin_family = AF_INET;
-	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	serveraddr.sin_port = htons(SERVERPORT);
-	retval = ::bind(listen_sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
-	if (retval == SOCKET_ERROR) err_quit("bind()");
 
-	// listen()
-	retval = listen(listen_sock, SOMAXCONN);
-	if (retval == SOCKET_ERROR) err_quit("listen()");
-
-	// 데이터 통신에 사용할 변수
-	SOCKET client_sock;
-	struct sockaddr_in clientaddr;
-	int addrlen;
-
-	while (1) {
-
-		// accept()
-		addrlen = sizeof(clientaddr);
-		client_sock = accept(listen_sock, (struct sockaddr*)&clientaddr, &addrlen);
-		if (client_sock == INVALID_SOCKET) {
-			err_display("accept()");
-			break;
-		}
-
-		// 접속한 클라이언트 정보 출력
-		char addr[INET_ADDRSTRLEN];
-		inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
-		printf("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\n",
-			addr, ntohs(clientaddr.sin_port));
-
-		while (1) {
-			{
-				system("cls");
-				char numbuf[BUFSIZE] = { "4" };
-				int num = 4;
-				retval = 0;
-				retval = send(client_sock, numbuf, sizeof(BUFSIZE), 0);
-				if (retval == SOCKET_ERROR) {
-					err_display("send()");
-					break;
-				}
-				printf("4를 보냈음.\n");
-				char buffer[2000] = {
-					"10.0 0.0 30.0 15.0 0.0 0.0 10.0 10.0 0.0 20.0 0.0 20.0 " };
-				// 데이터 받기
-				retval = 0;
-				retval = send(client_sock, buffer, 2000, 0);
-				if (retval == SOCKET_ERROR) {
-					err_display("send()");
-					break;
-				}
-				//Update(client_sock);
-			}
-
-		}
-		// 소켓 닫기
-		closesocket(client_sock);
-		printf("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n",
-			addr, ntohs(clientaddr.sin_port));
-	}
-
-	// 소켓 닫기
-	closesocket(listen_sock);
-
-	// 윈속 종료
-	WSACleanup();
-	return 0;
 }
 
-// socket
-SOCKET listen_sock = NULL;
-SOCKET client_sock = NULL;
-// 일단은 1 : 1 플레이
 
 ///// INIT /////
 MyColor backColor;
@@ -248,7 +180,6 @@ GLvoid Init()
 
 	//************ [Server]************
 	init_Listen_Sock(listen_sock);
-	init_Client_Sock(client_sock);
 	//system("cls");
 	//******************************//
 	//if (listenSock == NULL)init_Listen_Sock(listenSock);
@@ -449,15 +380,15 @@ GLvoid Update()
 
 	timer::CalculateFPS();
 	timer::Update();
-
+	
 	if (player != nullptr)	player->Update();
 
-	//bulletManager->Update();
+	bulletManager->Update(client_sock);
 	monsterManager->Update(client_sock);
 	//buildingManager->Update();
 	//turretManager->Update();
 	//waveManager->Update();
-
+	
 	constexpr GLfloat cameraMovement = 100.0f;
 	GLfloat cameraSpeed = cameraMovement;
 
@@ -814,61 +745,59 @@ GLvoid init_Client_Sock(SOCKET& Client_sock, sockaddr_in& clientaddr, int addrle
 
 GLvoid sendVector(SOCKET& sock)
 {
-	int retval;
+		int retval;
 
-	// 데이터 통신에 사용할 변수
-	SOCKET client_sock;
-	struct sockaddr_in clientaddr;
-	int addrlen;
-	while (1) {
-
-		// accept()
-		addrlen = sizeof(clientaddr);
-		client_sock = accept(sock, (struct sockaddr*)&clientaddr, &addrlen);
-		if (client_sock == INVALID_SOCKET) {
-			err_display("accept()");
-			break;
-		}
-
-		// 접속한 클라이언트 정보 출력
-		char addr[INET_ADDRSTRLEN];
-		inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
-		printf("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\n",
-			addr, ntohs(clientaddr.sin_port));
-
-		// ============ 클라이언트와 데이터 통신 ==================
-		char buffer[BUFSIZE];
-		float PlayerX = 0.0f;
-		float PlayerY = 0.0f;
-		float PlayerZ = 0.0f;
+		// 데이터 통신에 사용할 변수
+		SOCKET client_sock;
+		struct sockaddr_in clientaddr;
+		int addrlen;
 		while (1) {
-			// 데이터 송신
-			// 데이터 수신
-			{
-				PlayerX += 0.2f;
-				// glm::vec3를 문자열로 변환
-				std::string vec3AsString =
-					std::to_string(PlayerX) + " " +
-					std::to_string(PlayerY) + " " +
-					std::to_string(PlayerZ);
-
-				// 문자열을 C 스타일의 문자열로 변환
-				const char* buf = vec3AsString.c_str();
-
-				// 데이터 보내기
-				retval = send(client_sock, buf, (int)strlen(buf), 0);
-				if (retval == SOCKET_ERROR) {
-					err_display("send()");
-					break;
-				}
-				printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
-				Sleep(500);
+			// accept()
+			addrlen = sizeof(clientaddr);
+			client_sock = accept(sock, (struct sockaddr*)&clientaddr, &addrlen);
+			if (client_sock == INVALID_SOCKET) {
+				err_display("accept()");
+				break;
 			}
-		}
-		// 소켓 닫기
-		closesocket(client_sock);
-		printf("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n",
-			addr, ntohs(clientaddr.sin_port));
-	}
 
-}
+			// 접속한 클라이언트 정보 출력
+			char addr[INET_ADDRSTRLEN];
+			inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
+			printf("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\n",
+				addr, ntohs(clientaddr.sin_port));
+
+			// ============ 클라이언트와 데이터 통신 ==================
+			char buffer[BUFSIZE];
+			float PlayerX = 0.0f;
+			float PlayerY = 0.0f;
+			float PlayerZ = 0.0f;
+			while (1) {
+				// 데이터 송신
+				// 데이터 수신
+				{
+					PlayerX += 0.2f;
+					// glm::vec3를 문자열로 변환
+					std::string vec3AsString =
+						std::to_string(PlayerX) + " " +
+						std::to_string(PlayerY) + " " +
+						std::to_string(PlayerZ);
+
+					// 문자열을 C 스타일의 문자열로 변환
+					const char* buf = vec3AsString.c_str();
+
+					// 데이터 보내기
+					retval = send(client_sock, buf, (int)strlen(buf), 0);
+					if (retval == SOCKET_ERROR) {
+						err_display("send()");
+						break;
+					}
+					printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
+					Sleep(500);
+				}
+			}
+			// 소켓 닫기
+			closesocket(client_sock);
+			printf("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n",
+				addr, ntohs(clientaddr.sin_port));
+		}
+	}

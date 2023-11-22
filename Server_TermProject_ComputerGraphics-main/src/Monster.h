@@ -107,7 +107,7 @@ public:
 	MonsterManager();
 	~MonsterManager();
 	GLvoid Create(const MonsterType& monsterType, const glm::vec3& position);
-	GLvoid Update(SOCKET& sock);
+	GLvoid Update(const SOCKET sock);
 	GLvoid Draw() const;
 	GLvoid SetPlayer(Player* player);
 	GLboolean GetShortestMonsterPos(const glm::vec3& srcPos, const GLfloat& radius, glm::vec3& targetPos) const;

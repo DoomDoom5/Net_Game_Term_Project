@@ -374,7 +374,7 @@ GLvoid MonsterManager::Create(const MonsterType& monsterType, const glm::vec3& p
 
 	mMonsterList.emplace_back(monster);
 }
-GLvoid MonsterManager::Update(SOCKET& sock)
+GLvoid MonsterManager::Update(SOCKET sock)
 {
 	printf("monster 업데이트 진입\n");
 	for (auto it = mMonsterList.begin(); it != mMonsterList.end();)

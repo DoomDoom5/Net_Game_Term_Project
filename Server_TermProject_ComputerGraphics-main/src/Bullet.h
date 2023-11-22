@@ -1,4 +1,6 @@
 #pragma once
+#include <winsock2.h> // 윈속2 메인 헤더
+#include <ws2tcpip.h> // 윈속2 확장 헤더
 #include "stdafx.h"
 #include "Object.h"
 
@@ -90,7 +92,7 @@ public:
 	GLvoid Create(const BulletData& data, const glm::vec3& origin, const glm::vec3& position, const GLfloat& yaw, const GLfloat& pitch);
 	GLvoid CreateExplosion(const COLORREF& color, const glm::vec3& position, const GLfloat& radius, const GLint& amount = 20);
 	GLvoid Draw() const;
-	GLvoid Update();
+	GLvoid Update(const SOCKET sock);
 
 	/* Read only */
 	inline constexpr const vector<PaintPlane*>& GetPaints() const { return mPaints; }

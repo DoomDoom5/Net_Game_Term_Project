@@ -106,8 +106,7 @@ GLint main(GLint argc, GLchar** argv)
 	glewExperimental = GL_TRUE;
 
 	Init();
-
-	glutIdleFunc(Update);
+	glutIdleFunc(Update);	
 	glutDisplayFunc(DrawScene);
 	glutReshapeFunc(Reshape);
 	glutSetCursor(GLUT_CURSOR_NONE);
@@ -435,6 +434,10 @@ glm::vec3 recvVector(SOCKET& sock)
 GLvoid Update()
 {
 	system("cls");
+
+	// 데이터 수신
+	//RecvfromServer();
+
 	if (IsGameOver() == GL_TRUE)
 	{
 		glutPostRedisplay();
@@ -447,22 +450,17 @@ GLvoid Update()
 		return;
 	}
 
-<<<<<<< HEAD
 	// 데이터 수신
 	{
 		player->SetPosition(recvVector(sock));
 		std::cout << "Player Vector: (" << player->GetPosition().x << ", " << player->GetPosition().y << ", " << player->GetPosition().z << ")\n";
 	}
-=======
-	//player->SetPosition(recvVector(sock));
-	//std::cout << "Player Vector: (" << player->GetPosition().x << ", " << player->GetPosition().y << ", " << player->GetPosition().z << ")\n";
->>>>>>> origin/Monster-/-Turret
 	timer::CalculateFPS();
 	timer::Update();
 	if (player != nullptr) player->Update();
-	bulletManager->Update();
+	bulletManager->Update(sock);
 	monsterManager->Update(sock);
-	buildingManager->Update();
+	buildingManager->Update(sock);
 	turretManager->Update();
 	waveManager->Update();
 
@@ -520,7 +518,7 @@ GLvoid Update()
 			}
 		}
 	}
-	
+
 	// 데이터 송신
 	{
 		sendPlayerInfo(player, sock);
