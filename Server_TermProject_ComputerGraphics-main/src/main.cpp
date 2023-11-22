@@ -42,6 +42,11 @@ GLvoid ProcessSpecialKeyUp(GLint key, GLint x, GLint y);
 GLvoid ToggleDepthTest();
 GLvoid SetCameraMode(const CameraMode& cameraMode);
 
+// network
+GLvoid init_Listen_Sock(SOCKET& listen_sock);
+GLvoid init_Client_Sock(SOCKET& listen_sock);
+
+
 // values
 GLint screenPosX = DEFAULT_SCREEN_POS_X;
 GLint screenPosY = DEFAULT_SCREEN_POS_Y;
@@ -86,7 +91,6 @@ ModelObject* cubeMap = nullptr;
 GLint main(GLint argc, GLchar** argv)
 {
 	srand((unsigned int)time(NULL));
-
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 	glutInitWindowPosition(DEFAULT_SCREEN_POS_X, DEFAULT_SCREEN_POS_Y);
@@ -95,32 +99,33 @@ GLint main(GLint argc, GLchar** argv)
 	glShadeModel(GL_SMOOTH);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glutCreateWindow("TestProject");
-
 	glewExperimental = GL_TRUE;
 
 	Init();
 
 	glutIdleFunc(Update);
-	// glutDisplayFunc(DrawScene);
-	glutReshapeFunc(Reshape);
-	glutSetCursor(GLUT_CURSOR_NONE);
+	glutDisplayFunc(DrawScene);
+	//glutReshapeFunc(Reshape);
+	//glutSetCursor(GLUT_CURSOR_NONE);
 	
-	glutMouseFunc(Mouse);
-	glutMotionFunc(MouseMotion);
-	glutPassiveMotionFunc(MousePassiveMotion);
+	//glutMouseFunc(Mouse);
+	//glutMotionFunc(MouseMotion);
+	//glutPassiveMotionFunc(MousePassiveMotion);
 
-	glutPositionFunc(RePosition);
-	glutKeyboardFunc(ProcessKeyDown);
-	glutKeyboardUpFunc(ProcessKeyUp);
-	glutSpecialFunc(ProcessSpecialKeyDown);
-	glutSpecialUpFunc(ProcessSpecialKeyUp);
+	//glutPositionFunc(RePosition);
+	//glutKeyboardFunc(ProcessKeyDown);
+	//glutKeyboardUpFunc(ProcessKeyUp);
+	//glutSpecialFunc(ProcessSpecialKeyDown);
+	//glutSpecialUpFunc(ProcessSpecialKeyUp);
 	timer::StartUpdate();
 
 	glutMainLoop();
 }
 
 // socket
-SOCKET server_sock = NULL;
+SOCKET listen_sock = NULL;
+SOCKET client_sock = NULL;
+// 일단은 1 : 1 플레이
 
 ///// INIT /////
 MyColor backColor;
@@ -152,10 +157,14 @@ GLvoid Init()
 	crntCamera = cameraMain;
 	//********************************//
 
-	mouseCenter = { screenWidth / 2 + screenPosX, screenHeight / 2 + screenPosY };
+	 mouseCenter = { screenWidth / 2 + screenPosX, screenHeight / 2 + screenPosY };
 
 	waveManager->Start();
 	soundManager->PlayBGMSound(BGMSound::Normal, 0.2f, GL_TRUE);
+
+	//************ [Server]************
+	init_Listen_Sock(listen_sock);
+	init_Client_Sock(client_sock);
 	//system("cls");
 }
 
@@ -692,77 +701,23 @@ GLvoid init_Listen_Sock(SOCKET& listen_sock)
 	serveraddr.sin_family = AF_INET;
 	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	serveraddr.sin_port = htons(SERVERPORT);
-	bind(listen_sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
+	retval = ::bind(listen_sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
+	if (retval == SOCKET_ERROR) err_quit("bind()");
 
 	// listen()
 	retval = listen(listen_sock, SOMAXCONN);
 	if (retval == SOCKET_ERROR) err_quit("listen()");
 
-	
-
-	// 소켓 닫기
-	closesocket(listen_sock);
-
-	// 윈속 종료
-	WSACleanup();
 	return;
 }
-GLvoid sendVector(SOCKET& listen_sock)
+GLvoid init_Client_Sock(SOCKET& Client_sock, sockaddr_in& clientaddr, int addrlen)
 {
-	int retval;
-
-	// 데이터 통신에 사용할 변수
-	SOCKET client_sock;
-	struct sockaddr_in clientaddr;
-	int addrlen;
-	while (1) {
-
-		// accept()
-		addrlen = sizeof(clientaddr);
-		client_sock = accept(listen_sock, (struct sockaddr*)&clientaddr, &addrlen);
-		if (client_sock == INVALID_SOCKET) {
-			err_display("accept()");
-			break;
-		}
-
-		// 접속한 클라이언트 정보 출력
-		char addr[INET_ADDRSTRLEN];
-		inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
-		printf("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\n",
-			addr, ntohs(clientaddr.sin_port));
-
-		// ============ 클라이언트와 데이터 통신 ==================
-		char buffer[BUFSIZE];
-		float PlayerX = 0.0f;
-		float PlayerY = 0.0f;
-		float PlayerZ = 0.0f;
-		while (1) {
-			// 데이터 송신
-			// 데이터 수신
-			{
-				PlayerX += 0.2f;
-				// glm::vec3를 문자열로 변환
-				std::string vec3AsString =
-					std::to_string(PlayerX) + " " +
-					std::to_string(PlayerY) + " " +
-					std::to_string(PlayerZ);
-
-				// 문자열을 C 스타일의 문자열로 변환
-				const char* buf = vec3AsString.c_str();
-
-				// 데이터 보내기
-				retval = send(client_sock, buf, (int)strlen(buf), 0);
-				if (retval == SOCKET_ERROR) {
-					err_display("send()");
-					break;
-				}
-				printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
-				Sleep(500);
-			}
-		}
-		// 소켓 닫기
-		closesocket(client_sock);
-		printf("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n",
-			addr, ntohs(clientaddr.sin_port));
+	// accept()
+	addrlen = sizeof(clientaddr);
+	client_sock = accept(listen_sock, (struct sockaddr*)&clientaddr, &addrlen);
+	if (client_sock == INVALID_SOCKET) {
+		err_display("accept()");
+		return;
 	}
+
 }
