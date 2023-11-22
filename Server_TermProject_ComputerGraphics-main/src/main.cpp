@@ -101,7 +101,7 @@ GLint main(GLint argc, GLchar** argv)
 	Init();
 
 	glutIdleFunc(Update);
-	glutDisplayFunc(DrawScene);
+	// glutDisplayFunc(DrawScene);
 	glutReshapeFunc(Reshape);
 	glutSetCursor(GLUT_CURSOR_NONE);
 	

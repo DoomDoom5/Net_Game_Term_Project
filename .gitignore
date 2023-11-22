@@ -3,7 +3,7 @@
 *.exe 
 *.ilk 
 *.pdb 
-*.obj 
+!*.obj 
 *.log 
 *.pch 
 *.idb 
@@ -11,3 +11,4 @@
 *.lastbuildstate 
 *.suo 
 *.db
+!.lib

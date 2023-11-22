@@ -446,7 +446,7 @@ GLvoid Update()
 
 	// 데이터 수신
 	{
-	//	player->SetPosition(recvVector(sock));
+		player->SetPosition(recvVector(sock));
 		std::cout << "Player Vector: (" << player->GetPosition().x << ", " << player->GetPosition().y << ", " << player->GetPosition().z << ")\n";
 	}
 	timer::CalculateFPS();

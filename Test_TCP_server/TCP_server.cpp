@@ -9,10 +9,10 @@
 using namespace std;
 
 // send
-void sendPos(SOCKET& client_sock);
+void sendPos(SOCKET& , float& , float& , float& , float , float , float );
 
 // recv
-void recvClientInfo(SOCKET& client_sock);
+void recvClientInfo(SOCKET& , float& , float& , float& );
 
 int main(int argc, char* argv[])
 {
@@ -63,7 +63,15 @@ int main(int argc, char* argv[])
 			addr, ntohs(clientaddr.sin_port));
 
 		// ============ 클라이언트와 데이터 통신 ==================
-		
+
+		float PlayerX = 0.0f;
+		float PlayerY = 0.0f;
+		float PlayerZ = 0.0f;
+
+		float DirX = 0.0f;
+		float DirY = 0.0f;
+		float DirZ = 0.0f;
+
 		while (1) {
 		
 			/*
@@ -72,12 +80,12 @@ int main(int argc, char* argv[])
 
 			// 데이터 수신
 			{
-			//	sendPos(client_sock);
+				sendPos(client_sock, PlayerX, PlayerY, PlayerZ, DirX, DirY, DirZ);
 			}
 
 			// 데이터 송신
 			{
-				recvClientInfo(client_sock);
+				recvClientInfo(client_sock, DirX, DirY, DirZ);
 			}
 
 
@@ -98,9 +106,8 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
-void recvClientInfo(SOCKET& client_sock)
+void recvClientInfo(SOCKET& client_sock ,float& DirX, float& DirY, float& DirZ)
 {
-	char DirX, DirY, DirZ = 0;
 	bool mIsFire = false;
 	float Yaw, Pitch = 0;
 
@@ -118,22 +125,22 @@ void recvClientInfo(SOCKET& client_sock)
 
 }
 
-void sendPos(SOCKET& client_sock)
+void sendPos(SOCKET& client_sock, float& playerX, float& playerY, float& playerZ, float mDirX, float mDirY, float mDirZ)
 {
-	char buffer[BUFSIZE];
-	float PlayerX = 0.0f;
-	float PlayerY = 0.0f;
-	float PlayerZ = 0.0f;
-
 	int retval;
-
+	float correction = 1.0f;
+	float mSpeed = 50.f;
 	// 데이터 통신에 사용할 변수
-	PlayerX += 0.2f;
+	char buffer[BUFSIZE];
+
+	playerX += mSpeed * mDirX * correction;
+	playerZ += mSpeed * mDirZ * correction;
+
 	// glm::vec3를 문자열로 변환
 	std::string vec3AsString =
-		std::to_string(PlayerX) + " " +
-		std::to_string(PlayerY) + " " +
-		std::to_string(PlayerZ);
+		std::to_string(playerX) + " " +
+		std::to_string(playerY) + " " +
+		std::to_string(playerZ);
 
 	// 문자열을 C 스타일의 문자열로 변환
 	const char* buf = vec3AsString.c_str();
