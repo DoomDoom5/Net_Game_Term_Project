@@ -339,7 +339,7 @@ GLvoid DrawScene()
 	shd::SetShader(crntShader, "light.pos", light->GetPviotedPosition());
 	shd::SetShader(crntShader, "viewPos", crntCamera->GetPviotedPosition());
 	DrawObjects(crntShader);
-	bulletManager->Draw(sock);
+	bulletManager->Draw();
 
 	//light->Draw();
 
@@ -410,7 +410,7 @@ GLvoid Update()
 		player->Update();
 	}
 
-	bulletManager->Update();
+	bulletManager->Update(sock);
 	monsterManager->Update();
 	buildingManager->Update();
 	turretManager->Update();

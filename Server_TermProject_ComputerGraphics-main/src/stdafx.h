@@ -32,6 +32,7 @@
 
 #include <fmod.hpp>
 #include <Common.h>
+#include <iomanip>
 
 // colors
 #define BLACK RGB(0, 0, 0)

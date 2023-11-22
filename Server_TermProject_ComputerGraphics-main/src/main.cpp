@@ -16,6 +16,10 @@
 #include "Wave.h"
 #include "UI.h"
 
+char* SERVERIP = (char*)"127.0.0.1";
+#define SERVERPORT 9000
+#define BUFSIZE 50
+
 const Camera* crntCamera = nullptr;
 Camera* cameraMain = nullptr;
 Camera* cameraFree = nullptr;
@@ -78,7 +82,16 @@ GLboolean isRightDown = GL_FALSE;
 // temp
 ModelObject* cubeMap = nullptr;
 
+//네트워킹
+int retval;
+SOCKET sock;
+SOCKET InitNetwork();
+//void SendtoServer();
+//void RecvfromServer();
+
 // extern
+
+
 
 GLint main(GLint argc, GLchar** argv)
 {
@@ -96,6 +109,8 @@ GLint main(GLint argc, GLchar** argv)
 	glewExperimental = GL_TRUE;
 
 	Init();
+
+	sock = InitNetwork();
 
 	glutIdleFunc(Update);
 	glutDisplayFunc(DrawScene);
@@ -383,7 +398,7 @@ GLvoid Update()
 
 	char buf[513];
 	
-	retval = recv(sock, (char*)&len, sizeof(int), MSG_WAITALL);
+	//retval = recv(sock, (char*)&len, sizeof(int), MSG_WAITALL);
 
 	switch (len) {
 	//case 1:
@@ -394,7 +409,7 @@ GLvoid Update()
 		len = 2;
 	}
 
-	retval = recv(sock, buf, len, MSG_WAITALL);
+	//retval = recv(sock, buf, len, MSG_WAITALL);
 
 	switch (buf[0]) {
 	case 0:
@@ -418,7 +433,7 @@ GLvoid Update()
 		player->Update();
 	}
 
-	bulletManager->Update();
+	bulletManager->Update(sock);
 	monsterManager->Update();
 	buildingManager->Update();
 	turretManager->Update();
@@ -733,4 +748,27 @@ GLvoid SetCameraMode(const CameraMode& mode)
 	}
 
 	cameraMode = mode;
+}
+
+SOCKET InitNetwork() {
+
+	//윈속 초기화
+	WSADATA wsa;
+	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+		return 0;
+
+	//소켓생성
+	SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (sock == INVALID_SOCKET) err_quit("socket()");
+
+	//connect
+	struct sockaddr_in serveraddr;
+	memset(&serveraddr, 0, sizeof(serveraddr));
+	serveraddr.sin_family = AF_INET;
+	inet_pton(AF_INET, SERVERIP, &serveraddr.sin_addr);
+	serveraddr.sin_port = htons(SERVERPORT);
+	retval = connect(sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
+	if (retval == SOCKET_ERROR) err_quit("connect()");
+
+	return sock;
 }

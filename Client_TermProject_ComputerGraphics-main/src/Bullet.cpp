@@ -140,14 +140,8 @@ GLvoid BulletManager::CreateExplosion(const COLORREF& color, const glm::vec3& po
 	}
 }
 
-GLvoid BulletManager::Draw(SOCKET sock) const
+GLvoid BulletManager::Draw() const
 {	
-	int retval;
-	char buf[513];
-
-	retval = recv(sock, buf, sizeof(int), MSG_WAITALL);
-
-	mBulletList = buf;
 
 	for (const Bullet* bullet : mBulletList)
 	{
@@ -205,8 +199,37 @@ GLboolean ProcessCollision(Bullet* bullet, IBulletCollisionable* object, vector<
 
 	return GL_FALSE;
 }
-GLvoid BulletManager::Update()
+GLvoid BulletManager::Update(SOCKET sock)
 {
+	int retval = 0;
+	const char* numbuf;
+	int num;
+	int BUFSIZE = 252;
+	char buffer[1000];
+
+	retval = recv(sock, buffer, BUFSIZE, 0);
+	memcpy(&num, &numbuf, sizeof(int));
+
+	
+	float recvv3[10000][3];
+	int retval = 0;
+	// 데이터 받기
+	retval = recv(sock, buffer, BUFSIZE, 0);
+
+	memcpy(&recvv3, &buffer, sizeof(num));
+
+	// 데이터 수신
+	// 문자열을 스트림에 넣어 공백을 기준으로 분리
+	std::istringstream iss(buffer);
+	float x, y, z;
+	iss >> x >> y >> z;
+	// 받은 데이터를 출력
+	for (int i = 0; i < num; ++i) {
+
+		std::cout << i << ": (" << recvv3[i][0] << ", " << recvv3[i][1] << ", " << recvv3[i][2] << ")\n";
+	}
+	/////////////////////////////////////////////////////////////////
+
 	mCrntInkSoundDelay += timer::DeltaTime();
 
 	for (auto iter = mBulletList.begin(); iter != mBulletList.end();)

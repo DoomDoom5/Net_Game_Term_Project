@@ -21,7 +21,7 @@ public:
 	Building(const BuildingType& type, const glm::vec3& position, const glm::vec3 look);
 	~Building();
 
-	GLvoid Update();
+	GLvoid Update(SOCKET sock);
 	GLvoid Draw() const;
 
 	GLboolean CheckCollision(const Circle* boundingCircle) const;
