@@ -106,7 +106,7 @@ GLboolean Monster::CheckCollisionBullet(const BulletAtt& bullet, glm::vec3& hitP
 	{
 		return GL_FALSE;
 	}
-	
+
 	glm::vec3 monsterPos = mObject->GetPosition();
 	GLfloat radius = mObject->GetRadius();
 	/* x로 충돌이 없을 경우 */
@@ -147,6 +147,11 @@ glm::vec3 Monster::GetCenter() const
 {
 	glm::vec3 pos = mObject->GetPosition();
 	return glm::vec3(pos.x, pos.y + mObject->GetHeight() / 2.0f, pos.z);
+}
+GLvoid Monster::SetPosition(float x, float y, float z)
+{
+	glm::vec3 v = glm::vec3(x, y, z);
+	mObject->SetPosition(v);
 }
 GLvoid Monster::Damage(const GLfloat& damage)
 {
@@ -283,7 +288,7 @@ GLvoid Koromon::Update(const glm::vec3* target)
 		return;
 	}
 
-	
+
 
 	constexpr GLfloat yaw = 30.0f;
 	constexpr GLfloat weight = 45.0f;
@@ -374,8 +379,42 @@ GLvoid MonsterManager::Create(const MonsterType& monsterType, const glm::vec3& p
 
 	mMonsterList.emplace_back(monster);
 }
-GLvoid MonsterManager::Update()
+
+GLvoid MonsterManager::Update(SOCKET& sock)
 {
+	char numbuf[512] = { 0 };
+	int retval = 0;
+	retval = recv(sock, numbuf, sizeof(int), 0);
+	if (retval == SOCKET_ERROR) {
+		printf("SOCKET_ERROR\n");
+		return;
+	}
+	int num = atoi(numbuf);
+	printf("%d개의 데이터를 받을게요\n", num);
+	char buffer[2000];
+	float recvv3[1000] = {};
+	// 데이터 받기
+	retval = 0;
+	retval = recv(sock, buffer, 2000, 0);
+	if (retval == SOCKET_ERROR) {
+		printf("SOCKET_ERROR\n");
+		return;
+	}
+
+	std::stringstream ss(buffer);
+	std::string token;
+	int i = 0;
+	float currentValue;
+	while (ss >> currentValue) {
+		recvv3[i++] = currentValue;
+	}
+	// 받은 데이터를 출력
+	for (int i = 0; i < num; ++i) {
+		std::cout << i << ": (" << recvv3[3 * i + 0] << ", " << recvv3[3 * i + 1] << ", " << recvv3[3 * i + 2] << ")\n";
+	}
+
+
+	printf("monster 업데이트 진입\n");
 	for (auto it = mMonsterList.begin(); it != mMonsterList.end();)
 	{
 		Monster* monster = *it;
@@ -386,13 +425,14 @@ GLvoid MonsterManager::Update()
 		else
 		{
 			const glm::vec3* target = FindTargetPos(monster->GetPosition(), monster->GetDetectRadius());
-			monster->Update(target);
+			//monster->Update(target);
+			monster->SetPosition(recvv3[3 * i + 0], recvv3[3 * i + 1], recvv3[3 * i + 2]);
 			MonsterManager::CheckCollision(monster);
-
 			++it;
 		}
 	}
 }
+
 GLvoid MonsterManager::Draw() const
 {
 	for (const Monster* monster : mMonsterList)
@@ -462,5 +502,5 @@ GLvoid MonsterManager::CheckCollision(Monster* monster)
 
 bool MonsterManager::CheckEnemyEmpty()
 {
-	return mMonsterList.empty(); 
+	return mMonsterList.empty();
 }
