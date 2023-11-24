@@ -28,3 +28,5 @@ Server_TermProject_ComputerGraphics-main/.vs/Server_CG_TermProject/v17/fileList.
 *.bin
 Server_TermProject_ComputerGraphics-main/.vs/Server_CG_TermProject/v17/fileList.bin
 >>>>>>> test01
+*.db-shm
+Server_TermProject_ComputerGraphics-main/.vs/CG_TermProject/v17/Solution.VC.db-wal
