@@ -98,42 +98,42 @@ SOCKET listen_sock = NULL;
 SOCKET client_sock = NULL;
 struct sockaddr_in clientaddr;
 int addrlen;
-
+// 일단은 1 : 1 플레이
 
 GLint main(GLint argc, GLchar** argv)
 {
-    srand((unsigned int)time(NULL));
+	srand((unsigned int)time(NULL));
 
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-    glutInitWindowPosition(DEFAULT_SCREEN_POS_X, DEFAULT_SCREEN_POS_Y);
-    glutInitWindowSize(DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
-    glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
-    glShadeModel(GL_SMOOTH);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glutCreateWindow("TestProject");
-    glewExperimental = GL_TRUE;
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+	glutInitWindowPosition(DEFAULT_SCREEN_POS_X, DEFAULT_SCREEN_POS_Y);
+	glutInitWindowSize(DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
+	glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
+	glShadeModel(GL_SMOOTH);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glutCreateWindow("TestProject");
+	glewExperimental = GL_TRUE;
 
-    Init();
+	Init();
 
-    glutIdleFunc(Update);
-    glutDisplayFunc(DrawScene);
-    glutReshapeFunc(Reshape);
-    glutSetCursor(GLUT_CURSOR_NONE);
+	glutIdleFunc(Update);
+	glutDisplayFunc(DrawScene);
+	glutReshapeFunc(Reshape);
+	glutSetCursor(GLUT_CURSOR_NONE);
+	
+	glutMouseFunc(Mouse);
+	glutMotionFunc(MouseMotion);
+	glutPassiveMotionFunc(MousePassiveMotion);
 
-    glutMouseFunc(Mouse);
-    glutMotionFunc(MouseMotion);
-    glutPassiveMotionFunc(MousePassiveMotion);
-
-    glutPositionFunc(RePosition);
-    glutKeyboardFunc(ProcessKeyDown);
-    glutKeyboardUpFunc(ProcessKeyUp);
-    glutSpecialFunc(ProcessSpecialKeyDown);
-    glutSpecialUpFunc(ProcessSpecialKeyUp);
+	glutPositionFunc(RePosition);
+	glutKeyboardFunc(ProcessKeyDown);
+	glutKeyboardUpFunc(ProcessKeyUp);
+	glutSpecialFunc(ProcessSpecialKeyDown);
+	glutSpecialUpFunc(ProcessSpecialKeyUp);
 
     timer::StartUpdate();
 
-    glutMainLoop();
+	glutMainLoop();
 }
 
 
@@ -167,21 +167,30 @@ GLvoid Init()
     crntCamera = cameraMain;
     //********************************//
 
-    mouseCenter = { screenWidth / 2 + screenPosX, screenHeight / 2 + screenPosY };
+	mouseCenter = { screenWidth / 2 + screenPosX, screenHeight / 2 + screenPosY };
 
     waveManager->Start();
     soundManager->PlayBGMSound(BGMSound::Normal, 0.2f, GL_TRUE);
 
-    //************ [Server]************
-    if(listen_sock == NULL) init_Listen_Sock(listen_sock);
-    while (client_sock == NULL) init_Client_Sock(client_sock, clientaddr, addrlen);
-    system("cls");
+	//************ [Server]************
+	if (listen_sock == NULL) init_Listen_Sock(listen_sock);
+	while (client_sock == NULL) init_Client_Sock(client_sock, clientaddr, addrlen);
+
+	system("cls");
 }
 
 GLvoid InitMeshes()
 {
-    InitModels();
-    InitObject();
+	InitModels();
+	InitObject();
+
+	bulletManager = new BulletManager();
+	buildingManager = new BuildingManager();
+	turretManager = new TurretManager();
+	soundManager = new SoundManager();
+	monsterManager = new MonsterManager();
+	waveManager = new WaveManager();
+	uiManager = new UIManager();
 
     bulletManager = new BulletManager();
     buildingManager = new BuildingManager();
@@ -191,24 +200,22 @@ GLvoid InitMeshes()
     waveManager = new WaveManager();
     uiManager = new UIManager();
 
-    buildingManager->Create(BuildingType::Core, { 0, 0, 550 });
+	// test object
+	const Model* cubeMapModel = GetTextureModel(Textures::CubeMap);
+	cubeMap = new ModelObject(cubeMapModel, Shader::Texture);
+	cubeMap->SetTexture(Textures::CubeMap);
+	cubeMap->Scale(150);
+	cubeMap->SetPosY(-cubeMap->GetHeight() / 2);
 
-    // test object
-    const Model* cubeMapModel = GetTextureModel(Textures::CubeMap);
-    cubeMap = new ModelObject(cubeMapModel, Shader::Texture);
-    cubeMap->SetTexture(Textures::CubeMap);
-    cubeMap->Scale(150);
-    cubeMap->SetPosY(-cubeMap->GetHeight() / 2);
+	// light object
+	light = new Light();
+	light->SetPosition({ 0, 400, 0 });
 
-    // light object
-    light = new Light();
-    light->SetPosition({ 0, 400, 0 });
-
-    crntMap = new Map();
-    player = new Player({ 0,0,0 }, &cameraMode);
-    uiManager->SetPlayer(player);
-    monsterManager->SetPlayer(player);
-    waveManager->SetPlayer(player);
+	crntMap = new Map();
+	player = new Player({ 0,0,0 }, &cameraMode);
+	uiManager->SetPlayer(player);
+	monsterManager->SetPlayer(player);
+	waveManager->SetPlayer(player);
 }
 
 GLvoid Reset()
@@ -337,16 +344,26 @@ GLvoid DrawScene()
 ///// [ HANDLE EVENTS ] /////
 GLvoid Update()
 {
-    if (IsGameOver() == GL_TRUE)
-    {
-        glutPostRedisplay();
-        return;
-    }
+
+	if (IsGameOver() == GL_TRUE)
+	{
+		glutPostRedisplay();
+		return;
+	}
 
     timer::CalculateFPS();
     timer::Update();
 
-    if (player != nullptr)   player->Update();
+	bulletManager->Update(client_sock);
+	monsterManager->Update(client_sock);
+	//buildingManager->Update();
+	//turretManager->Update();
+
+	waveManager->Update();
+
+
+	constexpr GLfloat cameraMovement = 100.0f;
+	GLfloat cameraSpeed = cameraMovement;
 
     //bulletManager->Update(client_sock);
     monsterManager->Update(client_sock);

@@ -433,7 +433,8 @@ glm::vec3 recvVector(SOCKET& sock)
 ///// [ HANDLE EVENTS ] /////
 GLvoid Update()
 {
-	system("cls");
+	// 데이터 수신
+	//RecvfromServer();
 
 	if (IsGameOver() == GL_TRUE)
 	{
@@ -456,7 +457,6 @@ GLvoid Update()
 	timer::Update();
 
 	if (player != nullptr) player->Update();
-
 	//bulletManager->Update(sock);
 	monsterManager->Update(sock);
 	//buildingManager->Update(sock);
