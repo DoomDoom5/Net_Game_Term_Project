@@ -11,3 +11,20 @@
 *.lastbuildstate 
 *.suo 
 *.db
+<<<<<<< HEAD
+!.lib
+=======
+
+TermProject_ComputerGraphics-main/.vs/CG_TermProject/v17/Browse.VC.db-shm
+*.opendb
+TermProject_ComputerGraphics-main/Debug/CG_TermProject.exe.recipe
+TermProject_ComputerGraphics-main/.vs/CG_TermProject/FileContentIndex/read.lock
+TermProject_ComputerGraphics-main/.vs/CG_TermProject/v17/Browse.VC.db-wal
+TermProject_ComputerGraphics-main/Debug/CG_TermProject.vcxproj.FileListAbsolute.txt
+*.db-shm
+*.db-wal
+*.bin
+Server_TermProject_ComputerGraphics-main/.vs/Server_CG_TermProject/v17/fileList.bin
+*.bin
+Server_TermProject_ComputerGraphics-main/.vs/Server_CG_TermProject/v17/fileList.bin
+>>>>>>> test01

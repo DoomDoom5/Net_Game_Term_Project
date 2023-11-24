@@ -45,11 +45,6 @@ GLvoid Building::Draw() const
 {
 }
 
-GLvoid Building::Update()
-{
-
-}
-
 
 GLboolean Building::CheckCollision(const Circle* boundingCircle) const
 {
@@ -189,7 +184,7 @@ BuildingManager::~BuildingManager()
 	}
 }
 
-GLvoid BuildingManager::Update()
+GLvoid BuildingManager::Update(SOCKET& sock)
 {
 	for (auto it = buildings.begin(); it != buildings.end();)
 	{
@@ -203,12 +198,6 @@ GLvoid BuildingManager::Update()
 				delete mCore;
 				mCore = nullptr;
 			}
-		}
-		else
-		{
-			building->Update();
-
-			++it;
 		}
 	}
 }

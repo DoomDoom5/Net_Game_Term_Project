@@ -31,6 +31,7 @@
 #include <myGL/glm/gtc/matrix_transform.hpp>
 
 #include <fmod.hpp>
+#include <iomanip>
 
 // colors
 #define BLACK RGB(0, 0, 0)
@@ -118,8 +119,8 @@
 // window
 #define DEFAULT_SCREEN_POS_X 0
 #define DEFAULT_SCREEN_POS_Y 0
-#define DEFAULT_SCREEN_WIDTH 1280
-#define DEFAULT_SCREEN_HEIGHT 1024
+#define DEFAULT_SCREEN_WIDTH 100
+#define DEFAULT_SCREEN_HEIGHT 100
 
 
 using namespace std;

@@ -24,6 +24,11 @@ const set<GLint> movFB = { 'w', 'W', 's', 'S' };
 const set<GLint> movLR = { 'a', 'A', 'd', 'D' };
 const set<GLint> movKeys = { 'w', 'W', 's', 'S', 'a', 'A', 's', 'S', 'd', 'D' };
 
+// send to server
+
+
+
+
 ////////////////////////////// [ State ] //////////////////////////////
 /********** [ IDLE ] **********/
 GLvoid Idle::Enter(const Event& e, const GLint& value)
@@ -441,18 +446,33 @@ GLvoid Player::ProcessKeyUp(const GLint& key)
 }
 GLvoid Player::ProcessMouse(GLint button, GLint state, GLint x, GLint y)
 {
+	/*
+			sendtype = 1 move
+					 = 2 rotate
+					 = 3 shot
+			shot	 = 1 start
+					 = 2 stop
+			guntype  = 1 rifle
+					 = 2 shotgun
+					 = 3 luncher
+					 = 4 sniper
+	*/
+
 	switch (button)
 	{
 	case GLUT_LEFT_BUTTON:
 		if (state == GLUT_DOWN)
 		{
 			mCrntGun->StartFire();
+			mlsFire = true;
 		}
 		else if (state == GLUT_UP)
 		{
 			mCrntGun->StopFire();
+			mlsFire = false;
 		}
-		break;
+		
+	
 	}
 }
 

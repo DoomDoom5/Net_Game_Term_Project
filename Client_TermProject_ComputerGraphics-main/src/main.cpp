@@ -91,8 +91,13 @@ GLint main(GLint argc, GLchar** argv)
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-	glutInitWindowPosition(DEFAULT_SCREEN_POS_X, DEFAULT_SCREEN_POS_Y);
-	glutInitWindowSize(DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
+//	glutInitWindowPosition(DEFAULT_SCREEN_POS_X, DEFAULT_SCREEN_POS_Y);
+	//glutInitWindowSize(DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
+
+	// 테스트용 임시 좌표
+	glutInitWindowPosition(1000, DEFAULT_SCREEN_POS_Y);
+	glutInitWindowSize(DEFAULT_SCREEN_WIDTH/3, DEFAULT_SCREEN_HEIGHT/3);
+
 	glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
 	glShadeModel(GL_SMOOTH);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -101,8 +106,7 @@ GLint main(GLint argc, GLchar** argv)
 	glewExperimental = GL_TRUE;
 
 	Init();
-
-	glutIdleFunc(Update);
+	glutIdleFunc(Update);	
 	glutDisplayFunc(DrawScene);
 	glutReshapeFunc(Reshape);
 	glutSetCursor(GLUT_CURSOR_NONE);
@@ -367,6 +371,41 @@ GLvoid Initsock(SOCKET& sock)
 
 	printf("initsocket 함수\n");
 }
+
+// send
+void sendPlayerInfo(Player* player, SOCKET& sock)
+{
+	char dirX, dirY, dirZ =0;
+	dirX = player->GetDirX();
+	dirY = player->GetDirY();
+	dirZ = player->GetDirZ();
+
+	bool misFIre = player->GetIsFIre();
+
+	float yaw, pitch  = 0;
+	yaw = player->GetYaw();
+	pitch = player->GetPitch();
+
+
+	int retval;
+	// glm::vec3를 문자열로 변환
+	string vec3AsString =
+		to_string(dirX) + " " +
+		to_string(dirY) + " " +
+		to_string(dirZ) + " " +
+		to_string(misFIre) + " " +
+		to_string(yaw) + " " +
+		to_string(pitch);
+
+	// 문자열을 C 스타일의 문자열로 변환
+	const char* buf = vec3AsString.c_str();
+
+	// 데이터 보내기
+	retval = send(sock, buf, (int)strlen(buf), 0);
+	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
+}
+
+// recv
 glm::vec3 recvVector(SOCKET& sock)
 {
 	char buffer[512];
@@ -386,7 +425,7 @@ glm::vec3 recvVector(SOCKET& sock)
 	float x, y, z;
 	iss >> x >> y >> z;
 	// 받은 데이터를 출력
-	std::cout << "Received Vector: (" << x << ", " << y << ", " << z << ")\n";
+	cout << "Received Vector: (" << x << ", " << y << ", " << z << ")\n";
 	return glm::vec3(x, y, z);
 
 }
@@ -395,6 +434,10 @@ glm::vec3 recvVector(SOCKET& sock)
 GLvoid Update()
 {
 	system("cls");
+
+	// 데이터 수신
+	//RecvfromServer();
+
 	if (IsGameOver() == GL_TRUE)
 	{
 		glutPostRedisplay();
@@ -407,14 +450,17 @@ GLvoid Update()
 		return;
 	}
 
-	//player->SetPosition(recvVector(sock));
-	//std::cout << "Player Vector: (" << player->GetPosition().x << ", " << player->GetPosition().y << ", " << player->GetPosition().z << ")\n";
+	// 데이터 수신
+	{
+		player->SetPosition(recvVector(sock));
+		std::cout << "Player Vector: (" << player->GetPosition().x << ", " << player->GetPosition().y << ", " << player->GetPosition().z << ")\n";
+	}
 	timer::CalculateFPS();
 	timer::Update();
 	if (player != nullptr) player->Update();
-	bulletManager->Update();
+	bulletManager->Update(sock);
 	monsterManager->Update(sock);
-	buildingManager->Update();
+	buildingManager->Update(sock);
 	turretManager->Update();
 	waveManager->Update();
 
@@ -472,13 +518,15 @@ GLvoid Update()
 			}
 		}
 	}
-	
+
 	// 데이터 송신
+	{
+		sendPlayerInfo(player, sock);
+	}
 
 	glutPostRedisplay();
 }
 
-// 대상 컴퓨터에서 연결을 거부 했으므로 연결하지 못했습니다.
 GLvoid Mouse(GLint button, GLint state, GLint x, GLint y)
 {
 	if (IsGameOver() == GL_TRUE)
