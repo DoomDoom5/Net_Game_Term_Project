@@ -89,6 +89,10 @@ ModelObject* cubeMap = nullptr;
 // extern
 GLint main(GLint argc, GLchar** argv)
 {
+	srand((unsigned int)time(NULL));
+	glewExperimental = GL_TRUE;
+	Init();
+	timer::StartUpdate();
 	//InitMeshes();
 	//timer::Init();
 
@@ -180,9 +184,9 @@ GLint main(GLint argc, GLchar** argv)
 MyColor backColor;
 GLvoid Init()
 {
-	glewInit();
-	shd::Init();
-	InitLight();
+	//glewInit();
+	//shd::Init();
+	//InitLight();
 	InitMeshes();
 	timer::Init();
 
@@ -222,56 +226,22 @@ GLvoid InitMeshes()
 	//InitModels();
 	//InitObject();
 	bulletManager = new BulletManager();
-	monsterManager = new MonsterManager();
 	buildingManager = new BuildingManager();
 	turretManager = new TurretManager();
 	soundManager = new SoundManager();
+	monsterManager = new MonsterManager();
 	waveManager = new WaveManager();
 	//uiManager = new UIManager();
 
 	buildingManager->Create(BuildingType::Core, { 0, 0, 550 });
 
-	//********** [ Coordinate system lines ] **********//
-	//constexpr GLfloat lineLength = (20.0f / 2.0f);	// radius = 10
-	//LineObject* line = nullptr;
-	//Vector3 vectorLine_1, vectorLine_2;
-
-	//vectorLine_1 = { -lineLength, 0.0f, 0.0f };
-	//vectorLine_2 = { lineLength, 0.0f, 0.0f };
-	//line = new LineObject(vectorLine_1, vectorLine_2);
-	//line->SetColor(RED);
-	//line->MoveGlobal({ lineLength, 0, 0 }, GL_FALSE);
-	//AddObject(Shader::Color, line);
-
-	//vectorLine_1 = { 0.0f, -lineLength, 0.0f };
-	//vectorLine_2 = { 0.0f, lineLength, 0.0f };
-	//line = new LineObject(vectorLine_1, vectorLine_2);
-	//line->SetColor(GREEN);
-	//line->MoveGlobal({ 0, lineLength, 0 }, GL_FALSE);
-	//AddObject(Shader::Color, line);
-
-	//vectorLine_1 = { 0.0f, 0.0f, -lineLength };
-	//vectorLine_2 = { 0.0f, 0.0f, lineLength };
-	//line = new LineObject(vectorLine_1, vectorLine_2);
-	//line->SetColor(BLUE);
-	//line->MoveGlobal({ 0, 0, lineLength }, GL_FALSE);
-	//AddObject(Shader::Color, line);
-	//**************************************************//
-	
-	// test object
-	//const Model* cubeMapModel = GetTextureModel(Textures::CubeMap);
-	//cubeMap = new ModelObject(cubeMapModel, Shader::Texture);
-	//cubeMap->SetTexture(Textures::CubeMap);
-	//cubeMap->Scale(150);
-	//cubeMap->SetPosY(-cubeMap->GetHeight() / 2);
-
 	// light object
-	light = new Light();
-	light->SetPosition({ 0, 400, 0 });
+	//light = new Light();
+	//light->SetPosition({ 0, 400, 0 });
 
 	crntMap = new Map();
 	player = new Player({ 0,0,0 }, &cameraMode);
-	uiManager->SetPlayer(player);
+	//uiManager->SetPlayer(player);
 	monsterManager->SetPlayer(player);
 	waveManager->SetPlayer(player);
 }
@@ -420,7 +390,7 @@ GLvoid Update(SOCKET sock)
 	monsterManager->Update(sock);
 	//buildingManager->Update();
 	//turretManager->Update();
-	//waveManager->Update();
+	waveManager->Update();
 
 	constexpr GLfloat cameraMovement = 100.0f;
 	GLfloat cameraSpeed = cameraMovement;
