@@ -216,18 +216,19 @@ GLvoid BulletManager::Update(SOCKET& sock)
 	// 데이터 받기
 	retval = recv(sock, buffer, BUFSIZE, 0);
 
-	memcpy(&recvv3, &buffer, sizeof(num));
-
-	// 데이터 수신
-	// 문자열을 스트림에 넣어 공백을 기준으로 분리
 	std::istringstream iss(buffer);
 	float x, y, z;
-	iss >> x >> y >> z;
-	// 받은 데이터를 출력
-	for (int i = 0; i < num; ++i) {
-
-		std::cout << i << ": (" << recvv3[i][0] << ", " << recvv3[i][1] << ", " << recvv3[i][2] << ")\n";
+	int bulletCount = 0;
+	while (iss >> x >> y >> z) {
+		bulletCount++;
+		std::cout << "Bullet " << bulletCount << " Position: "
+			<< x << ", " << y << ", " << z << std::endl;
 	}
+	if (bulletCount == 0) {
+		std::cout << "No bullets found." << std::endl;
+	}
+
+
 	/////////////////////////////////////////////////////////////////
 
 	mCrntInkSoundDelay += timer::DeltaTime();
