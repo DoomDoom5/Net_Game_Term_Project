@@ -382,6 +382,9 @@ GLvoid MonsterManager::Create(const MonsterType& monsterType, const glm::vec3& p
 
 GLvoid MonsterManager::Update(SOCKET& sock)
 {
+	system("cls");
+	printf("\nmonster 업데이트 진입\n");
+
 	char numbuf[512] = { 0 };
 	int retval = 0;
 	retval = recv(sock, numbuf, sizeof(int), 0);
@@ -403,18 +406,16 @@ GLvoid MonsterManager::Update(SOCKET& sock)
 
 	std::stringstream ss(buffer);
 	std::string token;
-	int i = 0;
+	int cnt = 0;
 	float currentValue;
 	while (ss >> currentValue) {
-		recvv3[i++] = currentValue;
+		recvv3[cnt++] = currentValue;
 	}
 	// 받은 데이터를 출력
 	for (int i = 0; i < num; ++i) {
 		std::cout << i << ": (" << recvv3[3 * i + 0] << ", " << recvv3[3 * i + 1] << ", " << recvv3[3 * i + 2] << ")\n";
 	}
-
-
-	printf("monster 업데이트 진입\n");
+	int cnt2 = 0;
 	for (auto it = mMonsterList.begin(); it != mMonsterList.end();)
 	{
 		Monster* monster = *it;
@@ -426,9 +427,10 @@ GLvoid MonsterManager::Update(SOCKET& sock)
 		{
 			const glm::vec3* target = FindTargetPos(monster->GetPosition(), monster->GetDetectRadius());
 			//monster->Update(target);
-			monster->SetPosition(recvv3[3 * i + 0], recvv3[3 * i + 1], recvv3[3 * i + 2]);
+			monster->SetPosition(recvv3[3 * cnt2 + 0], recvv3[3 * cnt2 + 1], recvv3[3 * cnt2 + 2]);
 			MonsterManager::CheckCollision(monster);
 			++it;
+			++cnt2;
 		}
 	}
 }

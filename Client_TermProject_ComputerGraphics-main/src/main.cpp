@@ -433,8 +433,6 @@ glm::vec3 recvVector(SOCKET& sock)
 ///// [ HANDLE EVENTS ] /////
 GLvoid Update()
 {
-	system("cls");
-
 	// 데이터 수신
 	//RecvfromServer();
 
@@ -452,15 +450,15 @@ GLvoid Update()
 
 	// 데이터 수신
 	{
-		player->SetPosition(recvVector(sock));
-		std::cout << "Player Vector: (" << player->GetPosition().x << ", " << player->GetPosition().y << ", " << player->GetPosition().z << ")\n";
+		//player->SetPosition(recvVector(sock));
+		//std::cout << "Player Vector: (" << player->GetPosition().x << ", " << player->GetPosition().y << ", " << player->GetPosition().z << ")\n";
 	}
 	timer::CalculateFPS();
 	timer::Update();
 	if (player != nullptr) player->Update();
-	bulletManager->Update(sock);
+	//bulletManager->Update(sock);
 	monsterManager->Update(sock);
-	buildingManager->Update(sock);
+	//buildingManager->Update(sock);
 	turretManager->Update();
 	waveManager->Update();
 

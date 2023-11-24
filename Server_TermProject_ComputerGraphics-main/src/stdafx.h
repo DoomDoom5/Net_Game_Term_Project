@@ -119,8 +119,8 @@
 // window
 #define DEFAULT_SCREEN_POS_X 0
 #define DEFAULT_SCREEN_POS_Y 0
-#define DEFAULT_SCREEN_WIDTH 100
-#define DEFAULT_SCREEN_HEIGHT 100
+#define DEFAULT_SCREEN_WIDTH 10
+#define DEFAULT_SCREEN_HEIGHT 10
 
 
 using namespace std;

@@ -95,57 +95,45 @@ ModelObject* cubeMap = nullptr;
 // socket
 SOCKET listen_sock = NULL;
 SOCKET client_sock = NULL;
+struct sockaddr_in clientaddr;
+int addrlen;
+
 // 일단은 1 : 1 플레이
 
 GLint main(GLint argc, GLchar** argv)
 {
 	srand((unsigned int)time(NULL));
 
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+	glutInitWindowPosition(DEFAULT_SCREEN_POS_X, DEFAULT_SCREEN_POS_Y);
+	glutInitWindowSize(DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
+	glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
+	glShadeModel(GL_SMOOTH);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glutCreateWindow("TestProject");
 	glewExperimental = GL_TRUE;
+
 	Init();
-	timer::StartUpdate();
-
-	// main branch
-	
-	//glutInit(&argc, argv);
-	//glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-	//glutInitWindowPosition(DEFAULT_SCREEN_POS_X, DEFAULT_SCREEN_POS_Y);
-	//glutInitWindowSize(DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
-	//glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
-	//glShadeModel(GL_SMOOTH);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//glutCreateWindow("TestProject");
-	//glewExperimental = GL_TRUE;
-	
-
-	int retval;
-
-	// 윈속 초기화
-	WSADATA wsa;
-	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
-		return 1;
-
-	// 소켓 생성
-	SOCKET listen_sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (listen_sock == INVALID_SOCKET) err_quit("socket()");
 
 	glutIdleFunc(Update);
 	glutDisplayFunc(DrawScene);
-	//glutReshapeFunc(Reshape);
-	//glutSetCursor(GLUT_CURSOR_NONE);
+	glutReshapeFunc(Reshape);
+	glutSetCursor(GLUT_CURSOR_NONE);
 	
-	//glutMouseFunc(Mouse);
-	//glutMotionFunc(MouseMotion);
-	//glutPassiveMotionFunc(MousePassiveMotion);
+	glutMouseFunc(Mouse);
+	glutMotionFunc(MouseMotion);
+	glutPassiveMotionFunc(MousePassiveMotion);
 
-	//glutPositionFunc(RePosition);
-	//glutKeyboardFunc(ProcessKeyDown);
-	//glutKeyboardUpFunc(ProcessKeyUp);
-	//glutSpecialFunc(ProcessSpecialKeyDown);
-	//glutSpecialUpFunc(ProcessSpecialKeyUp);
+	glutPositionFunc(RePosition);
+	glutKeyboardFunc(ProcessKeyDown);
+	glutKeyboardUpFunc(ProcessKeyUp);
+	glutSpecialFunc(ProcessSpecialKeyDown);
+	glutSpecialUpFunc(ProcessSpecialKeyUp);
 
 	timer::StartUpdate();
 
+	glutMainLoop();
 }
 
 
@@ -153,9 +141,9 @@ GLint main(GLint argc, GLchar** argv)
 MyColor backColor;
 GLvoid Init()
 {
-	//glewInit();
-	//shd::Init();
-	//InitLight();
+	glewInit();
+	shd::Init();
+	InitLight();
 	InitMeshes();
 	timer::Init();
 
@@ -179,41 +167,47 @@ GLvoid Init()
 	crntCamera = cameraMain;
 	//********************************//
 
-	 mouseCenter = { screenWidth / 2 + screenPosX, screenHeight / 2 + screenPosY };
+	mouseCenter = { screenWidth / 2 + screenPosX, screenHeight / 2 + screenPosY };
 
 	waveManager->Start();
 	soundManager->PlayBGMSound(BGMSound::Normal, 0.2f, GL_TRUE);
 
 	//************ [Server]************
-	init_Listen_Sock(listen_sock);
-	//system("cls");
-	//******************************//
-	//if (listenSock == NULL)init_Listen_Sock(listenSock);
+	if (listen_sock == NULL) init_Listen_Sock(listen_sock);
+	while (client_sock == NULL) init_Client_Sock(client_sock, clientaddr, addrlen);
 
 	system("cls");
 }
 
 GLvoid InitMeshes()
 {
-	//InitModels();
-	//InitObject();
+	InitModels();
+	InitObject();
+
 	bulletManager = new BulletManager();
 	buildingManager = new BuildingManager();
 	turretManager = new TurretManager();
 	soundManager = new SoundManager();
 	monsterManager = new MonsterManager();
 	waveManager = new WaveManager();
-	//uiManager = new UIManager();
+	uiManager = new UIManager();
 
 	buildingManager->Create(BuildingType::Core, { 0, 0, 550 });
 
+	// test object
+	const Model* cubeMapModel = GetTextureModel(Textures::CubeMap);
+	cubeMap = new ModelObject(cubeMapModel, Shader::Texture);
+	cubeMap->SetTexture(Textures::CubeMap);
+	cubeMap->Scale(150);
+	cubeMap->SetPosY(-cubeMap->GetHeight() / 2);
+
 	// light object
-	//light = new Light();
-	//light->SetPosition({ 0, 400, 0 });
+	light = new Light();
+	light->SetPosition({ 0, 400, 0 });
 
 	crntMap = new Map();
 	player = new Player({ 0,0,0 }, &cameraMode);
-	//uiManager->SetPlayer(player);
+	uiManager->SetPlayer(player);
 	monsterManager->SetPlayer(player);
 	waveManager->SetPlayer(player);
 }
@@ -344,6 +338,7 @@ GLvoid DrawScene()
 ///// [ HANDLE EVENTS ] /////
 GLvoid Update()
 {
+
 	if (IsGameOver() == GL_TRUE)
 	{
 		glutPostRedisplay();

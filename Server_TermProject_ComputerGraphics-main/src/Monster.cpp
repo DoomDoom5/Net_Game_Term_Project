@@ -376,7 +376,8 @@ GLvoid MonsterManager::Create(const MonsterType& monsterType, const glm::vec3& p
 }
 GLvoid MonsterManager::Update(SOCKET sock)
 {
-	printf("monster 업데이트 진입\n");
+	system("cls");
+	printf("\nmonster 업데이트 진입\n");
 	for (auto it = mMonsterList.begin(); it != mMonsterList.end();)
 	{
 		Monster* monster = *it;
@@ -416,7 +417,6 @@ GLvoid MonsterManager::Update(SOCKET sock)
 			monster->GetPosition().y, monster->GetPosition().z);
 	}
 	const char* realbuf = buf;
-	printf("%s", buf);
 	//memcpy(&buf, monsterlist_pos, sizeof(monsterlist_pos[0]) * num);
 	send(sock, realbuf, strlen(buf), 0);
 }
