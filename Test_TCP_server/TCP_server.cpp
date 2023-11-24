@@ -9,10 +9,10 @@
 using namespace std;
 
 // send
-void sendPos(SOCKET& , float& , float& , float& , float , float , float );
+void sendPos(SOCKET&, float&, float&, float&, float, float, float);
 
 // recv
-void recvClientInfo(SOCKET& , float& , float& , float& );
+void recvClientInfo(SOCKET&, float&, float&, float&);
 
 int main(int argc, char* argv[])
 {
@@ -62,35 +62,34 @@ int main(int argc, char* argv[])
 		printf("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\n",
 			addr, ntohs(clientaddr.sin_port));
 
-		while (1) {
-			{
-				system("cls");
-				char numbuf[BUFSIZE] = { "4" };
-				int num = 4;
-				retval = 0;
-				retval = send(client_sock, numbuf, sizeof(BUFSIZE), 0);
-				if (retval == SOCKET_ERROR) {
-					err_display("send()");
-					break;
-				}
-				printf("4를 보냈음.\n");
-				char buffer[2000] = {
-					0, 0, 0,
-					0, 0, 0,
-					0, 0, 0,
-					0, 0, 0 };
-				// 데이터 받기
-				retval = 0;
-				retval = send(client_sock, buffer, 2000, 0);
-				if (retval == SOCKET_ERROR) {
-					err_display("send()");
-					break;
-				}
-				for (int i = 0; i < num; ++i) {
-					std::cout << i << ": (" << buffer[3 * i + 0] << ", " << buffer[3 * i + 1] << ", " << buffer[3 * i + 2] << ")\n";
-				}
+		// ============ 클라이언트와 데이터 통신 ==================
 
+		float PlayerX = 0.0f;
+		float PlayerY = 0.0f;
+		float PlayerZ = 0.0f;
+
+		float DirX = 0.0f;
+		float DirY = 0.0f;
+		float DirZ = 0.0f;
+
+		while (1) {
+
+			/*
+			게임 연산....
+			*/
+
+			// 데이터 수신
+			{
+				sendPos(client_sock, PlayerX, PlayerY, PlayerZ, DirX, DirY, DirZ);
 			}
+
+			// 데이터 송신
+			{
+				recvClientInfo(client_sock, DirX, DirY, DirZ);
+			}
+
+
+			Sleep(1000 / 10);
 
 		}
 		// 소켓 닫기
@@ -107,7 +106,7 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
-void recvClientInfo(SOCKET& client_sock ,float& DirX, float& DirY, float& DirZ)
+void recvClientInfo(SOCKET& client_sock, float& DirX, float& DirY, float& DirZ)
 {
 	bool mIsFire = false;
 	float Yaw, Pitch = 0;
@@ -121,8 +120,8 @@ void recvClientInfo(SOCKET& client_sock ,float& DirX, float& DirY, float& DirZ)
 	iss >> DirX >> DirY >> DirZ >> mIsFire >> Yaw >> Pitch;
 
 	cout << "방향 벡터 : < " << DirX << " , " << DirY << " , " << DirZ << " > " << endl
-			<< "발사 유무 : " << mIsFire << endl
-			<< " 마우스 좌표 : " << Yaw << " , " << Pitch << endl;
+		<< "발사 유무 : " << mIsFire << endl
+		<< " 마우스 좌표 : " << Yaw << " , " << Pitch << endl;
 
 }
 
