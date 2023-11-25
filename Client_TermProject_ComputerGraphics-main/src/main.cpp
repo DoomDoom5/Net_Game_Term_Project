@@ -448,18 +448,12 @@ GLvoid Update()
 		return;
 	}
 
-	// 데이터 수신
-	{
-		//player->SetPosition(recvVector(sock));
-		//std::cout << "Player Vector: (" << player->GetPosition().x << ", " << player->GetPosition().y << ", " << player->GetPosition().z << ")\n";
-	}
 	timer::CalculateFPS();
 	timer::Update();
 
-	if (player != nullptr) player->Update();
+	if (player != nullptr) player->Update(sock);
 	//bulletManager->Update(sock);
 	monsterManager->Update(sock);
-	//buildingManager->Update(sock);
 	turretManager->Update();
 	waveManager->Update();
 
@@ -517,12 +511,6 @@ GLvoid Update()
 			}
 		}
 	}
-
-	// 데이터 송신
-	{
-		sendPlayerInfo(player, sock);
-	}
-
 	glutPostRedisplay();
 }
 

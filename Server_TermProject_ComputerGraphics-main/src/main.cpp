@@ -347,14 +347,16 @@ GLvoid Update()
 
 	if (IsGameOver() == GL_TRUE)
 	{
-		glutPostRedisplay();
-		return;
+	//	glutPostRedisplay();
+        return;
 	}
 
     timer::CalculateFPS();
     timer::Update();
 
-	bulletManager->Update(client_sock);
+
+    if (player != nullptr) player->Update(client_sock);
+	// bulletManager->Update(client_sock);
 	monsterManager->Update(client_sock);
 	//buildingManager->Update();
 	//turretManager->Update();
@@ -365,16 +367,7 @@ GLvoid Update()
 	constexpr GLfloat cameraMovement = 100.0f;
 	GLfloat cameraSpeed = cameraMovement;
 
-    //bulletManager->Update(client_sock);
-    monsterManager->Update(client_sock);
-    //buildingManager->Update();
-    //turretManager->Update();
 
-    waveManager->Update();
-
-
-    constexpr GLfloat cameraMovement = 100.0f;
-    GLfloat cameraSpeed = cameraMovement;
 
     // movement
     if (cameraMain == cameraFree)
@@ -430,6 +423,7 @@ GLvoid Update()
     }
 
     glutPostRedisplay();
+
 }
 
 GLvoid Mouse(GLint button, GLint state, GLint x, GLint y)

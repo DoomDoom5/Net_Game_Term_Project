@@ -115,7 +115,7 @@ private:
 	GLfloat mHP = 100.0f;
 	GLfloat mSpeed = PLAYER_WALK_SPEED;
 	GLfloat mJumpSpeed = PLAYER_JUMP_SPEED;
-	GLint mHoldTurret = 0;
+	GLint mHoldTurret = 3; // Ω√¿€ ≈Õ∑ø ∞πºˆ
 	GLfloat mFrameTime = 0.0f;
 	bool mlsFire = false;
 
@@ -141,7 +141,7 @@ public:
 	GLvoid ChangeState(const State& playerState, const Event& e = Event::None, const GLint& value = 0);
 
 	// Frame
-	GLvoid Update();
+	GLvoid Update(SOCKET& sock);
 	GLvoid Draw(const CameraMode& cameraMode) const;
 	GLvoid DrawIcon() const;
 

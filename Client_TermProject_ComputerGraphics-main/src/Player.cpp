@@ -392,13 +392,54 @@ GLvoid Player::ChangeState(const State& playerState, const Event& e, const GLint
 
 
 
-GLvoid Player::Update()
+GLvoid Player::Update(SOCKET& sock)
 {
+	int retval;
+	// ==============클라이언트 정보 송신====================
+	char dirX, dirY, dirZ = 0;
+	dirX = mDirX;
+	dirY = mDirY;
+	dirZ = mDirZ;
+
+	bool isFIre = mlsFire;
+
+
+	// glm::vec3를 문자열로 변환
+	string vec3AsString =
+		to_string(dirX) + " " +
+		to_string(dirY) + " " +
+		to_string(dirZ) + " " +
+		to_string(isFIre) + " ";
+
+	// 문자열을 C 스타일의 문자열로 변환
+	const char* buf = vec3AsString.c_str();
+
+	// 데이터 보내기
+	retval = send(sock, buf, (int)strlen(buf), 0);
+	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
+	// ==================================
+
 	mCrntState->Update();
 
 	mPosition = mBody->GetPviotedPosition();
 
 	mCrntGun->Update();
+
+
+	// ===================클라이언트 위치 수신===============
+	char buffer[512];
+	// 데이터 받기
+	retval = recv(sock, buffer, 512, 0);
+
+	// 데이터 수신
+	// 문자열을 스트림에 넣어 공백을 기준으로 분리
+	std::istringstream iss(buffer);
+	float x, y, z;
+	iss >> x >> y >> z;
+	Vector3 vec3(x, y,z);
+	SetPosition(vec3);
+	// ======================
+
 }
 GLvoid Player::Draw(const CameraMode& cameraMode) const
 {

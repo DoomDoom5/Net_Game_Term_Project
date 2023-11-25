@@ -140,7 +140,7 @@ public:
 	GLvoid ChangeState(const State& playerState, const Event& e = Event::None, const GLint& value = 0);
 
 	// Frame
-	GLvoid Update();
+	GLvoid Update(SOCKET& client_sock);
 	GLvoid Draw(const CameraMode& cameraMode) const;
 	GLvoid DrawIcon() const;
 
