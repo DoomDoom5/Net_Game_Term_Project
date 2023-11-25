@@ -5,7 +5,6 @@
 #include "Timer.h"
 #include "Sound.h"
 
-extern SoundManager* soundManager;
 extern BulletManager* bulletManager;
 
 Gun::Gun(const glm::vec3& gunPosition, const glm::vec3* pivot)
@@ -26,7 +25,6 @@ GLvoid Gun::Update()
 		if (IsReloading() == GL_FALSE)
 		{
 			mAmmo = mMaxAmmo;
-			soundManager->PlayEffectSound(EffectSound::Reload, 0.2f, GL_TRUE);
 		}
 		return;
 	}
@@ -96,15 +94,12 @@ GLvoid Gun::Shot()
 	{
 	case GunType::Rifle:
 		bulletManager->Create(mBulletData, origin, bulletPos, mYaw, mPitch);
-		soundManager->PlayFireSound(EffectSound::Normal_shot, 0.1f);
 		break;
 	case GunType::Launcher:
 		bulletManager->Create(mBulletData, origin, bulletPos, mYaw, mPitch);
-		soundManager->PlayFireSound(EffectSound::Launcher_shot, 0.2f);
 		break;
 	case GunType::Sniper:
 		bulletManager->Create(mBulletData, origin, bulletPos, mYaw, mPitch);
-		soundManager->PlayFireSound(EffectSound::Sniper_shot, 0.1f);
 		break;
 	default:
 		assert(0);
@@ -115,7 +110,6 @@ GLvoid Gun::Shot()
 
 GLvoid Gun::Reload()
 {
-	soundManager->PlayEffectSound(EffectSound::EmptyBullet, 0.2f, GL_TRUE);
 	mCrntReloadTime = mReloadTime;
 }
 
@@ -169,7 +163,6 @@ GLvoid ShotGun::Shot()
 		// mPitch + m_b_angle 부터 mPitch - m_b_angle 까지 mBuckbullets 만큼 발사
 	}
 
-	soundManager->PlayFireSound(EffectSound::Shotgun_shot, 0.2f);
 }
 
 Sniper::Sniper(const glm::vec3& gunPosition, const glm::vec3* pivot) : Gun(gunPosition, pivot)

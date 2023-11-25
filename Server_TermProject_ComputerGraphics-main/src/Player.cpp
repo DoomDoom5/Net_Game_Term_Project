@@ -14,7 +14,6 @@
 // extern
 extern Map* crntMap;
 extern BuildingManager* buildingManager;
-extern SoundManager* soundManager;
 extern TurretManager* turretManager;
 
 using namespace playerState;
@@ -37,6 +36,7 @@ GLvoid Idle::Exit()
 GLvoid Idle::Update()
 {
 	mPlayer->ReleaseLegRotation();
+	mPlayer->Move();
 }
 
 GLvoid Idle::HandleEvent(const Event& e, const GLint& key)
@@ -132,7 +132,6 @@ GLvoid Jump::Enter(const Event& e, const GLint& value)
 {
 	t = 0;
 	mPlayer->SetDir(KEY_SPACEBAR, UP);
-	soundManager->PlayEffectSound(EffectSound::Jump, 0.2f, GL_TRUE);
 }
 GLvoid Jump::Exit()
 {
@@ -389,15 +388,21 @@ GLvoid Player::ChangeState(const State& playerState, const Event& e, const GLint
 
 GLvoid Player::Update(SOCKET& client_sock)
 {
+	char DirX = 0, DirY = 0, DirZ = 0;
 	// ======= 사용자 정보수신 ======
 	bool mIsfire = false;
-	char buffer[512];
+	char buffer[100]{};
 	int retval = 0;
-	retval = recv(client_sock, buffer, 512, 0);
+	retval = recv(client_sock, buffer, 10, 0);
+
 
 	std::istringstream iss(buffer);
+	iss >> DirX >> DirY >> DirZ;
+	cout << "DirX : " << DirX << "DorY : " << DirY << "DirZ : " << DirZ  << endl;
+	mDirX = DirX;
+	mDirY = DirY;
+	mDirZ = DirZ;
 
-	iss >> mDirX >> mDirY >> mDirZ >> mIsfire;
 	// ============================
 
 	mCrntState->Update();
@@ -418,7 +423,10 @@ GLvoid Player::Update(SOCKET& client_sock)
 
 	// 데이터 보내기
 	retval = send(client_sock, buf, (int)strlen(buf), 0);
-	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
+	cout << " mPosition X : " << mPosition.x <<
+		" mPosition Y : "<< mPosition.y <<
+		" mPosition Z : " <<  mPosition.z << endl;
+	printf("[TCP 서버] %d바이트를 보냈습니다.\n", retval);
 	// ======= ========== ======
 }
 GLvoid Player::Draw(const CameraMode& cameraMode) const
@@ -502,16 +510,6 @@ GLvoid Player::Move()
 		mBody->SetPosZ(prevPos.z);
 	}
 
-
-	if (mFrameTime > RUN_SOUND_TERM)
-	{
-		soundManager->PlayWalkSound(EffectSound::Run, 1.0f);
-		mFrameTime = 0;
-	}
-	else
-	{
-		mFrameTime += timer::DeltaTime();
-	}
 
 	RotateLeg();
 }
@@ -643,7 +641,6 @@ GLint Player::GetHoldTullet() const
 GLvoid Player::Damage(const GLfloat& damage)
 {
 	mHP -= damage;
-	soundManager->PlayEffectSound(EffectSound::Hit);
 	if (mHP <= 0)
 	{
 		GameOver();
@@ -676,7 +673,6 @@ GLvoid Player::ChaingeGun()
 {
 	static int gun_num = 0;
 
-	soundManager->PlayEffectSound(EffectSound::CheageWeapon, 0.2f, GL_TRUE);
 	if (mCrntGun->IsReloading())
 	{
 		mCrntGun->Reload();

@@ -10,7 +10,6 @@
 
 extern BulletManager* bulletManager;
 extern BuildingManager* buildingManager;
-extern SoundManager* soundManager;
 
 unordered_map<MonsterType, Textures> modelMap{
 	{MonsterType::Blooper, Textures::Blooper},
@@ -153,21 +152,6 @@ GLvoid Monster::Damage(const GLfloat& damage)
 	mHP -= damage;
 	if (mHP <= 0)
 	{
-		switch (mType)
-		{
-		case MonsterType::Blooper:
-			soundManager->PlayEffectSound(EffectSound::M_BlooperDead, mObject->GetPosition(), 0.5f);
-			break;
-		case MonsterType::Egg:
-			soundManager->PlayEffectSound(EffectSound::M_EggDead, mObject->GetPosition());
-			break;
-		case MonsterType::Koromon:
-			soundManager->PlayEffectSound(EffectSound::M_KoromonDead, mObject->GetPosition());
-			break;
-		default:
-			break;
-		}
-
 		Destroy();
 
 		bulletManager->CreateExplosion(mExplosionColor, mObject->GetCenterPos(), mRadius);

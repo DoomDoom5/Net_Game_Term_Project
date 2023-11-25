@@ -5,7 +5,6 @@
 
 #define BULLET_RADIUS 10.0f
 
-extern SoundManager* soundManager;
 extern BulletManager* bulletManager;
 
 GLvoid IBulletCollisionable::Destroy()
@@ -175,12 +174,10 @@ GLboolean ProcessCollision(Bullet* bullet, IBulletCollisionable* object, vector<
 				if (crntInkSoundDelay >= inkSoundDelay)
 				{
 					crntInkSoundDelay = 0;
-					soundManager->PlayEffectSound(EffectSound::Drawing_ink, hitPoint, 0.2f);
 				}
 			}
 			else
 			{
-				soundManager->PlayEffectSound(EffectSound::Drawing_Bigink, hitPoint, 0.2f);
 			}
 			PaintPlane* plane = new PaintPlane(object, bullet->GetColor(), hitPoint, normal);
 			plane->SetScale(BULLET_RADIUS * bullet->GetScale());

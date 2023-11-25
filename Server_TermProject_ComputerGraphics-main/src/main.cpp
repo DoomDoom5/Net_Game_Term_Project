@@ -12,7 +12,6 @@
 #include "Monster.h"
 #include "Building.h"
 #include "Turret.h"
-#include "Sound.h"
 #include "Wave.h"
 #include "UI.h"
 #include "Common.h"
@@ -69,7 +68,6 @@ BulletManager* bulletManager = nullptr;
 MonsterManager* monsterManager = nullptr;
 BuildingManager* buildingManager = nullptr;
 TurretManager* turretManager = nullptr;
-SoundManager* soundManager = nullptr;
 WaveManager* waveManager = nullptr;
 UIManager* uiManager = nullptr;
 
@@ -170,7 +168,6 @@ GLvoid Init()
 	mouseCenter = { screenWidth / 2 + screenPosX, screenHeight / 2 + screenPosY };
 
     waveManager->Start();
-    soundManager->PlayBGMSound(BGMSound::Normal, 0.2f, GL_TRUE);
 
 	//************ [Server]************
 	if (listen_sock == NULL) init_Listen_Sock(listen_sock);
@@ -187,18 +184,9 @@ GLvoid InitMeshes()
 	bulletManager = new BulletManager();
 	buildingManager = new BuildingManager();
 	turretManager = new TurretManager();
-	soundManager = new SoundManager();
 	monsterManager = new MonsterManager();
 	waveManager = new WaveManager();
 	uiManager = new UIManager();
-
-    bulletManager = new BulletManager();
-    buildingManager = new BuildingManager();
-    turretManager = new TurretManager();
-    soundManager = new SoundManager();
-    monsterManager = new MonsterManager();
-    waveManager = new WaveManager();
-    uiManager = new UIManager();
 
 	// test object
 	const Model* cubeMapModel = GetTextureModel(Textures::CubeMap);
@@ -226,14 +214,12 @@ GLvoid Reset()
     delete monsterManager;
     delete buildingManager;
     delete turretManager;
-    delete soundManager;
     delete waveManager;
 
     bulletManager = nullptr;
     monsterManager = nullptr;
     buildingManager = nullptr;
     turretManager = nullptr;
-    soundManager = nullptr;
     waveManager = nullptr;
 
     delete cameraFree;
@@ -319,23 +305,23 @@ GLvoid DrawScene()
     shd::SetShader(crntShader, "light.pos", light->GetPviotedPosition());
     shd::SetShader(crntShader, "viewPos", crntCamera->GetPviotedPosition());
     DrawObjects(crntShader);
-    turretManager->Draw();
-    monsterManager->Draw();
-    buildingManager->Draw();
+    //turretManager->Draw();
+    //monsterManager->Draw();
+    //buildingManager->Draw();
 
     if (player != nullptr)
     {
-        player->Draw(cameraMode);
+       // player->Draw(cameraMode);
     }
 
     glCullFace(GL_FRONT);
-    cubeMap->Draw();
+    //cubeMap->Draw();
     glCullFace(GL_BACK);
 
     DrawBlendObjects();
 
     shd::Use(Shader::Back);
-    uiManager->Draw();
+   // uiManager->Draw();
 
     glBindVertexArray(0);
     glutSwapBuffers();
@@ -357,7 +343,7 @@ GLvoid Update()
 
     if (player != nullptr) player->Update(client_sock);
 	// bulletManager->Update(client_sock);
-	monsterManager->Update(client_sock);
+	//monsterManager->Update(client_sock);
 	//buildingManager->Update();
 	//turretManager->Update();
 

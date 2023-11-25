@@ -9,7 +9,6 @@
 
 extern MonsterManager* monsterManager;
 extern BulletManager* bulletManager;
-extern SoundManager* soundManager;
 
 TurretManager::Turret::Turret(const glm::vec3& position)
 {
@@ -43,7 +42,6 @@ GLvoid TurretManager::Turret::Update()
 		if (!mTargetOn)
 		{
 			mTargetOn = true;
-			soundManager->PlayEffectSound(EffectSound::Turret_FindEnemy, mObject_Head->GetPosition(), 0.1f);
 		}
 		mObject_Head->Look(targetPos);
 
@@ -71,8 +69,6 @@ GLvoid TurretManager::Turret::Fire()
 	GLfloat yaw = 0.0f;
 	GLfloat pitch = 0.0f;
 	GetYawPitch(mObject_Head->GetLook(), yaw, pitch);
-
-	soundManager->PlayEffectSound(EffectSound::Normal_shot, mObject_Head->GetPosition(), 0.1f);
 
 	BulletData data;
 	data.type = BulletType::Normal;
@@ -118,6 +114,5 @@ GLvoid TurretManager::Draw() const
 GLvoid TurretManager::Create(const glm::vec3& position)
 {
 	Turret* turret = new Turret(position);
-	soundManager->PlayEffectSound(EffectSound::Turret_install, position, 0.1f);
 	turrets.emplace_back(turret);
 }
