@@ -106,6 +106,7 @@ GLint main(GLint argc, GLchar** argv)
 	glewExperimental = GL_TRUE;
 
 	Init();
+
 	glutIdleFunc(Update);	
 	glutDisplayFunc(DrawScene);
 	glutReshapeFunc(Reshape);
@@ -453,7 +454,7 @@ GLvoid Update()
 
 	if (player != nullptr) player->Update(sock);
 	//bulletManager->Update(sock);
-	monsterManager->Update(sock);
+	//monsterManager->Update(sock);
 	turretManager->Update();
 	waveManager->Update();
 

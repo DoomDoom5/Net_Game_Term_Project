@@ -401,16 +401,11 @@ GLvoid Player::Update(SOCKET& sock)
 	dirY = mDirY;
 	dirZ = mDirZ;
 
-	bool isFIre = mlsFire;
-
-
 	// glm::vec3를 문자열로 변환
 	string vec3AsString =
 		to_string(dirX) + " " +
 		to_string(dirY) + " " +
-		to_string(dirZ) + " " +
-		to_string(isFIre) + " ";
-
+		to_string(dirZ);
 	// 문자열을 C 스타일의 문자열로 변환
 	const char* buf = vec3AsString.c_str();
 
@@ -430,13 +425,16 @@ GLvoid Player::Update(SOCKET& sock)
 	char buffer[512];
 	// 데이터 받기
 	retval = recv(sock, buffer, 512, 0);
-
+	printf("[TCP 클라이언트] %d바이트을 받았습니다.\n", retval);
 	// 데이터 수신
 	// 문자열을 스트림에 넣어 공백을 기준으로 분리
 	std::istringstream iss(buffer);
 	float x, y, z;
 	iss >> x >> y >> z;
 	Vector3 vec3(x, y,z);
+	mPosition.x = x;
+	mPosition.y = y;
+	mPosition.z = z;
 	SetPosition(vec3);
 	// ======================
 
