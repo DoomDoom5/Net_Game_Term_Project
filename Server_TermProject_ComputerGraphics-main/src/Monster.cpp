@@ -378,6 +378,8 @@ GLvoid MonsterManager::Update(SOCKET sock)
 			++it;
 		}
 	}
+
+	// =================================
 	char numbuf[10];
 	int num = 0;
 	if (!mMonsterList.empty())

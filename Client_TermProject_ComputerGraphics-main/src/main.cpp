@@ -454,7 +454,7 @@ GLvoid Update()
 
 	if (player != nullptr) player->Update(sock);
 	//bulletManager->Update(sock);
-	//monsterManager->Update(sock);
+	monsterManager->Update(sock);
 	turretManager->Update();
 	waveManager->Update();
 

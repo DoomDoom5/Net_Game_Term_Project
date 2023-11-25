@@ -117,17 +117,17 @@ GLint main(GLint argc, GLchar** argv)
 	glutIdleFunc(Update);
 	glutDisplayFunc(DrawScene);
 	glutReshapeFunc(Reshape);
-	glutSetCursor(GLUT_CURSOR_NONE);
+	//glutSetCursor(GLUT_CURSOR_NONE);
 	
-	glutMouseFunc(Mouse);
-	glutMotionFunc(MouseMotion);
-	glutPassiveMotionFunc(MousePassiveMotion);
+	//glutMouseFunc(Mouse);
+	//glutMotionFunc(MouseMotion);
+	//glutPassiveMotionFunc(MousePassiveMotion);
 
-	glutPositionFunc(RePosition);
-	glutKeyboardFunc(ProcessKeyDown);
-	glutKeyboardUpFunc(ProcessKeyUp);
-	glutSpecialFunc(ProcessSpecialKeyDown);
-	glutSpecialUpFunc(ProcessSpecialKeyUp);
+	//glutPositionFunc(RePosition);
+	//glutKeyboardFunc(ProcessKeyDown);
+    //glutKeyboardUpFunc(ProcessKeyUp);
+	//glutSpecialFunc(ProcessSpecialKeyDown);
+	//glutSpecialUpFunc(ProcessSpecialKeyUp);
 
     timer::StartUpdate();
 
@@ -268,62 +268,7 @@ GLvoid SetWindow(GLint index)
 
 GLvoid DrawScene()
 {
-    glClearColor(backColor.r, backColor.g, backColor.b, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    if (isWireFrame)
-    {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    }
-    else
-    {
-        glPolygonMode(GL_FRONT, GL_FILL);
-    }
-
-    SetWindow(0);
-
-    Shader crntShader = Shader::Color;
-    shd::Use(crntShader);
-    shd::SetShader(crntShader, "viewTransform", xform::GetView(crntCamera));
-    shd::SetShader(crntShader, "projTransform", xform::GetProj(crntCamera));
-    DrawObjects(crntShader);
-
-    crntShader = Shader::Light;
-    shd::Use(crntShader);
-    shd::SetShader(crntShader, "viewTransform", xform::GetView(crntCamera));
-    shd::SetShader(crntShader, "projTransform", xform::GetProj(crntCamera));
-    shd::SetShader(crntShader, "light.pos", light->GetPviotedPosition());
-    shd::SetShader(crntShader, "viewPos", crntCamera->GetPviotedPosition());
-    DrawObjects(crntShader);
-    bulletManager->Draw();
-
-    //light->Draw();
-
-    crntShader = Shader::Texture;
-    shd::Use(crntShader);
-    shd::SetShader(crntShader, "viewTransform", xform::GetView(crntCamera));
-    shd::SetShader(crntShader, "projTransform", xform::GetProj(crntCamera));
-    shd::SetShader(crntShader, "light.pos", light->GetPviotedPosition());
-    shd::SetShader(crntShader, "viewPos", crntCamera->GetPviotedPosition());
-    DrawObjects(crntShader);
-    //turretManager->Draw();
-    //monsterManager->Draw();
-    //buildingManager->Draw();
-
-    if (player != nullptr)
-    {
-       // player->Draw(cameraMode);
-    }
-
-    glCullFace(GL_FRONT);
-    //cubeMap->Draw();
-    glCullFace(GL_BACK);
-
-    DrawBlendObjects();
-
-    shd::Use(Shader::Back);
-   // uiManager->Draw();
-
-    glBindVertexArray(0);
+   
     glutSwapBuffers();
 }
 
@@ -343,7 +288,7 @@ GLvoid Update()
 
     if (player != nullptr) player->Update(client_sock);
 	// bulletManager->Update(client_sock);
-	//monsterManager->Update(client_sock);
+	monsterManager->Update(client_sock);
 	//buildingManager->Update();
 	//turretManager->Update();
 

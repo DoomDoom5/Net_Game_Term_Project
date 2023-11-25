@@ -118,6 +118,7 @@ private:
 	GLint mHoldTurret = 3; // Ω√¿€ ≈Õ∑ø ∞πºˆ
 	GLfloat mFrameTime = 0.0f;
 	bool mlsFire = false;
+	bool mIsInstall = false;
 
 	// for collision
 	Circle* mBoundingCircle = nullptr;

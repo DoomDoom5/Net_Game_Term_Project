@@ -117,6 +117,8 @@ private:
 	GLfloat mJumpSpeed = PLAYER_JUMP_SPEED;
 	GLint mHoldTurret = 0;
 	GLfloat mFrameTime = 0.0f;
+	bool mlsFire = false;
+	bool mIsInstall = false;
 
 	// for collision
 	Circle* mBoundingCircle = nullptr;

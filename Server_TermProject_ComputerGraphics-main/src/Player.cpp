@@ -388,21 +388,16 @@ GLvoid Player::ChangeState(const State& playerState, const Event& e, const GLint
 
 GLvoid Player::Update(SOCKET& client_sock)
 {
-	char DirX = 0, DirY = 0, DirZ = 0;
 	// ======= 사용자 정보수신 ======
+
 	bool mIsfire = false;
 	char buffer[100]{};
 	int retval = 0;
-	retval = recv(client_sock, buffer, 10, 0);
-
+	retval = recv(client_sock, buffer, 100, 0);
 
 	std::istringstream iss(buffer);
-	iss >> DirX >> DirY >> DirZ;
-	cout << "DirX : " << DirX << "DorY : " << DirY << "DirZ : " << DirZ  << endl;
-	mDirX = DirX;
-	mDirY = DirY;
-	mDirZ = DirZ;
-
+	iss >> mPosition.x >> mPosition.y >> mPosition.z >> mIsfire;
+	if (mIsfire) Install_Turret();
 	// ============================
 
 	mCrntState->Update();
@@ -411,22 +406,8 @@ GLvoid Player::Update(SOCKET& client_sock)
 
 	mCrntGun->Update();
 
+
 	// ======= 사용자 위치 송신 ======
-	// glm::vec3를 문자열로 변환
-	std::string vec3AsString =
-		std::to_string(mPosition.x) + " " +
-		std::to_string(mPosition.y) + " " +
-		std::to_string(mPosition.z);
-
-	// 문자열을 C 스타일의 문자열로 변환
-	const char* buf = vec3AsString.c_str();
-
-	// 데이터 보내기
-	retval = send(client_sock, buf, (int)strlen(buf), 0);
-	cout << " mPosition X : " << mPosition.x <<
-		" mPosition Y : "<< mPosition.y <<
-		" mPosition Z : " <<  mPosition.z << endl;
-	printf("[TCP 서버] %d바이트를 보냈습니다.\n", retval);
 	// ======= ========== ======
 }
 GLvoid Player::Draw(const CameraMode& cameraMode) const
