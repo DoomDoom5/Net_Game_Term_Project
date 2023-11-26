@@ -385,36 +385,38 @@ GLvoid MonsterManager::Update(SOCKET& sock)
 	system("cls");
 	printf("\nmonster 업데이트 진입\n");
 
-	char numbuf[512] = { 0 };
-	int retval = 0;
-	retval = recv(sock, numbuf, sizeof(int), 0);
+	char buf[sizeof(int)];
+	int retval = recv(sock, buf, sizeof(int), 0);
 	if (retval == SOCKET_ERROR) {
 		printf("SOCKET_ERROR\n");
 		return;
 	}
-	int num = atoi(numbuf);
-	printf("%d개의 데이터를 받을게요\n", num);
-	char buffer[2000];
-	float recvv3[1000] = {};
+	int nMonsters;
+	memcpy(&nMonsters, &buf, sizeof(int));
+	nMonsters = ntohl(nMonsters);
+	cout << nMonsters << "개의 데이터를 받을게요" << endl;
+
 	// 데이터 받기
+	char cMonstersPos[1000];
+	uint32_t convertToFloat[1000];
 	retval = 0;
-	retval = recv(sock, buffer, 2000, 0);
+	retval = recv(sock, cMonstersPos, sizeof(uint32_t) * 3 * nMonsters, 0);
 	if (retval == SOCKET_ERROR) {
 		printf("SOCKET_ERROR\n");
 		return;
+	}
+	memcpy(&convertToFloat, &cMonstersPos, sizeof(uint32_t) * 3 * nMonsters);
+	float fMonsterPos[1000];
+	for (int i = 0; i < nMonsters * 3; ++i) {
+		convertToFloat[i] = ntohl(convertToFloat[i]);
+		fMonsterPos[i] = *reinterpret_cast<float*>(&convertToFloat[i]);
 	}
 
-	std::stringstream ss(buffer);
-	std::string token;
-	int cnt = 0;
-	float currentValue;
-	while (ss >> currentValue) {
-		recvv3[cnt++] = currentValue;
+	for (int i = 0; i < nMonsters; ++i) {
+		printf("%d: (%f, %f, %f)\n", i, fMonsterPos[i * 3 + 0],
+			fMonsterPos[i * 3 + 1], fMonsterPos[i * 3 + 2]);
 	}
-	// 받은 데이터를 출력
-	for (int i = 0; i < num; ++i) {
-		std::cout << i << ": (" << recvv3[3 * i + 0] << ", " << recvv3[3 * i + 1] << ", " << recvv3[3 * i + 2] << ")\n";
-	}
+
 	int cnt2 = 0;
 	for (auto it = mMonsterList.begin(); it != mMonsterList.end();)
 	{
@@ -427,11 +429,12 @@ GLvoid MonsterManager::Update(SOCKET& sock)
 		{
 			const glm::vec3* target = FindTargetPos(monster->GetPosition(), monster->GetDetectRadius());
 			//monster->Update(target);
-			monster->SetPosition(recvv3[3 * cnt2 + 0], recvv3[3 * cnt2 + 1], recvv3[3 * cnt2 + 2]);
+			monster->SetPosition(fMonsterPos[3 * cnt2 + 0], fMonsterPos[3 * cnt2 + 1], fMonsterPos[3 * cnt2 + 2]);
 			MonsterManager::CheckCollision(monster);
 			++it;
 			++cnt2;
 		}
+	
 	}
 }
 

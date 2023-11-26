@@ -170,7 +170,7 @@ GLvoid Init()
 	mouseCenter = { screenWidth / 2 + screenPosX, screenHeight / 2 + screenPosY };
 
 	waveManager->Start();
-	soundManager->PlayBGMSound(BGMSound::Normal, 0.2f, GL_TRUE);
+	//soundManager->PlayBGMSound(BGMSound::Normal, 0.2f, GL_TRUE);
 
 	//************ [Server]************
 	if (listen_sock == NULL) init_Listen_Sock(listen_sock);
@@ -350,7 +350,7 @@ GLvoid Update()
 	
 	if (player != nullptr)	player->Update();
 
-	bulletManager->Update(client_sock);
+	//bulletManager->Update(client_sock);
 	monsterManager->Update(client_sock);
 	//buildingManager->Update();
 	//turretManager->Update();
