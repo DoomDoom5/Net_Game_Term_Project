@@ -374,10 +374,21 @@ GLvoid MonsterManager::Create(const MonsterType& monsterType, const glm::vec3& p
 
 	mMonsterList.emplace_back(monster);
 }
+
+struct MonsterInfo {
+	char monsterNumBuf[sizeof(int)];
+	char monsterPosBuf[sizeof(float) * 3 * 20];		// num은 10이 최대
+	char monsterTypeBuf[sizeof(int) * 20];
+	char monsterTargetBuf[sizeof(float) * 3 * 20];
+};
+
 GLvoid MonsterManager::Update(SOCKET sock)
 {
+	MonsterInfo monsterInfo{};
+
 	system("cls");
 	printf("\nmonster 업데이트 진입\n");
+
 	for (auto it = mMonsterList.begin(); it != mMonsterList.end();)
 	{
 		Monster* monster = *it;
@@ -387,26 +398,23 @@ GLvoid MonsterManager::Update(SOCKET sock)
 		}
 		else
 		{
-			const glm::vec3* target = FindTargetPos(monster->GetPosition(), monster->GetDetectRadius());
-			monster->Update(target);
 			MonsterManager::CheckCollision(monster);
-
 			++it;
 		}
 	}
+	monsterInfo.monsterTargetBuf;
+
 	int nMonsters = 0;
 	int netbyte = 0;
 	if (!mMonsterList.empty())
 		nMonsters = mMonsterList.size();
 	std::cout << nMonsters << "개의 몬스터 위치가 있음" << std::endl;
 	netbyte = htonl(nMonsters);
-	char buf[sizeof(int)];
-	memcpy(&buf, &netbyte, sizeof(int));
-	send(sock, buf, sizeof(int), 0);
+	memcpy(&monsterInfo.monsterNumBuf, &netbyte, sizeof(int));
 
-
-	char cMonstersPos[1000];
+	// Postion 설정
 	uint32_t converToFloat[1000];
+	memset(converToFloat, 0, sizeof(converToFloat));
 	for (int i = 0; i < nMonsters; ++i)
 	{
 		Monster* monster = mMonsterList[i];
@@ -414,10 +422,28 @@ GLvoid MonsterManager::Update(SOCKET sock)
 		converToFloat[i * 3 + 0] = htonl(*reinterpret_cast<uint32_t*>(&pos.x));
 		converToFloat[i * 3 + 1] = htonl(*reinterpret_cast<uint32_t*>(&pos.y));
 		converToFloat[i * 3 + 2] = htonl(*reinterpret_cast<uint32_t*>(&pos.z));
-		printf("%d: (%f, %f, %f)\n", i, pos.x, pos.y, pos.z);
+		printf("%d Position: (%f, %f, %f)\n", i, pos.x, pos.y, pos.z);
 	}
-	memcpy(&cMonstersPos, &converToFloat, sizeof(uint32_t) * 3 * nMonsters);
-	send(sock, cMonstersPos, sizeof(uint32_t) * 3 * nMonsters, 0);
+	memcpy(&monsterInfo.monsterPosBuf, &converToFloat, sizeof(uint32_t) * 3 * nMonsters);
+
+	// Look 설정
+	memset(converToFloat, 0, sizeof(converToFloat));
+	for (int i = 0; i < nMonsters; ++i)
+	{
+		Monster* monster = mMonsterList[i];
+		const glm::vec3* target = FindTargetPos(monster->GetPosition(), monster->GetDetectRadius());
+		monster->Update(target);
+		float xyz[3]; xyz[0] = target->z; xyz[1] = target->y; xyz[2] = target->z;
+		converToFloat[i * 3 + 0] = htonl(*reinterpret_cast<uint32_t*>(&xyz[0]));
+		converToFloat[i * 3 + 1] = htonl(*reinterpret_cast<uint32_t*>(&xyz[1]));
+		converToFloat[i * 3 + 2] = htonl(*reinterpret_cast<uint32_t*>(&xyz[2]));
+		printf("%d Target: (%f, %f, %f)\n", i, xyz[0], xyz[1], xyz[2]);
+	}
+	memcpy(&monsterInfo.monsterTargetBuf, &converToFloat, sizeof(uint32_t) * 3 * nMonsters);
+
+	char buf[sizeof(MonsterInfo)];
+	memcpy(&buf, &monsterInfo, sizeof(MonsterInfo));
+	send(sock, buf, sizeof(MonsterInfo), 0);
 }
 GLvoid MonsterManager::Draw() const
 {
