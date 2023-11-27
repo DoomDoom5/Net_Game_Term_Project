@@ -48,7 +48,7 @@ GLvoid WaveManager::Start()
 	}
 }
 
-GLvoid WaveManager::Update()
+GLvoid WaveManager::Update(SOCKET& client_sock)
 {
 	if (monsterManager->CheckEnemyEmpty())
 	{
@@ -58,4 +58,5 @@ GLvoid WaveManager::Update()
 		WaveManager::Start();
 		cout << mCrntWave << endl;
 	}
+
 }

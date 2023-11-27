@@ -202,14 +202,12 @@ GLboolean ProcessCollision(Bullet* bullet, IBulletCollisionable* object, vector<
 
 GLvoid BulletManager::Update(SOCKET& sock)
 {
+	char numbuf[512] = { 0 };
 	int retval = 0;
-	const char* numbuf;
 	int num;
-	int BUFSIZE = 252;
-	char buffer[1000];
 
-	retval = recv(sock, buffer, BUFSIZE, 0);
-	memcpy(&num, &numbuf, sizeof(int));
+	retval = recv(sock, numbuf, sizeof(int), 0);
+	int num = atoi(numbuf);
 
 	
 	float recvv3[10000][3];

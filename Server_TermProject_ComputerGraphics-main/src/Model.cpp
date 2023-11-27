@@ -206,8 +206,6 @@ GLvoid Model::ReverseNormal()
 }
 
 
-
-
 // model
 static Model* planeModel = new Model();
 static Model* circleModel = new Model();

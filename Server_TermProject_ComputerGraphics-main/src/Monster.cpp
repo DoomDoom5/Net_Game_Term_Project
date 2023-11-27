@@ -360,7 +360,6 @@ GLvoid MonsterManager::Create(const MonsterType& monsterType, const glm::vec3& p
 }
 GLvoid MonsterManager::Update(SOCKET sock)
 {
-	system("cls");
 	printf("\nmonster 업데이트 진입\n");
 	for (auto it = mMonsterList.begin(); it != mMonsterList.end();)
 	{

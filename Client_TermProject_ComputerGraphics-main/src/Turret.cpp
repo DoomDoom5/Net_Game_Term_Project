@@ -100,11 +100,47 @@ TurretManager::~TurretManager()
 	}
 }
 
-GLvoid TurretManager::Update()
+GLvoid TurretManager::Update(SOCKET& sock)
 {
-	for (Turret* turret : turrets)
+	printf("\Turret 업데이트 진입\n");
+
+	char numbuf[512] = { 0 };
+	int retval = 0;
+	retval = recv(sock, numbuf, sizeof(int), 0);
+	if (retval == SOCKET_ERROR) {
+		printf("SOCKET_ERROR\n");
+		return;
+	}
+	int num = atoi(numbuf);
+	printf("%d개의 데이터를 받을게요\n", num);
+	char buffer[2000];
+	float recvv3[1000] = {};
+	
+	// 데이터 받기
+	retval = recv(sock, buffer, 2000, 0);
+	if (retval == SOCKET_ERROR) {
+		printf("SOCKET_ERROR\n");
+		return;
+	}
+
+	std::stringstream ss(buffer);
+	std::string token;
+	int cnt = 0;
+	float currentValue;
+	while (ss >> currentValue) {
+		recvv3[cnt++] = currentValue;
+	}
+	// 받은 데이터를 출력
+	for (int i = 0; i < num; ++i) {
+		std::cout << i << ": (" << recvv3[3 * i + 0] << ", " << recvv3[3 * i + 1] << ", " << recvv3[3 * i + 2] << ")\n";
+	}
+	int cnt2 = 0;
+	for (auto it = turrets.begin(); it != turrets.end();)
 	{
-		turret->Update();
+		Turret* turret = *it;
+		turret->SetPosition(recvv3[3 * cnt2 + 0], 0, recvv3[3 * cnt2 + 2]);
+		++it;
+		++cnt2;
 	}
 }
 GLvoid TurretManager::Draw() const

@@ -1,5 +1,6 @@
 #pragma once
 #include "stdafx.h"
+#include "Object.h"
 
 class SharedObject;
 
@@ -24,6 +25,7 @@ private:
 		GLvoid Update();
 		GLvoid Draw() const;
 		GLvoid Fire();
+		glm::vec3 GetBodyPosition() { return mObject_Body->GetPosition(); };
 	};
 
 	vector<Turret*> turrets;
@@ -31,7 +33,7 @@ public:
 	TurretManager();
 	~TurretManager();
 
-	GLvoid Update();
+	GLvoid Update(SOCKET& client_sock);
 	GLvoid Draw() const;
 
 	GLvoid Create(const glm::vec3& position);

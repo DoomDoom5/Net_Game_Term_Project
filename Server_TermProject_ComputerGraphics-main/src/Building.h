@@ -28,6 +28,7 @@ public:
 	GLboolean CheckCollisionBullet(const BulletAtt& bullet, glm::vec3& hitPoint, glm::vec3& normal);
 	SharedObject* GetBuildingObject() const { return mObject; }
 	GLvoid Damage(const GLfloat& damage);
+	GLfloat GetHP() { return mHP; };
 };
 
 class BuildingManager {
@@ -39,7 +40,7 @@ public:
 	BuildingManager();
 	~BuildingManager();
 
-	GLvoid Update();
+	GLvoid Update(SOCKET& sock);
 	GLvoid Draw() const;
 
 	GLvoid Create(const BuildingType& type, const glm::vec3& position, const glm::vec3 look = Vector3::Front());

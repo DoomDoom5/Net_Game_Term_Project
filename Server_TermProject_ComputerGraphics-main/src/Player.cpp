@@ -390,14 +390,15 @@ GLvoid Player::Update(SOCKET& client_sock)
 {
 	// ======= 사용자 정보수신 ======
 
-	bool mIsfire = false;
+	bool mIsInstall = false;
+	bool mlsFire = false;
 	char buffer[100]{};
 	int retval = 0;
 	retval = recv(client_sock, buffer, 100, 0);
 
 	std::istringstream iss(buffer);
-	iss >> mPosition.x >> mPosition.y >> mPosition.z >> mIsfire;
-	if (mIsfire) Install_Turret();
+	iss >> mPosition.x >> mPosition.y >> mPosition.z >> mlsFire >>mIsInstall;
+	if (mIsInstall) Install_Turret();
 	// ============================
 
 	mCrntState->Update();
@@ -646,7 +647,6 @@ GLvoid Player::Install_Turret()
 	{
 		glm::vec3 position = GetPosition();
 		turretManager->Create({ position.x, 0, position.z });
-		mHoldTurret--;
 	}
 }
 

@@ -96,12 +96,41 @@ TurretManager::~TurretManager()
 	}
 }
 
-GLvoid TurretManager::Update()
+GLvoid TurretManager::Update(SOCKET& client_sock)
 {
 	for (Turret* turret : turrets)
 	{
 		turret->Update();
 	}
+
+	// =================================
+	char numbuf[10];
+	int num = 0;
+	if (!turrets.empty())
+		num = turrets.size();
+	//memcpy(&numbuf, &num, sizeof(int));
+	snprintf(numbuf, sizeof(numbuf), "%d", num);
+	printf("%d개의 터렛 위치가 있음\n", num);
+	send(client_sock, numbuf, sizeof(int), 0);
+	char buf[1000];
+	buf[0] = '\0';
+	for (int i = 0; i < num; ++i)
+	{
+		Turret* turret = turrets[i];
+		snprintf(buf + strlen(buf), 1000 - strlen(buf), "%.2f", turret->GetBodyPosition().x);
+		snprintf(buf + strlen(buf), 1000 - strlen(buf), " ");
+		snprintf(buf + strlen(buf), 1000 - strlen(buf), "%.2f", turret->GetBodyPosition().y);
+		snprintf(buf + strlen(buf), 1000 - strlen(buf), " ");
+		snprintf(buf + strlen(buf), 1000 - strlen(buf), "%.2f", turret->GetBodyPosition().z);
+		snprintf(buf + strlen(buf), 1000 - strlen(buf), " ");
+		printf("%d: (%f, %f, %f)\n", i, turret->GetBodyPosition().x,
+			turret->GetBodyPosition().y, turret->GetBodyPosition().z);
+	}
+	const char* realbuf = buf;
+	//memcpy(&buf, monsterlist_pos, sizeof(monsterlist_pos[0]) * num);
+	send(client_sock, realbuf, strlen(buf), 0);
+
+
 }
 GLvoid TurretManager::Draw() const
 {

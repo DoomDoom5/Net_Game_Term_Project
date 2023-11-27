@@ -189,8 +189,9 @@ BuildingManager::~BuildingManager()
 	}
 }
 
-GLvoid BuildingManager::Update()
+GLvoid BuildingManager::Update(SOCKET& client_sock)
 {
+	cout << "°³¼ö : " << buildings.size() << endl;
 	for (auto it = buildings.begin(); it != buildings.end();)
 	{
 		Building* building = *it;
@@ -207,6 +208,7 @@ GLvoid BuildingManager::Update()
 		else
 		{
 			building->Update();
+			cout << building->GetHP() << endl;
 
 			++it;
 		}

@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "Shader.h"
 #include "Object.h"
 #include "Player.h"
 #include "Model.h"
@@ -7,13 +6,11 @@
 #include "Camera.h"
 #include "Transform.h"
 #include "Map.h"
-#include "Light.h"
 #include "Bullet.h"
 #include "Monster.h"
 #include "Building.h"
 #include "Turret.h"
 #include "Wave.h"
-#include "UI.h"
 #include "Common.h"
 
 #define SERVERPORT 9000
@@ -34,13 +31,6 @@ GLvoid InitMeshes();
 GLvoid DrawScene();
 
 GLvoid Update();
-GLvoid Mouse(GLint button, GLint state, GLint x, GLint y);
-GLvoid MouseMotion(GLint x, GLint y);
-GLvoid MousePassiveMotion(GLint x, GLint y);
-GLvoid ProcessKeyDown(unsigned char key, GLint x, GLint y);
-GLvoid ProcessKeyUp(unsigned char key, GLint x, GLint y);
-GLvoid ProcessSpecialKeyDown(GLint key, GLint x, GLint y);
-GLvoid ProcessSpecialKeyUp(GLint key, GLint x, GLint y);
 
 GLvoid ToggleDepthTest();
 GLvoid SetCameraMode(const CameraMode& cameraMode);
@@ -60,8 +50,6 @@ GLint screenHeight = DEFAULT_SCREEN_HEIGHT;
 glm::vec3 worldPosition(0.0f, 0.0f, 0.0f);
 glm::vec3 worldRotation(0.0f, 0.0f, 0.0f);
 
-// light
-Light* light = nullptr;
 
 // managers
 BulletManager* bulletManager = nullptr;
@@ -69,8 +57,6 @@ MonsterManager* monsterManager = nullptr;
 BuildingManager* buildingManager = nullptr;
 TurretManager* turretManager = nullptr;
 WaveManager* waveManager = nullptr;
-UIManager* uiManager = nullptr;
-
 // objects
 Map* crntMap = nullptr;
 Player* player = nullptr;
@@ -117,17 +103,6 @@ GLint main(GLint argc, GLchar** argv)
 	glutIdleFunc(Update);
 	glutDisplayFunc(DrawScene);
 	glutReshapeFunc(Reshape);
-	//glutSetCursor(GLUT_CURSOR_NONE);
-	
-	//glutMouseFunc(Mouse);
-	//glutMotionFunc(MouseMotion);
-	//glutPassiveMotionFunc(MousePassiveMotion);
-
-	//glutPositionFunc(RePosition);
-	//glutKeyboardFunc(ProcessKeyDown);
-    //glutKeyboardUpFunc(ProcessKeyUp);
-	//glutSpecialFunc(ProcessSpecialKeyDown);
-	//glutSpecialUpFunc(ProcessSpecialKeyUp);
 
     timer::StartUpdate();
 
@@ -140,30 +115,8 @@ MyColor backColor;
 GLvoid Init()
 {
     glewInit();
-    shd::Init();
-    InitLight();
     InitMeshes();
     timer::Init();
-
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
-
-    backColor.SetColor(CYAN);
-
-    //********** [ Camera ] **********//
-    cameraFree = new Camera({ 0, 200.0f, 100.0f });
-    cameraFree->Look({ 0,0,0 });
-    cameraFree->SetFovY(110);
-
-    cameraTop = new Camera();
-    cameraTop->RotateLocal(89.9f, 0.0f, 0.0f);
-    cameraTop->SetPerpective(GL_FALSE);
-
-    cameraMain = cameraFree;
-    crntCamera = cameraMain;
-    //********************************//
 
 	mouseCenter = { screenWidth / 2 + screenPosX, screenHeight / 2 + screenPosY };
 
@@ -186,7 +139,8 @@ GLvoid InitMeshes()
 	turretManager = new TurretManager();
 	monsterManager = new MonsterManager();
 	waveManager = new WaveManager();
-	uiManager = new UIManager();
+
+    buildingManager->Create(BuildingType::Core, { 0, 0, 550 });
 
 	// test object
 	const Model* cubeMapModel = GetTextureModel(Textures::CubeMap);
@@ -195,13 +149,8 @@ GLvoid InitMeshes()
 	cubeMap->Scale(150);
 	cubeMap->SetPosY(-cubeMap->GetHeight() / 2);
 
-	// light object
-	light = new Light();
-	light->SetPosition({ 0, 400, 0 });
-
 	crntMap = new Map();
 	player = new Player({ 0,0,0 }, &cameraMode);
-	uiManager->SetPlayer(player);
 	monsterManager->SetPlayer(player);
 	waveManager->SetPlayer(player);
 }
@@ -268,13 +217,14 @@ GLvoid SetWindow(GLint index)
 
 GLvoid DrawScene()
 {
-   
     glutSwapBuffers();
 }
 
 ///// [ HANDLE EVENTS ] /////
 GLvoid Update()
 {
+
+    system("cls");
 
 	if (IsGameOver() == GL_TRUE)
 	{
@@ -287,287 +237,14 @@ GLvoid Update()
 
 
     if (player != nullptr) player->Update(client_sock);
-	// bulletManager->Update(client_sock);
+	bulletManager->Update(client_sock);
 	monsterManager->Update(client_sock);
-	//buildingManager->Update();
-	//turretManager->Update();
-
-	waveManager->Update();
-
-
-	constexpr GLfloat cameraMovement = 100.0f;
-	GLfloat cameraSpeed = cameraMovement;
-
-
-
-    // movement
-    if (cameraMain == cameraFree)
-    {
-        if (IS_KEY_DOWN(KEY_UP))
-        {
-            cameraMain->MoveZ(cameraSpeed);
-            if (cameraMode == CameraMode::Light)
-            {
-                light->MoveZ(cameraSpeed);
-            }
-        }
-        if (IS_KEY_DOWN(KEY_DOWN))
-        {
-            cameraMain->MoveZ(-cameraSpeed);
-            if (cameraMode == CameraMode::Light)
-            {
-                light->MoveZ(-cameraSpeed);
-            }
-        }
-        if (IS_KEY_DOWN(KEY_LEFT))
-        {
-            cameraMain->MoveX(-cameraSpeed);
-            if (cameraMode == CameraMode::Light)
-            {
-                light->MoveX(-cameraSpeed);
-            }
-        }
-        if (IS_KEY_DOWN(KEY_RIGHT))
-        {
-            cameraMain->MoveX(cameraSpeed);
-            if (cameraMode == CameraMode::Light)
-            {
-                light->MoveX(cameraSpeed);
-            }
-        }
-        if (IS_KEY_DOWN(VK_NEXT))
-        {
-            cameraMain->MoveGlobal({ 0, -cameraSpeed, 0 });
-            if (cameraMode == CameraMode::Light)
-            {
-                light->MoveGlobal({ 0, -cameraSpeed, 0 });
-            }
-        }
-        if (IS_KEY_DOWN(VK_PRIOR))
-        {
-            //cameraMain->MoveGlobal({ 0, cameraSpeed, 0 });
-            if (cameraMode == CameraMode::Light)
-            {
-                light->MoveGlobal({ 0, -cameraSpeed, 0 });
-            }
-        }
-    }
+	//buildingManager->Update(client_sock);
+	//turretManager->Update(client_sock);
+	//waveManager->Update(client_sock);
 
     glutPostRedisplay();
 
-}
-
-GLvoid Mouse(GLint button, GLint state, GLint x, GLint y)
-{
-    if (IsGameOver() == GL_TRUE)
-    {
-        return;
-    }
-
-    switch (button)
-    {
-    case GLUT_LEFT_BUTTON:
-        if (state == GLUT_DOWN)
-        {
-            isLeftDown = GL_TRUE;
-        }
-        else if (state == GLUT_UP)
-        {
-            isLeftDown = GL_FALSE;
-        }
-        break;
-    case GLUT_RIGHT_BUTTON:
-        if (state == GLUT_DOWN)
-        {
-            isRightDown = GL_TRUE;
-        }
-        else if (state == GLUT_UP)
-        {
-            isRightDown = GL_FALSE;
-        }
-        break;
-    }
-
-    if (player != nullptr)
-    {
-        player->ProcessMouse(button, state, x, y);
-    }
-}
-
-GLvoid MouseMotion(GLint x, GLint y)
-{
-    if (IsGameOver() == GL_TRUE)
-    {
-        return;
-    }
-
-    MousePassiveMotion(x, y);
-}
-GLvoid MousePassiveMotion(GLint x, GLint y)
-{
-    if (IsGameOver() == GL_TRUE)
-    {
-        return;
-    }
-
-    POINT cursorPos;
-    GetCursorPos(&cursorPos);
-    crntPos = { cursorPos.x, cursorPos.y };
-
-    GLfloat sensitivity = 10;
-    GLfloat dx = (mouseCenter.x - crntPos.x) / sensitivity;
-    GLfloat dy = (mouseCenter.y - crntPos.y) / sensitivity;
-
-    //d = d * 50.0f;
-
-    if (cameraMain == cameraFree)
-    {
-        cameraFree->RotateLocal(dy, dx, 0.0f);
-        if (cameraMode == CameraMode::Light)
-        {
-            light->RotateLocal(dy, dx, 0.0f);
-        }
-    }
-    else if (player != nullptr)
-    {
-        player->Rotate(dy, dx, 0.0f);
-    }
-
-    SetCursorPos(mouseCenter.x, mouseCenter.y);
-}
-
-
-// interlock with a control key
-static unordered_map<unsigned char, unsigned char> CtrlMap = {
-   {23, 'w'},
-   {19, 's'},
-   {1, 'a'},
-   {4, 'd'},
-};
-GLvoid ProcessKeyDown(unsigned char key, GLint x, GLint y)
-{
-    if (IsGameOver() == GL_TRUE)
-    {
-        if (key == KEY_ESCAPE)
-        {
-            glutLeaveMainLoop();
-        }
-
-        return;
-    }
-
-    if (CtrlMap.find(key) != CtrlMap.end())
-    {
-        key = CtrlMap[key];
-    }
-
-    switch (key)
-    {
-        // controls
-    case '`':
-        //Reset();
-        break;
-    case 'm':
-    case 'M':
-        light->ToggleLight();
-        break;
-
-        // camera
-    case 'p':
-    case 'P':
-        cameraMain->SetPerpective(GL_TRUE);
-        break;
-    case 'o':
-    case 'O':
-        cameraMain->SetPerpective(GL_FALSE);
-        break;
-    case '1':
-        SetCameraMode(CameraMode::Free);
-        break;
-    case '2':
-        SetCameraMode(CameraMode::FirstPerson);
-        break;
-    case '3':
-        SetCameraMode(CameraMode::ThirdPerson);
-        break;
-    case '0':
-        //SetCameraMode(CameraMode::Light);
-        break;
-        // objects
-
-    case KEY_ESCAPE:
-        glutLeaveMainLoop();
-        break;
-    default:
-        break;
-
-    }
-
-    if (player != nullptr)
-    {
-        player->ProcessKeyDown(key);
-    }
-}
-GLvoid ProcessKeyUp(unsigned char key, GLint x, GLint y)
-{
-    if (IsGameOver() == GL_TRUE)
-    {
-        return;
-    }
-
-    if (CtrlMap.find(key) != CtrlMap.end())
-    {
-        key = CtrlMap[key];
-    }
-
-    if (player != nullptr)
-    {
-        player->ProcessKeyUp(key);
-    }
-}
-GLvoid ProcessSpecialKeyDown(GLint key, GLint x, GLint y)
-{
-    if (IsGameOver() == GL_TRUE)
-    {
-        return;
-    }
-
-    // WARNING : (GLUT_KEY_LEFT == 'd') -> 100 //
-    //switch (key)
-    //{
-    //case GLUT_KEY_HOME:
-    //   cameraFree->Look({ 0,0,0 });
-    //   break;
-    //case GLUT_KEY_F1:
-    //   isWireFrame = !isWireFrame;
-    //   break;
-    //}
-
-    if (player != nullptr)
-    {
-        if (key == GLUT_KEY_LEFT)
-        {
-            return;
-        }
-
-        player->ProcessKeyDown(key);
-    }
-}
-GLvoid ProcessSpecialKeyUp(GLint key, GLint x, GLint y)
-{
-    if (IsGameOver() == GL_TRUE)
-    {
-        return;
-    }
-
-    if (player != nullptr)
-    {
-        if (key == GLUT_KEY_LEFT)
-        {
-            return;
-        }
-        player->ProcessKeyUp(key);
-    }
 }
 
 GLvoid SetCameraMode(const CameraMode& mode)
@@ -594,11 +271,7 @@ GLvoid SetCameraMode(const CameraMode& mode)
             cameraMain = player->GetThirdPersonCamera();
         }
         break;
-    case CameraMode::Light:
-        cameraMain = cameraFree;
-        cameraMain->SetPosition(light->GetPviotedPosition());
-        cameraMain->SetLook(light->GetLook());
-        break;
+ 
     }
 
     cameraMode = mode;

@@ -13,7 +13,7 @@ public:
 	WaveManager();
 
 	GLvoid Start();
-	GLvoid Update();
+	GLvoid Update(SOCKET& client_sock);
 
 	inline constexpr GLvoid SetPlayer(Player* player) { mPlayer = player; }
 

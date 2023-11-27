@@ -27,6 +27,8 @@ public:
 	GLboolean CheckCollisionBullet(const BulletAtt& bullet, glm::vec3& hitPoint, glm::vec3& normal);
 	SharedObject* GetBuildingObject() const { return mObject; }
 	GLvoid Damage(const GLfloat& damage);
+
+	GLvoid SetHP(GLfloat newHp) { mHP = newHp; };
 };
 
 class BuildingManager {

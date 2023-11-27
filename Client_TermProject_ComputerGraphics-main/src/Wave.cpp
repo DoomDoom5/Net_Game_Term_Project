@@ -48,7 +48,7 @@ GLvoid WaveManager::Start()
 	}
 }
 
-GLvoid WaveManager::Update()
+GLvoid WaveManager::Update(SOCKET& sock)
 {
 	if (monsterManager->CheckEnemyEmpty())
 	{
