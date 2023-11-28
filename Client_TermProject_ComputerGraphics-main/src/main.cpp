@@ -96,7 +96,7 @@ GLint main(GLint argc, GLchar** argv)
 
 	// 테스트용 임시 좌표
 	glutInitWindowPosition(1000, DEFAULT_SCREEN_POS_Y);
-	glutInitWindowSize(DEFAULT_SCREEN_WIDTH/3, DEFAULT_SCREEN_HEIGHT/3);
+	glutInitWindowSize(DEFAULT_SCREEN_WIDTH/2, DEFAULT_SCREEN_HEIGHT/2);
 
 	glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
 	glShadeModel(GL_SMOOTH);
