@@ -454,10 +454,10 @@ GLvoid Update()
 
 	if (player != nullptr) player->Update(sock);
 	//bulletManager->Update(sock);
-	monsterManager->Update(sock);
-	//turretManager->Update(sock);
+	//monsterManager->Update(sock);
+	turretManager->Update(sock);
 	//waveManager->Update(sock);
-
+	
 	constexpr GLfloat cameraMovement = 100.0f;
 	GLfloat cameraSpeed = cameraMovement;
 	// movement

@@ -95,49 +95,53 @@ TurretManager::~TurretManager()
 		delete turret;
 	}
 }
+struct TurretInfo {
+	char TurretNumBuf[sizeof(int)];
+	char TurretPosBuf[sizeof(float) * 3 * 20];		// num은 10이 최대
+	char TurretTypeBuf[sizeof(int) * 20];
+	char TurretTargetBuf[sizeof(float) * 3 * 20];
+};
 
 GLvoid TurretManager::Update(SOCKET& client_sock)
 {
+	printf("\n turret 업데이트 진입\n");
 	for (Turret* turret : turrets)
 	{
 		turret->Update();
 	}
-
 	// =================================
+	
+	TurretInfo turretInfo{};
+
 	char numbuf[10];
 	int num = 0;
+	turretInfo.TurretTargetBuf;
+
+	int nTurrets = 0;
+	int netbyte = 0;
 	if (!turrets.empty())
-		num = turrets.size();
-	//memcpy(&numbuf, &num, sizeof(int));
-	snprintf(numbuf, sizeof(numbuf), "%d", num);
-	printf("%d개의 터렛 위치가 있음\n", num);
-	send(client_sock, numbuf, sizeof(int), 0);
-	char buf[1000];
-	buf[0] = '\0';
-	for (int i = 0; i < num; ++i)
+		nTurrets = turrets.size();
+	std::cout << nTurrets << "터렛 위치가 있음" << std::endl;
+	netbyte = htonl(nTurrets);
+	memcpy(&turretInfo.TurretNumBuf, &netbyte, sizeof(int));
+
+	// Postion 설정
+	uint32_t converToFloat[1000];
+	memset(converToFloat, 0, sizeof(converToFloat));
+	for (int i = 0; i < nTurrets; ++i)
 	{
 		Turret* turret = turrets[i];
-		snprintf(buf + strlen(buf), 1000 - strlen(buf), "%.2f", turret->GetBodyPosition().x);
-		snprintf(buf + strlen(buf), 1000 - strlen(buf), " ");
-		snprintf(buf + strlen(buf), 1000 - strlen(buf), "%.2f", turret->GetBodyPosition().y);
-		snprintf(buf + strlen(buf), 1000 - strlen(buf), " ");
-		snprintf(buf + strlen(buf), 1000 - strlen(buf), "%.2f", turret->GetBodyPosition().z);
-		snprintf(buf + strlen(buf), 1000 - strlen(buf), " ");
-		printf("%d: (%f, %f, %f)\n", i, turret->GetBodyPosition().x,
-			turret->GetBodyPosition().y, turret->GetBodyPosition().z);
+		glm::vec3 pos = turret->GetBodyPosition();
+		converToFloat[i * 3 + 0] = htonl(*reinterpret_cast<uint32_t*>(&pos.x));
+		converToFloat[i * 3 + 1] = htonl(*reinterpret_cast<uint32_t*>(&pos.y));
+		converToFloat[i * 3 + 2] = htonl(*reinterpret_cast<uint32_t*>(&pos.z));
+		printf("%d Position: (%f, %f, %f)\n", i, pos.x, pos.y, pos.z);
 	}
-	const char* realbuf = buf;
-	//memcpy(&buf, monsterlist_pos, sizeof(monsterlist_pos[0]) * num);
-	send(client_sock, realbuf, strlen(buf), 0);
-
-
-}
-GLvoid TurretManager::Draw() const
-{
-	for (const Turret* turret : turrets)
-	{
-		turret->Draw();
-	}
+	memcpy(&turretInfo.TurretPosBuf, &converToFloat, sizeof(uint32_t) * 3 * nTurrets);
+	
+	char buf[sizeof(TurretInfo)];
+	memcpy(&buf, &turretInfo, sizeof(TurretInfo));
+	send(client_sock, buf, sizeof(turretInfo), 0);
 }
 
 GLvoid TurretManager::Create(const glm::vec3& position)
