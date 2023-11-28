@@ -403,7 +403,7 @@ GLvoid Player::Update(SOCKET& client_sock)
 
 	mCrntState->Update();
 
-	mPosition = mBody->GetPviotedPosition();
+	// mPosition = mBody->GetPviotedPosition();
 
 	mCrntGun->Update();
 

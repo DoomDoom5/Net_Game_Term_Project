@@ -380,41 +380,58 @@ GLvoid MonsterManager::Create(const MonsterType& monsterType, const glm::vec3& p
 	mMonsterList.emplace_back(monster);
 }
 
+struct MonsterInfo {
+	char monsterNumBuf[sizeof(int)];
+	char monsterPosBuf[sizeof(float) * 3 * 20];		// num은 10이 최대
+	char monsterTypeBuf[sizeof(int) * 20];
+	char monsterTargetBuf[sizeof(float) * 3 * 20];
+};
+
 GLvoid MonsterManager::Update(SOCKET& sock)
 {
 	system("cls");
 	printf("\nmonster 업데이트 진입\n");
 
-	char numbuf[512] = { 0 };
-	int retval = 0;
-	retval = recv(sock, numbuf, sizeof(int), 0);
+	MonsterInfo monsterInfo{};
+	char buf[sizeof(MonsterInfo)];
+	char nMonsterBuf[sizeof(int)];
+	int retval = recv(sock, buf, sizeof(MonsterInfo), 0);
 	if (retval == SOCKET_ERROR) {
 		printf("SOCKET_ERROR\n");
 		return;
 	}
-	int num = atoi(numbuf);
-	printf("%d개의 데이터를 받을게요\n", num);
-	char buffer[2000];
-	float recvv3[1000] = {};
+	memcpy(&monsterInfo, &buf, sizeof(MonsterInfo));
+	int nMonsters;
+	memcpy(&nMonsters, &monsterInfo.monsterNumBuf, sizeof(int));
+	nMonsters = ntohl(nMonsters);
+	cout << nMonsters << "개의 데이터를 받을게요" << endl;
+
 	// 데이터 받기
-	retval = 0;
-	retval = recv(sock, buffer, 2000, 0);
-	if (retval == SOCKET_ERROR) {
-		printf("SOCKET_ERROR\n");
-		return;
+	uint32_t convertToFloat[1000];
+	memcpy(&convertToFloat, &monsterInfo.monsterPosBuf, sizeof(uint32_t) * 3 * nMonsters);
+	float fMonsterPos[1000]{ 0 };
+	for (int i = 0; i < nMonsters * 3; ++i) {
+		convertToFloat[i] = ntohl(convertToFloat[i]);
+		fMonsterPos[i] = *reinterpret_cast<float*>(&convertToFloat[i]);
+	}
+	for (int i = 0; i < nMonsters; ++i) {
+		printf("%d Position: (%f, %f, %f)\n", i, fMonsterPos[i * 3 + 0],
+			fMonsterPos[i * 3 + 1], fMonsterPos[i * 3 + 2]);
 	}
 
-	std::stringstream ss(buffer);
-	std::string token;
-	int cnt = 0;
-	float currentValue;
-	while (ss >> currentValue) {
-		recvv3[cnt++] = currentValue;
+	memset(convertToFloat, 0, sizeof(uint32_t));
+	memcpy(&convertToFloat, &monsterInfo.monsterTargetBuf, sizeof(uint32_t) * 3 * nMonsters);
+	float fMonsterTarget[1000]{ 0 };
+	for (int i = 0; i < nMonsters * 3; ++i) {
+		convertToFloat[i] = ntohl(convertToFloat[i]);
+		fMonsterTarget[i] = *reinterpret_cast<float*>(&convertToFloat[i]);
 	}
-	// 받은 데이터를 출력
-	for (int i = 0; i < num; ++i) {
-		std::cout << i << ": (" << recvv3[3 * i + 0] << ", " << recvv3[3 * i + 1] << ", " << recvv3[3 * i + 2] << ")\n";
+	for (int i = 0; i < nMonsters; ++i) {
+		printf("%d Target: (%f, %f, %f)\n", i, fMonsterTarget[i * 3 + 0],
+			fMonsterTarget[i * 3 + 1], fMonsterTarget[i * 3 + 2]);
 	}
+
+
 	int cnt2 = 0;
 	for (auto it = mMonsterList.begin(); it != mMonsterList.end();)
 	{
@@ -425,13 +442,15 @@ GLvoid MonsterManager::Update(SOCKET& sock)
 		}
 		else
 		{
-			const glm::vec3* target = FindTargetPos(monster->GetPosition(), monster->GetDetectRadius());
+			monster->SetPosition(fMonsterPos[3 * cnt2 + 0], fMonsterPos[3 * cnt2 + 1], fMonsterPos[3 * cnt2 + 2]);
+			const glm::vec3* target = new glm::vec3(fMonsterTarget[cnt2 * 3 + 0], fMonsterTarget[cnt2 * 3 + 1], fMonsterTarget[cnt2 * 3 + 2]);
+			monster->Look(target);
 			//monster->Update(target);
-			monster->SetPosition(recvv3[3 * cnt2 + 0], recvv3[3 * cnt2 + 1], recvv3[3 * cnt2 + 2]);
-			MonsterManager::CheckCollision(monster);
+			//MonsterManager::CheckCollision(monster);
 			++it;
 			++cnt2;
 		}
+	
 	}
 }
 

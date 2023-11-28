@@ -202,6 +202,7 @@ GLboolean ProcessCollision(Bullet* bullet, IBulletCollisionable* object, vector<
 
 GLvoid BulletManager::Update(SOCKET& sock)
 {
+	/*
 	char numbuf[512] = { 0 };
 	int retval = 0;
 	int num;
@@ -297,6 +298,8 @@ GLvoid BulletManager::Update(SOCKET& sock)
 			++iter;
 		}
 	}
+	*/
+
 }
 
 /*
