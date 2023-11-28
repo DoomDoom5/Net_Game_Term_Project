@@ -370,8 +370,8 @@ GLvoid MonsterManager::Update(SOCKET sock)
 {
 	MonsterInfo monsterInfo{};
 
-	system("cls");
-	printf("\nmonster 업데이트 진입\n");
+	//system("cls");
+	//printf("\nmonster 업데이트 진입\n");
 
 	for (auto it = mMonsterList.begin(); it != mMonsterList.end();)
 	{
@@ -396,7 +396,7 @@ GLvoid MonsterManager::Update(SOCKET sock)
 	int netbyte = 0;
 	if (!mMonsterList.empty())
 		nMonsters = mMonsterList.size();
-	std::cout << nMonsters << "개의 몬스터 위치가 있음" << std::endl;
+	//std::cout << nMonsters << "개의 몬스터 위치가 있음" << std::endl;
 	netbyte = htonl(nMonsters);
 	memcpy(&monsterInfo.monsterNumBuf, &netbyte, sizeof(int));
 
@@ -410,7 +410,7 @@ GLvoid MonsterManager::Update(SOCKET sock)
 		converToFloat[i * 3 + 0] = htonl(*reinterpret_cast<uint32_t*>(&pos.x));
 		converToFloat[i * 3 + 1] = htonl(*reinterpret_cast<uint32_t*>(&pos.y));
 		converToFloat[i * 3 + 2] = htonl(*reinterpret_cast<uint32_t*>(&pos.z));
-		printf("%d Position: (%f, %f, %f)\n", i, pos.x, pos.y, pos.z);
+		//printf("%d Position: (%f, %f, %f)\n", i, pos.x, pos.y, pos.z);
 	}
 	memcpy(&monsterInfo.monsterPosBuf, &converToFloat, sizeof(uint32_t) * 3 * nMonsters);
 
@@ -425,7 +425,7 @@ GLvoid MonsterManager::Update(SOCKET sock)
 		converToFloat[i * 3 + 0] = htonl(*reinterpret_cast<uint32_t*>(&xyz[0]));
 		converToFloat[i * 3 + 1] = htonl(*reinterpret_cast<uint32_t*>(&xyz[1]));
 		converToFloat[i * 3 + 2] = htonl(*reinterpret_cast<uint32_t*>(&xyz[2]));
-		printf("%d Target: (%f, %f, %f)\n", i, xyz[0], xyz[1], xyz[2]);
+		//printf("%d Target: (%f, %f, %f)\n", i, xyz[0], xyz[1], xyz[2]);
 	}
 	memcpy(&monsterInfo.monsterTargetBuf, &converToFloat, sizeof(uint32_t) * 3 * nMonsters);
 

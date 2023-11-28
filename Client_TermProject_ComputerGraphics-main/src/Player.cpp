@@ -279,7 +279,6 @@ Player::Player(const glm::vec3& position, const CameraMode* cameraMode)
 	mBoundingCircle->SetColor(BLUE);
 
 	Rotate(0, 180, 0);
-
 	ChangeState(State::Idle);
 }
 Player::~Player()
@@ -388,6 +387,10 @@ GLvoid Player::Update(SOCKET& sock)
 {
 	int retval;
 	// ==============클라이언트 정보 송신====================
+	char HPbuf[8];
+	retval = recv(sock, HPbuf, sizeof(int), 0);
+	mHP = stoi(HPbuf);
+	cout << "MY HP : " << mHP << '\n';
 	// ==================================
 
 	mCrntState->Update();
@@ -397,12 +400,12 @@ GLvoid Player::Update(SOCKET& sock)
 	mCrntGun->Update();
 
 
-	// ===================클라이언트 위치 수신===============
+	// ===================클라이언트 정보 수신===============
 	// glm::vec3를 문자열로 변환
 	string vec3AsString =
-		to_string(mPosition.x) + " " +
-		to_string(mPosition.y) + " " +
-		to_string(mPosition.z) + " " +
+		to_string((int)mPosition.x) + " " +
+		to_string((int)mPosition.y) + " " +
+		to_string((int)mPosition.z) + " " +
 		to_string(mlsFire) + " " + 
 		to_string(mIsInstall) + " ";
 

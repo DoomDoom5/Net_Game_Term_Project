@@ -213,11 +213,10 @@ GLvoid Jump::HandleEvent(const Event& e, const GLint& key)
 
 
 ////////////////////////////// [ Player ] //////////////////////////////
-Player::Player(const glm::vec3& position, const CameraMode* cameraMode)
+Player::Player(const glm::vec3& position)
 {
 	mPosition = position;
 	mTpCameraPosition = position;
-	mCameraMode = cameraMode;
 	mHead = new SharedObject(GetIdentityTextureObject(Textures::Player_Head));
 	mBody = new SharedObject(GetIdentityTextureObject(Textures::Player_Body));
 	mArms = new SharedObject(GetIdentityTextureObject(Textures::Player_Arms));
@@ -282,6 +281,7 @@ Player::Player(const glm::vec3& position, const CameraMode* cameraMode)
 
 	Rotate(0, 180, 0);
 
+	mHP = 50.f;
 	ChangeState(State::Idle);
 }
 Player::~Player()
@@ -386,6 +386,15 @@ GLvoid Player::ChangeState(const State& playerState, const Event& e, const GLint
 
 
 
+GLvoid Player::InitPlayer(SOCKET& client_sock)
+{
+	int retval;
+	// 초기 보낼 정보 HP, 시작 위치, id,....?
+	std::string stringValue = std::to_string(mHP);
+	retval = send(client_sock, stringValue.c_str(), sizeof(int), 0);
+	 
+}
+
 GLvoid Player::Update(SOCKET& client_sock)
 {
 	// ======= 사용자 정보수신 ======
@@ -398,17 +407,20 @@ GLvoid Player::Update(SOCKET& client_sock)
 
 	std::istringstream iss(buffer);
 	iss >> mPosition.x >> mPosition.y >> mPosition.z >> mlsFire >>mIsInstall;
+	cout << "RECV POSTION : " << mPosition.x  << mPosition.y 	<< mPosition.z << " , ";
 	if (mIsInstall) Install_Turret();
 	// ============================
 
 	mCrntState->Update();
 
-	// mPosition = mBody->GetPviotedPosition();
+	//mPosition = mBody->GetPviotedPosition();
 
 	mCrntGun->Update();
 
 
-	// ======= 사용자 위치 송신 ======
+	// ======= 사용자 정보 송신 ======
+	std::string stringValue = std::to_string(mHP);
+	retval = send(client_sock, stringValue.c_str(), sizeof(int), 0);
 	// ======= ========== ======
 }
 GLvoid Player::Draw(const CameraMode& cameraMode) const
@@ -540,7 +552,8 @@ GLvoid Player::Rotate(const GLfloat& yaw, const GLfloat& pitch, const GLfloat& r
 	}
 	mTpCamera->RotatePosition(mHead->GetPosition(), mTpCamera->GetRight(), tpCameraYaw);
 	mTpCamera->RotateLocal(tpCameraYaw - tpCameraAngle, 0, 0);
-
+	
+	/*
 	if (*mCameraMode == CameraMode::FirstPerson)
 	{
 		mCrntGun->Rotate(mYaw, mPitch);
@@ -549,6 +562,8 @@ GLvoid Player::Rotate(const GLfloat& yaw, const GLfloat& pitch, const GLfloat& r
 	{
 		mCrntGun->RotateLocal(mYaw, mPitch);
 	}
+	*/
+
 }
 GLvoid Player::RotateLeg()
 {
@@ -643,11 +658,8 @@ GLfloat Player::GetHp() const
 
 GLvoid Player::Install_Turret()
 {
-	if (mHoldTurret > 0)
-	{
-		glm::vec3 position = GetPosition();
-		turretManager->Create({ position.x, 0, position.z });
-	}
+	glm::vec3 position = GetPosition();
+	turretManager->Create(glm::vec3( position.x, 0, position.z));
 }
 
 GLvoid Player::ChaingeGun()

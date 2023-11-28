@@ -141,7 +141,7 @@ GLvoid TurretManager::Update(SOCKET& client_sock)
 	
 	char buf[sizeof(TurretInfo)];
 	memcpy(&buf, &turretInfo, sizeof(TurretInfo));
-	send(client_sock, buf, sizeof(turretInfo), 0);
+	send(client_sock, buf, sizeof(TurretInfo), 0);
 }
 
 GLvoid TurretManager::Create(const glm::vec3& position)

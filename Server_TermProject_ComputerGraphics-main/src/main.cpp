@@ -3,7 +3,6 @@
 #include "Player.h"
 #include "Model.h"
 #include "Timer.h"
-#include "Camera.h"
 #include "Transform.h"
 #include "Map.h"
 #include "Bullet.h"
@@ -84,6 +83,10 @@ struct sockaddr_in clientaddr;
 int addrlen;
 // 일단은 1 : 1 플레이
 
+// 멀티 플레이용 변수
+int users = 0;
+int id = 0;
+
 GLint main(GLint argc, GLchar** argv)
 {
 	srand((unsigned int)time(NULL));
@@ -125,6 +128,8 @@ GLvoid Init()
 	//************ [Server]************
 	if (listen_sock == NULL) init_Listen_Sock(listen_sock);
 	while (client_sock == NULL) init_Client_Sock(client_sock, clientaddr, addrlen);
+    if (client_sock != NULL) player->InitPlayer(client_sock);
+
 
 	system("cls");
 }
@@ -141,7 +146,7 @@ GLvoid InitMeshes()
 	waveManager = new WaveManager();
 
     buildingManager->Create(BuildingType::Core, { 0, 0, 550 });
-
+    turretManager->Create(glm::vec3(100,0,450));
 	// test object
 	const Model* cubeMapModel = GetTextureModel(Textures::CubeMap);
 	cubeMap = new ModelObject(cubeMapModel, Shader::Texture);
@@ -150,7 +155,7 @@ GLvoid InitMeshes()
 	cubeMap->SetPosY(-cubeMap->GetHeight() / 2);
 
 	crntMap = new Map();
-	player = new Player({ 0,0,0 }, &cameraMode);
+	player = new Player({ 0,0,0 });
 	monsterManager->SetPlayer(player);
 	waveManager->SetPlayer(player);
 }
@@ -239,7 +244,7 @@ GLvoid Update()
 	//bulletManager->Update(client_sock);
 	//monsterManager->Update(client_sock);
 	//buildingManager->Update(client_sock);
-	turretManager->Update(client_sock);
+	//turretManager->Update(client_sock);
 	//waveManager->Update(client_sock);
 
     glutPostRedisplay();

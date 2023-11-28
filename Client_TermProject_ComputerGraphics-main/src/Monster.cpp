@@ -389,8 +389,8 @@ struct MonsterInfo {
 
 GLvoid MonsterManager::Update(SOCKET& sock)
 {
-	system("cls");
-	printf("\nmonster 업데이트 진입\n");
+	// system("cls");
+	// printf("\nmonster 업데이트 진입\n");
 
 	MonsterInfo monsterInfo{};
 	char buf[sizeof(MonsterInfo)];
@@ -404,7 +404,7 @@ GLvoid MonsterManager::Update(SOCKET& sock)
 	int nMonsters;
 	memcpy(&nMonsters, &monsterInfo.monsterNumBuf, sizeof(int));
 	nMonsters = ntohl(nMonsters);
-	cout << nMonsters << "개의 데이터를 받을게요" << endl;
+	//cout << nMonsters << "개의 데이터를 받을게요" << endl;
 
 	// 데이터 받기
 	uint32_t convertToFloat[1000];
@@ -414,10 +414,10 @@ GLvoid MonsterManager::Update(SOCKET& sock)
 		convertToFloat[i] = ntohl(convertToFloat[i]);
 		fMonsterPos[i] = *reinterpret_cast<float*>(&convertToFloat[i]);
 	}
-	for (int i = 0; i < nMonsters; ++i) {
-		printf("%d Position: (%f, %f, %f)\n", i, fMonsterPos[i * 3 + 0],
-			fMonsterPos[i * 3 + 1], fMonsterPos[i * 3 + 2]);
-	}
+	// for (int i = 0; i < nMonsters; ++i) {
+	//		printf("%d Position: (%f, %f, %f)\n", i, fMonsterPos[i * 3 + 0],
+	//			fMonsterPos[i * 3 + 1], fMonsterPos[i * 3 + 2]);
+	// }
 
 	memset(convertToFloat, 0, sizeof(uint32_t));
 	memcpy(&convertToFloat, &monsterInfo.monsterTargetBuf, sizeof(uint32_t) * 3 * nMonsters);
@@ -426,11 +426,10 @@ GLvoid MonsterManager::Update(SOCKET& sock)
 		convertToFloat[i] = ntohl(convertToFloat[i]);
 		fMonsterTarget[i] = *reinterpret_cast<float*>(&convertToFloat[i]);
 	}
-	for (int i = 0; i < nMonsters; ++i) {
-		printf("%d Target: (%f, %f, %f)\n", i, fMonsterTarget[i * 3 + 0],
-			fMonsterTarget[i * 3 + 1], fMonsterTarget[i * 3 + 2]);
-	}
-
+	// for (int i = 0; i < nMonsters; ++i) {
+	// 	printf("%d Target: (%f, %f, %f)\n", i, fMonsterTarget[i * 3 + 0],
+	// 		fMonsterTarget[i * 3 + 1], fMonsterTarget[i * 3 + 2]);
+	// }
 
 	int cnt2 = 0;
 	for (auto it = mMonsterList.begin(); it != mMonsterList.end();)
@@ -445,8 +444,6 @@ GLvoid MonsterManager::Update(SOCKET& sock)
 			monster->SetPosition(fMonsterPos[3 * cnt2 + 0], fMonsterPos[3 * cnt2 + 1], fMonsterPos[3 * cnt2 + 2]);
 			const glm::vec3* target = new glm::vec3(fMonsterTarget[cnt2 * 3 + 0], fMonsterTarget[cnt2 * 3 + 1], fMonsterTarget[cnt2 * 3 + 2]);
 			monster->Look(target);
-			//monster->Update(target);
-			//MonsterManager::CheckCollision(monster);
 			++it;
 			++cnt2;
 		}
