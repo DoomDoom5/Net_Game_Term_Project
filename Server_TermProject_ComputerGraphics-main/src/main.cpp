@@ -56,9 +56,13 @@ MonsterManager* monsterManager = nullptr;
 BuildingManager* buildingManager = nullptr;
 TurretManager* turretManager = nullptr;
 WaveManager* waveManager = nullptr;
+
 // objects
 Map* crntMap = nullptr;
 Player* player = nullptr;
+Player* player1 = nullptr;
+Player* player2 = nullptr;
+
 
 // modes
 GLboolean isPersp = GL_TRUE;
@@ -84,8 +88,8 @@ int addrlen;
 // 일단은 1 : 1 플레이
 
 // 멀티 플레이용 변수
+HANDLE hThread;
 int users = 0;
-int id = 0;
 
 GLint main(GLint argc, GLchar** argv)
 {
@@ -127,13 +131,17 @@ GLvoid Init()
 
 	//************ [Server]************
 	if (listen_sock == NULL) init_Listen_Sock(listen_sock);
-	while (client_sock == NULL) init_Client_Sock(client_sock, clientaddr, addrlen);
+    while (client_sock == NULL) {
+        system("cls");
+        cout << "현재 플레이어의 수 : " << users << " / " << MAXUSER << '\n';
+        init_Client_Sock(client_sock, clientaddr, addrlen);
+        Sleep(1000/60);
+    }
     if (client_sock != NULL) player->InitPlayer(client_sock);
 
 
 	system("cls");
 }
-
 GLvoid InitMeshes()
 {
 	InitModels();
@@ -159,7 +167,6 @@ GLvoid InitMeshes()
 	monsterManager->SetPlayer(player);
 	waveManager->SetPlayer(player);
 }
-
 GLvoid Reset()
 {
     DeleteObjects();
@@ -198,7 +205,6 @@ GLvoid Reset()
 
 
 ///// Draw /////
-
 GLvoid SetWindow(GLint index)
 {
     const GLint halfWidth = screenWidth / 2;
@@ -219,7 +225,6 @@ GLvoid SetWindow(GLint index)
         assert(0);
     }
 }
-
 GLvoid DrawScene()
 {
     glutSwapBuffers();
@@ -251,62 +256,21 @@ GLvoid Update()
 
 }
 
-GLvoid SetCameraMode(const CameraMode& mode)
-{
-    if (IsGameOver() == GL_TRUE)
-    {
-        return;
-    }
-
-    switch (mode)
-    {
-    case CameraMode::Free:
-        cameraMain = cameraFree;
-        break;
-    case CameraMode::FirstPerson:
-        if (player != nullptr)
-        {
-            cameraMain = player->GetFirstPersonCamera();
-        }
-        break;
-    case CameraMode::ThirdPerson:
-        if (player != nullptr)
-        {
-            cameraMain = player->GetThirdPersonCamera();
-        }
-        break;
- 
-    }
-
-    cameraMode = mode;
-}
-
 GLvoid init_Listen_Sock(SOCKET& sock)
 {
-    int retval;
-
-    // 윈속 초기화
-    WSADATA wsa;
-    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+    // accept()
+    addrlen = sizeof(clientaddr);
+    client_sock = accept(listen_sock, (struct sockaddr*)&clientaddr, &addrlen);
+    if (client_sock == INVALID_SOCKET) {
+        printf("accept()");
         return;
+    }
 
-    // 소켓 생성
-    sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock == INVALID_SOCKET) err_quit("socket()");
-
-    // bind()
-    struct sockaddr_in serveraddr;
-    memset(&serveraddr, 0, sizeof(serveraddr));
-    serveraddr.sin_family = AF_INET;
-    serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    serveraddr.sin_port = htons(SERVERPORT);
-    retval = ::bind(listen_sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
-    if (retval == SOCKET_ERROR) err_quit("bind()");
-    bind(sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
-
-    // listen()
-    retval = listen(sock, SOMAXCONN);
-    if (retval == SOCKET_ERROR) err_quit("listen()");
+    // 접속한 클라이언트 정보 출력
+    char addr[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
+    printf("\r\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\r\n",
+        addr, ntohs(clientaddr.sin_port));
 
     cout << "서버 생성 완료" << endl;
     return;
@@ -385,4 +349,54 @@ GLvoid sendVector(SOCKET& sock)
         printf("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n",
             addr, ntohs(clientaddr.sin_port));
     }
+}
+
+///// [Thread] /////
+struct  USER
+{
+    SOCKET client_sock = NULL;
+    int id;
+};
+
+
+// 클라이언트와 데이터 통신
+DWORD WINAPI ProcessClient(LPVOID arg)
+{
+    int retval;
+    USER* usr = (USER*)arg;
+
+    int id = usr->id;
+    SOCKET client_sock = usr->client_sock;
+    struct sockaddr_in clientaddr;
+    char addr[INET_ADDRSTRLEN];
+    int addrlen;
+    char buf[BUFSIZE + 1];
+
+    // 클라이언트 정보 얻기
+    addrlen = sizeof(clientaddr);
+    getpeername(client_sock, (struct sockaddr*)&clientaddr, &addrlen);
+    inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
+
+    char* buffer = new char[BUFSIZE];
+    int resultData = 0;
+
+    /*
+    send/recv 순서  [꼭 지킬것!]
+
+    1. player->Update(client_sock()); -> 클라에서 변환된 부분 받음
+    2.	bulletManager->send(client_sock);
+    3.	monsterManager->send(client_sock);
+    4.	buildingManager->send(client_sock);
+    5.	turretManager->send(client_sock);
+    6.	waveManager->send(client_sock);
+    7. player->recv(client_sock(); -> 플레이어 변화된 부분 클라에게 전달
+
+    */
+
+    while (1)
+    {
+     
+
+    }
+   
 }

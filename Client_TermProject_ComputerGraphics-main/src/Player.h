@@ -119,6 +119,7 @@ private:
 	GLfloat mFrameTime = 0.0f;
 	bool mlsFire = false;
 	bool mIsInstall = false;
+	GLint id = 0;
 
 	// for collision
 	Circle* mBoundingCircle = nullptr;
