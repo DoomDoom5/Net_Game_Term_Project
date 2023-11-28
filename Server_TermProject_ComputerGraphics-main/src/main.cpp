@@ -355,7 +355,7 @@ GLvoid Update()
 	//buildingManager->Update();
 	//turretManager->Update();
 
-	waveManager->Update();
+	waveManager->Update(client_sock);
 
 
 	constexpr GLfloat cameraMovement = 100.0f;

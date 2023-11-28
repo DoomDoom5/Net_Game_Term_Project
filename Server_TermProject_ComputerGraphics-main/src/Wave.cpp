@@ -48,7 +48,7 @@ GLvoid WaveManager::Start()
 	}
 }
 
-GLvoid WaveManager::Update()
+GLvoid WaveManager::Update(SOCKET& sock)
 {
 	if (monsterManager->CheckEnemyEmpty())
 	{
@@ -56,6 +56,9 @@ GLvoid WaveManager::Update()
 		mPlayer->AddHoldturret(1);
 
 		WaveManager::Start();
-		cout << mCrntWave << endl;
 	}
+	char buf[sizeof(GLint)];
+	memcpy(&buf, &mCrntWave, sizeof(GLint));
+	send(sock, buf, sizeof(GLint), 0);
+	cout << "mCrntWave: " << mCrntWave << endl;
 }

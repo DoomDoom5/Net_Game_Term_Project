@@ -403,7 +403,6 @@ GLvoid MonsterManager::Update(SOCKET& sock)
 	memcpy(&monsterInfo, &buf, sizeof(MonsterInfo));
 	int nMonsters;
 	memcpy(&nMonsters, &monsterInfo.monsterNumBuf, sizeof(int));
-	nMonsters = ntohl(nMonsters);
 	//cout << nMonsters << "개의 데이터를 받을게요" << endl;
 
 	// 데이터 받기
@@ -411,25 +410,23 @@ GLvoid MonsterManager::Update(SOCKET& sock)
 	memcpy(&convertToFloat, &monsterInfo.monsterPosBuf, sizeof(uint32_t) * 3 * nMonsters);
 	float fMonsterPos[1000]{ 0 };
 	for (int i = 0; i < nMonsters * 3; ++i) {
-		convertToFloat[i] = ntohl(convertToFloat[i]);
 		fMonsterPos[i] = *reinterpret_cast<float*>(&convertToFloat[i]);
 	}
-	// for (int i = 0; i < nMonsters; ++i) {
-	//		printf("%d Position: (%f, %f, %f)\n", i, fMonsterPos[i * 3 + 0],
-	//			fMonsterPos[i * 3 + 1], fMonsterPos[i * 3 + 2]);
-	// }
+	for (int i = 0; i < nMonsters; ++i) {
+		printf("%d Position: (%f, %f, %f)\n", i, fMonsterPos[i * 3 + 0],
+			fMonsterPos[i * 3 + 1], fMonsterPos[i * 3 + 2]);
+	}
 
 	memset(convertToFloat, 0, sizeof(uint32_t));
 	memcpy(&convertToFloat, &monsterInfo.monsterTargetBuf, sizeof(uint32_t) * 3 * nMonsters);
 	float fMonsterTarget[1000]{ 0 };
 	for (int i = 0; i < nMonsters * 3; ++i) {
-		convertToFloat[i] = ntohl(convertToFloat[i]);
 		fMonsterTarget[i] = *reinterpret_cast<float*>(&convertToFloat[i]);
 	}
-	// for (int i = 0; i < nMonsters; ++i) {
-	// 	printf("%d Target: (%f, %f, %f)\n", i, fMonsterTarget[i * 3 + 0],
-	// 		fMonsterTarget[i * 3 + 1], fMonsterTarget[i * 3 + 2]);
-	// }
+	for (int i = 0; i < nMonsters; ++i) {
+		printf("%d Target: (%f, %f, %f)\n", i, fMonsterTarget[i * 3 + 0],
+			fMonsterTarget[i * 3 + 1], fMonsterTarget[i * 3 + 2]);
+	}
 
 	int cnt2 = 0;
 	for (auto it = mMonsterList.begin(); it != mMonsterList.end();)

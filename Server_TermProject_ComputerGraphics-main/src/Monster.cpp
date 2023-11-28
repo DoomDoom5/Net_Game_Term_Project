@@ -409,8 +409,7 @@ GLvoid MonsterManager::Update(SOCKET sock)
 	if (!mMonsterList.empty())
 		nMonsters = mMonsterList.size();
 	//std::cout << nMonsters << "개의 몬스터 위치가 있음" << std::endl;
-	netbyte = htonl(nMonsters);
-	memcpy(&monsterInfo.monsterNumBuf, &netbyte, sizeof(int));
+	memcpy(&monsterInfo.monsterNumBuf, &nMonsters, sizeof(int));
 
 	// Postion 설정
 	uint32_t converToFloat[1000];
@@ -419,10 +418,10 @@ GLvoid MonsterManager::Update(SOCKET sock)
 	{
 		Monster* monster = mMonsterList[i];
 		glm::vec3 pos = monster->GetPosition();
-		converToFloat[i * 3 + 0] = htonl(*reinterpret_cast<uint32_t*>(&pos.x));
-		converToFloat[i * 3 + 1] = htonl(*reinterpret_cast<uint32_t*>(&pos.y));
-		converToFloat[i * 3 + 2] = htonl(*reinterpret_cast<uint32_t*>(&pos.z));
-		//printf("%d Position: (%f, %f, %f)\n", i, pos.x, pos.y, pos.z);
+		converToFloat[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&pos.x);
+		converToFloat[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&pos.y);
+		converToFloat[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&pos.z);
+		printf("%d Position: (%f, %f, %f)\n", i, pos.x, pos.y, pos.z);
 	}
 	memcpy(&monsterInfo.monsterPosBuf, &converToFloat, sizeof(uint32_t) * 3 * nMonsters);
 
@@ -434,10 +433,10 @@ GLvoid MonsterManager::Update(SOCKET sock)
 		const glm::vec3* target = FindTargetPos(monster->GetPosition(), monster->GetDetectRadius());
 		monster->Update(target);
 		float xyz[3]; xyz[0] = target->x; xyz[1] = target->y; xyz[2] = target->z;
-		converToFloat[i * 3 + 0] = htonl(*reinterpret_cast<uint32_t*>(&xyz[0]));
-		converToFloat[i * 3 + 1] = htonl(*reinterpret_cast<uint32_t*>(&xyz[1]));
-		converToFloat[i * 3 + 2] = htonl(*reinterpret_cast<uint32_t*>(&xyz[2]));
-		//printf("%d Target: (%f, %f, %f)\n", i, xyz[0], xyz[1], xyz[2]);
+		converToFloat[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&xyz[0]);
+		converToFloat[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&xyz[1]);
+		converToFloat[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&xyz[2]);
+		printf("%d Target: (%f, %f, %f)\n", i, xyz[0], xyz[1], xyz[2]);
 	}
 	memcpy(&monsterInfo.monsterTargetBuf, &converToFloat, sizeof(uint32_t) * 3 * nMonsters);
 

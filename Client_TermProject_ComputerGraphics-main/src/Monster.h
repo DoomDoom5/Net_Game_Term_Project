@@ -100,7 +100,6 @@ class MonsterManager {
 private:
 	vector<Monster*> mMonsterList;
 	Player* mPlayer = nullptr;
-	float monsterlist_pos[30][3];
 
 	const glm::vec3* FindTargetPos(const glm::vec3& monsterPos, const GLfloat& radius) const;
 public:
