@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "Object.h"
 #include "Player.h"
-#include "Model.h"
 #include "Timer.h"
 #include "Transform.h"
 #include "Map.h"
@@ -12,9 +11,6 @@
 #include "Wave.h"
 #include "Common.h"
 
-#define SERVERPORT 9000
-#define BUFSIZE    512
-
 char* SERVERIP = (char*)"127.0.0.1";
 #define SERVERPORT 9000
 #define BUFSIZE 50
@@ -23,7 +19,6 @@ const Camera* crntCamera = nullptr;
 Camera* cameraMain = nullptr;
 Camera* cameraFree = nullptr;
 Camera* cameraTop = nullptr;
-CameraMode cameraMode = CameraMode::Free;
 
 GLvoid Init();
 GLvoid InitMeshes();
@@ -32,7 +27,6 @@ GLvoid DrawScene();
 GLvoid Update();
 
 GLvoid ToggleDepthTest();
-GLvoid SetCameraMode(const CameraMode& cameraMode);
 
 // network
 GLvoid init_Listen_Sock(SOCKET& listen_sock);
@@ -49,7 +43,6 @@ GLint screenHeight = DEFAULT_SCREEN_HEIGHT;
 glm::vec3 worldPosition(0.0f, 0.0f, 0.0f);
 glm::vec3 worldRotation(0.0f, 0.0f, 0.0f);
 
-
 // managers
 BulletManager* bulletManager = nullptr;
 MonsterManager* monsterManager = nullptr;
@@ -62,21 +55,6 @@ Map* crntMap = nullptr;
 Player* player = nullptr;
 Player* player1 = nullptr;
 Player* player2 = nullptr;
-
-
-// modes
-GLboolean isPersp = GL_TRUE;
-GLboolean isCulling = GL_TRUE;
-GLboolean isWireFrame = GL_FALSE;
-
-// mouse
-GLpoint mouseCenter = { 0,0 };
-GLpoint crntPos = { 0,0 };
-GLboolean isLeftDown = GL_FALSE;
-GLboolean isRightDown = GL_FALSE;
-
-// temp
-ModelObject* cubeMap = nullptr;
 
 // socket
 SOCKET listen_sock = NULL;
@@ -125,8 +103,6 @@ GLvoid Init()
     InitMeshes();
     timer::Init();
 
-	mouseCenter = { screenWidth / 2 + screenPosX, screenHeight / 2 + screenPosY };
-
     waveManager->Start();
 
 	//************ [Server]************
@@ -155,12 +131,6 @@ GLvoid InitMeshes()
 
     buildingManager->Create(BuildingType::Core, { 0, 0, 550 });
     turretManager->Create(glm::vec3(100,0,450));
-	// test object
-	const Model* cubeMapModel = GetTextureModel(Textures::CubeMap);
-	cubeMap = new ModelObject(cubeMapModel, Shader::Texture);
-	cubeMap->SetTexture(Textures::CubeMap);
-	cubeMap->Scale(150);
-	cubeMap->SetPosY(-cubeMap->GetHeight() / 2);
 
 	crntMap = new Map();
 	player = new Player({ 0,0,0 });
@@ -198,7 +168,6 @@ GLvoid Reset()
         delete player;
         player = nullptr;
     }
-    cameraMode = CameraMode::Free;
 
     Init();
 }
@@ -233,7 +202,6 @@ GLvoid DrawScene()
 ///// [ HANDLE EVENTS ] /////
 GLvoid Update()
 {
-
     system("cls");
 
 	if (IsGameOver() == GL_TRUE)
