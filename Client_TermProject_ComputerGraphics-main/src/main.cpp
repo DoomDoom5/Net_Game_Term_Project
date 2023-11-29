@@ -453,7 +453,7 @@ GLvoid Update()
 	timer::Update();
 
 	if (player != nullptr) player->Update(sock);
-	//bulletManager->Update(sock);
+	bulletManager->Update(sock);
 	monsterManager->Update(sock);
 	//turretManager->Update(sock);
 	//waveManager->Update(sock);

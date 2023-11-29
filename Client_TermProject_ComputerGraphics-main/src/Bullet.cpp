@@ -200,35 +200,39 @@ GLboolean ProcessCollision(Bullet* bullet, IBulletCollisionable* object, vector<
 	return GL_FALSE;
 }
 
-GLvoid BulletManager::Update(SOCKET& sock)
-{
-	/*
-	char numbuf[512] = { 0 };
+GLvoid BulletManager::Update(SOCKET& sock){
 	int retval = 0;
+	const char* numbuf;
 	int num;
+	int BUFSIZE = 512;
+	char buffer[1000];
 
-	retval = recv(sock, numbuf, sizeof(int), 0);
-	int num = atoi(numbuf);
+	// 첫 번째 데이터 받기
+	//retval = recv(sock, buffer, BUFSIZE, 0);
+	memcpy(&num, &buffer, sizeof(int)); // numbuf 대신 buffer를 사용해야 합니다.
 
-	
-	float recvv3[10000][3];
-	// 데이터 받기
+	// 두 번째 데이터 받기
 	retval = recv(sock, buffer, BUFSIZE, 0);
 
-	memcpy(&recvv3, &buffer, sizeof(num));
-
-	// 데이터 수신
-	// 문자열을 스트림에 넣어 공백을 기준으로 분리
+	// 데이터 출력
 	std::istringstream iss(buffer);
 	float x, y, z;
-	iss >> x >> y >> z;
-	// 받은 데이터를 출력
-	for (int i = 0; i < num; ++i) {
+	int bulletCount = 0;
+	while (iss >> x >> y >> z) {
+		//Bullet* bullet = mBulletList[bulletCount];
+		glm::vec3 v = glm::vec3(x, y, z);
+		//bullet->SetPosition(v);
+		bulletCount++;
+		std::cout << "Bullet " << bulletCount << " Position: "
+			<< x << ", " << y << ", " << z << std::endl;
 
-		std::cout << i << ": (" << recvv3[i][0] << ", " << recvv3[i][1] << ", " << recvv3[i][2] << ")\n";
+
+	}
+	if (bulletCount == 0) {
+		std::cout << "No bullets found." << std::endl;
 	}
 	/////////////////////////////////////////////////////////////////
-
+	/*
 	mCrntInkSoundDelay += timer::DeltaTime();
 
 	for (auto iter = mBulletList.begin(); iter != mBulletList.end();)
