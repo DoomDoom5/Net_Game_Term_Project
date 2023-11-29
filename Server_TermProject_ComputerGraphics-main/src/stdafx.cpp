@@ -5,25 +5,17 @@ extern GLint screenPosY;
 extern GLsizei screenWidth;
 extern GLsizei screenHeight;
 
-
-
-
-
-extern GLpoint mouseCenter;
 GLvoid Reshape(GLint w, GLint h)
 {
 	glViewport(0, 0, w, h);
 	screenWidth = w;
 	screenHeight = h;
 	
-	mouseCenter = { screenWidth / 2 + screenPosX, screenHeight / 2 + screenPosY };
 }
 GLvoid RePosition(GLint x, GLint y)
 {
 	screenPosX = x;
 	screenPosY = y;
-
-	mouseCenter = { screenWidth / 2 + screenPosX, screenHeight / 2 + screenPosY };
 }
 GLfloat GetRandColor()
 {
