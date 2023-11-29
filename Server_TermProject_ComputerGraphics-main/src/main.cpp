@@ -236,7 +236,7 @@ GLvoid Update()
     timer::Update();
 
     if (player != nullptr) player->Update(client_sock);
-	//bulletManager->Update(client_sock);
+	bulletManager->Update(client_sock);
 	monsterManager->Update(client_sock);
 	//buildingManager->Update(client_sock);
 	//turretManager->Update(client_sock);
