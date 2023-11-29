@@ -491,6 +491,7 @@ GLvoid InitModels()
 	auto duration = chrono::high_resolution_clock::now() - start;
 	cout << "Model loading time : " << chrono::duration_cast<chrono::milliseconds>(duration).count() << "ms" << endl;
 
+
 	system("cls");
 }
 

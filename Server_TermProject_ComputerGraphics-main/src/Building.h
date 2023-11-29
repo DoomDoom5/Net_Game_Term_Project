@@ -17,6 +17,8 @@ private:
 
 	COLORREF mExplosionColor = WHITE;
 
+	BuildingType mType = BuildingType::Core;
+
 public:
 	Building(const BuildingType& type, const glm::vec3& position, const glm::vec3 look);
 	~Building();
@@ -27,7 +29,14 @@ public:
 	GLboolean CheckCollision(const Circle* boundingCircle) const;
 	GLboolean CheckCollisionBullet(const BulletAtt& bullet, glm::vec3& hitPoint, glm::vec3& normal);
 	SharedObject* GetBuildingObject() const { return mObject; }
+	BuildingType GetType() { return mType; }
 	GLvoid Damage(const GLfloat& damage);
+};
+
+struct BuildingInfo {
+	char numBuf[sizeof(int)];
+	char posBuf[sizeof(float) * 3 * 20];
+	char typeBuf[sizeof(BuildingType) * 20];
 };
 
 class BuildingManager {
@@ -35,6 +44,7 @@ private:
 	vector<Building*> buildings;
 	Building* mCore = nullptr;
 
+	char m_cBuf[sizeof(BuildingInfo)];
 public:
 	BuildingManager();
 	~BuildingManager();
@@ -46,4 +56,6 @@ public:
 	GLboolean CheckCollision(const Circle* boundingCircle) const;
 	const glm::vec3* GetCorePos() const;
 	inline Building* GetCore() const { return mCore; }
+
+	GLvoid SendBuf(const SOCKET& sock) { send(sock, m_cBuf, sizeof(BuildingInfo), 0); }
 };

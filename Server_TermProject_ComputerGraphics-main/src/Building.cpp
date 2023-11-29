@@ -189,8 +189,12 @@ BuildingManager::~BuildingManager()
 	}
 }
 
+#define MAX_BUILDING 100
 GLvoid BuildingManager::Update()
 {
+#ifdef DEBUG
+	printf("Building:\n");
+#endif
 	for (auto it = buildings.begin(); it != buildings.end();)
 	{
 		Building* building = *it;
@@ -211,6 +215,43 @@ GLvoid BuildingManager::Update()
 			++it;
 		}
 	}
+	BuildingInfo buildingInfo{};
+	int nBuilding = 0;
+	if(!buildings.empty())
+		nBuilding = buildings.size();
+	memcpy(&buildingInfo.numBuf, &nBuilding, sizeof(int));
+
+	uint32_t nPos[MAX_BUILDING * 3];
+	BuildingType types[MAX_BUILDING];
+
+	memset(nPos, 0, sizeof(nPos));
+	memset(types, 0, sizeof(types));
+
+	for (int i = 0; i < nBuilding; ++i)
+	{
+		Building* building = buildings[i];
+		Object* object = building->GetBuildingObject();
+		glm::vec3 pos = object->GetPosition();
+		nPos[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&pos.x);
+		nPos[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&pos.y);
+		nPos[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&pos.z);
+
+		types[i] = building->GetType();
+
+#ifdef DEBUG
+		printf("%d Position: %.2f, %.2f, %.2f / ", i, pos.x, pos.y, pos.z);
+		switch (types[i]) {
+		case BuildingType::Core:
+			printf("Type: Core / ");
+			break;
+		};
+#endif
+
+	}
+	memcpy(&buildingInfo.typeBuf, &types, sizeof(BuildingType) * nBuilding);
+	memcpy(&buildingInfo.posBuf, &nPos, sizeof(uint32_t) * 3 * nBuilding);
+
+	memcpy(&m_cBuf, &buildingInfo, sizeof(BuildingInfo));
 }
 GLvoid BuildingManager::Draw() const
 {

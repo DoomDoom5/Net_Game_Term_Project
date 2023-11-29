@@ -198,7 +198,8 @@ GLboolean ProcessCollision(Bullet* bullet, IBulletCollisionable* object, vector<
 
 	return GL_FALSE;
 }
-GLvoid BulletManager::Update(SOCKET sock)
+
+GLvoid BulletManager::Update(const SOCKET& sock)
 {
 	mCrntInkSoundDelay += timer::DeltaTime();
 

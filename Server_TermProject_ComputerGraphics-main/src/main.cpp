@@ -347,14 +347,14 @@ GLvoid Update()
 
 	timer::CalculateFPS();
 	timer::Update();
-	
 	if (player != nullptr)	player->Update();
-
-	//bulletManager->Update(client_sock);
-	monsterManager->Update(client_sock);
-	//buildingManager->Update();
+	//bulletManager->Update();
+	//bulletManager->SendBuf(client_sock);
+	monsterManager->Update();
+	monsterManager->SendBuf(client_sock);
+	buildingManager->Update();
+	buildingManager->SendBuf(client_sock);
 	//turretManager->Update();
-
 	waveManager->Update(client_sock);
 
 

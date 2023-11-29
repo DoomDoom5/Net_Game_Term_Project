@@ -375,20 +375,13 @@ GLvoid MonsterManager::Create(const MonsterType& monsterType, const glm::vec3& p
 	mMonsterList.emplace_back(monster);
 }
 
-struct MonsterInfo {
-	char monsterNumBuf[sizeof(int)];
-	char monsterPosBuf[sizeof(float) * 3 * 20];		// num은 10이 최대
-	char monsterTypeBuf[sizeof(int) * 20];
-	char monsterTargetBuf[sizeof(float) * 3 * 20];
-};
-
-GLvoid MonsterManager::Update(SOCKET sock)
+#define MAX_MONSTERS 100
+GLvoid MonsterManager::Update()
 {
+#ifdef DEBUG
+	printf("Monster:\n");
+#endif
 	MonsterInfo monsterInfo{};
-
-	//system("cls");
-	//printf("\nmonster 업데이트 진입\n");
-
 	for (auto it = mMonsterList.begin(); it != mMonsterList.end();)
 	{
 		Monster* monster = *it;
@@ -402,47 +395,61 @@ GLvoid MonsterManager::Update(SOCKET sock)
 			++it;
 		}
 	}
-	monsterInfo.monsterTargetBuf;
 
 	int nMonsters = 0;
 	int netbyte = 0;
 	if (!mMonsterList.empty())
 		nMonsters = mMonsterList.size();
-	//std::cout << nMonsters << "개의 몬스터 위치가 있음" << std::endl;
 	memcpy(&monsterInfo.monsterNumBuf, &nMonsters, sizeof(int));
 
 	// Postion 설정
-	uint32_t converToFloat[1000];
-	memset(converToFloat, 0, sizeof(converToFloat));
+	uint32_t nPos[MAX_MONSTERS * 3];
+	uint32_t nTarget[MAX_MONSTERS * 3];
+	MonsterType types[MAX_MONSTERS];
+
+	memset(types, 0, sizeof(types));
+	memset(nPos, 0, sizeof(nPos));
+	memset(nTarget, 0, sizeof(nTarget));
+
 	for (int i = 0; i < nMonsters; ++i)
 	{
 		Monster* monster = mMonsterList[i];
 		glm::vec3 pos = monster->GetPosition();
-		converToFloat[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&pos.x);
-		converToFloat[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&pos.y);
-		converToFloat[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&pos.z);
-		printf("%d Position: (%f, %f, %f)\n", i, pos.x, pos.y, pos.z);
-	}
-	memcpy(&monsterInfo.monsterPosBuf, &converToFloat, sizeof(uint32_t) * 3 * nMonsters);
-
-	// Look 설정
-	memset(converToFloat, 0, sizeof(converToFloat));
-	for (int i = 0; i < nMonsters; ++i)
-	{
-		Monster* monster = mMonsterList[i];
+		nPos[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&pos.x);
+		nPos[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&pos.y);
+		nPos[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&pos.z);
+		types[i] = monster->GetType();
 		const glm::vec3* target = FindTargetPos(monster->GetPosition(), monster->GetDetectRadius());
 		monster->Update(target);
 		float xyz[3]; xyz[0] = target->x; xyz[1] = target->y; xyz[2] = target->z;
-		converToFloat[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&xyz[0]);
-		converToFloat[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&xyz[1]);
-		converToFloat[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&xyz[2]);
-		printf("%d Target: (%f, %f, %f)\n", i, xyz[0], xyz[1], xyz[2]);
+		nTarget[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&xyz[0]);
+		nTarget[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&xyz[1]);
+		nTarget[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&xyz[2]);
+#ifdef DEBUG
+		printf("%d Position: (%.2f, %.2f, %.2f) / ", i, pos.x, pos.y, pos.z);
+		switch (types[i]) {
+		case MonsterType::Blooper:
+			printf("Type: Blooper / ");
+			break;
+		case MonsterType::Egg:
+			printf("Type: Egg / ");
+			break;
+		case MonsterType::Koromon:
+			printf("Type: Koromon / ");
+			break;
+		case MonsterType::None:
+			printf("Type: None / ");
+			break;
+		};
+		printf("Target: (%.2f, %.2f, %.2f)\n", xyz[0], xyz[1], xyz[2]);
+#endif
 	}
-	memcpy(&monsterInfo.monsterTargetBuf, &converToFloat, sizeof(uint32_t) * 3 * nMonsters);
+	memcpy(&monsterInfo.monsterPosBuf, &nPos, sizeof(uint32_t) * 3 * nMonsters);
+	memcpy(&monsterInfo.monsterTypeBuf, types, sizeof(MonsterType) * nMonsters);
+	memcpy(&monsterInfo.monsterTargetBuf, &nTarget, sizeof(uint32_t) * 3 * nMonsters);
 
-	char buf[sizeof(MonsterInfo)];
-	memcpy(&buf, &monsterInfo, sizeof(MonsterInfo));
-	send(sock, buf, sizeof(MonsterInfo), 0);
+	memcpy(&m_cBuf, &monsterInfo, sizeof(MonsterInfo));
+	// send(sock, buf, sizeof(MonsterInfo), 0);
 }
 GLvoid MonsterManager::Draw() const
 {

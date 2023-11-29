@@ -164,12 +164,13 @@ GLvoid Init()
 	waveManager->Start();
 	soundManager->PlayBGMSound(BGMSound::Normal, 0.2f, GL_TRUE);
 
-	//******************************//
+	//************ [Server]************
 	if (sock == NULL)Initsock(sock);
 
 
 	system("cls");
 }
+
 GLvoid InitMeshes()
 {
 	InitModels();
@@ -458,7 +459,7 @@ GLvoid Update()
 	if (player != nullptr) player->Update();
 	//bulletManager->Update(sock);
 	monsterManager->Update(sock);
-	//buildingManager->Update(sock);
+	buildingManager->Update(sock);
 	//turretManager->Update();
 	waveManager->Update(sock);
 
