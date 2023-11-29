@@ -447,15 +447,11 @@ GLvoid Update()
 
 	//UpdateplayersPos(sock);
 
-	char buf[512];
-	recv(sock,buf, 512,0);
-	cout << buf << endl;
-
 
 //	if (user[0].player != nullptr) user[0].player->PlayerSend(sock);
 //	if (user[0].player != nullptr ) user[0].player->Update();
 	//bulletManager->Update(sock);
-//	monsterManager->Update(sock);
+	monsterManager->Update(sock);
 	//turretManager->Update(sock);
 	//waveManager->Update(sock);
 //	if (user[0].player != nullptr) user[0].player->PlayerRecv(sock);

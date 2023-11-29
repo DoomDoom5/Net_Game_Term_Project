@@ -54,19 +54,14 @@ WaveManager* waveManager = nullptr;
 Map* crntMap = nullptr;
 Player* player[3] = { nullptr ,};
 
-// socket
-SOCKET listen_sock = NULL;
+// 소켓 통신 스레드 함수
+DWORD WINAPI SleepCls(LPVOID arg);
+DWORD WINAPI ServerMain(LPVOID arg);
+DWORD WINAPI ProcessClient(LPVOID arg); 
+vector <string> Current(MAXUSER);
+vector <bool> ClientOn(MAXUSER);
 
-// 데이터 통신에 사용할 변수
-SOCKET client_sock = NULL;
-struct sockaddr_in clientaddr;
-int addrlen = 0;
-// 일단은 1 : 1 플레이
-
-// 멀티 플레이용 변수
-HANDLE hThread;
 int users = 0;
-DWORD WINAPI ProcessClient(LPVOID arg);
 
 ///// [Thread] /////
 struct  USER
@@ -114,16 +109,9 @@ GLvoid Init()
     waveManager->Start();
 
 	//************ [Server]************
-	if (listen_sock == NULL) init_Listen_Sock(listen_sock);
-    while (client_sock == NULL) {
-        system("cls");
-        cout << "현재 플레이어의 수 : " << users << " / " << MAXUSER << '\n';
-        init_Client_Sock(client_sock, clientaddr, addrlen);
-        Sleep(1000/60);
-    }
 
-
-	system("cls");
+    // 소켓 통신 스레드 생성
+    CreateThread(NULL, 0, ServerMain, NULL, 0, NULL);
 }
 GLvoid InitMeshes()
 {
@@ -142,9 +130,7 @@ GLvoid InitMeshes()
 	crntMap = new Map();
     for (size_t i = 0; i < 3; i++)
     {
-        player[i] = new Player({ 0,0,0 });
-        monsterManager->SetPlayer(player[i]);
-        waveManager->SetPlayer(player[i]);
+
     }
 }
 GLvoid Reset()
@@ -219,13 +205,14 @@ GLvoid Update()
 	//	glutPostRedisplay();
         return;
 	}
+    if (player[0] == nullptr) return;
 
     timer::CalculateFPS();
     timer::Update();
 
    // if (player[0] != nullptr) player[0]->Update(client_sock);
 	//bulletManager->Update(client_sock);
-	//monsterManager->Update();
+	monsterManager->Update();
 	//buildingManager->Update(client_sock);
 	//turretManager->Update(client_sock);
 	//waveManager->Update(client_sock);
@@ -234,18 +221,19 @@ GLvoid Update()
 
 }
 
-GLvoid init_Listen_Sock(SOCKET& sock)
+// TCP 서버 시작 부분
+DWORD WINAPI ServerMain(LPVOID arg)
 {
     int retval;
 
     // 윈속 초기화
     WSADATA wsa;
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
-        return;
+        return 1;
 
     // 소켓 생성
-    sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock == INVALID_SOCKET) err_quit("socket()");
+    SOCKET listen_sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (listen_sock == INVALID_SOCKET) err_quit("socket()");
 
     // bind()
     struct sockaddr_in serveraddr;
@@ -255,40 +243,62 @@ GLvoid init_Listen_Sock(SOCKET& sock)
     serveraddr.sin_port = htons(SERVERPORT);
     retval = ::bind(listen_sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
     if (retval == SOCKET_ERROR) err_quit("bind()");
-    bind(sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
 
     // listen()
-    retval = listen(sock, SOMAXCONN);
+    retval = listen(listen_sock, SOMAXCONN);
     if (retval == SOCKET_ERROR) err_quit("listen()");
+    printf("서버 준비 완료 \r\n");
 
-    cout << "서버 생성 완료" << endl;
-    return;
-}
+    // 데이터 통신에 사용할 변수
+    SOCKET client_sock;
+    struct sockaddr_in clientaddr;
+    int addrlen;
+    HANDLE hThread;
+    int user = 0;
 
-GLvoid init_Client_Sock(SOCKET& Client_sock, sockaddr_in& clientaddr, int addrlen)
-{
-    // accept()
-    addrlen = sizeof(clientaddr);
-    client_sock = accept(listen_sock, (struct sockaddr*)&clientaddr, &addrlen);
-    if (client_sock == INVALID_SOCKET) {
-        err_display("accept()");
-        return;
+    // 화면 초기화 쓰레드
+   //  HANDLE h_cThread = CreateThread(NULL, 0, SleepCls, NULL, 0, NULL);
+
+    while (1) {
+        // accept()
+        addrlen = sizeof(clientaddr);
+        client_sock = accept(listen_sock, (struct sockaddr*)&clientaddr, &addrlen);
+        if (client_sock == INVALID_SOCKET) {
+            printf("accept()");
+            break;
+        }
+
+        // 접속한 클라이언트 정보 출력
+        char addr[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
+        printf("\r\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\r\n",
+            addr, ntohs(clientaddr.sin_port));
+
+        USER client;
+        client.client_sock = client_sock;
+
+        if (user > MAXUSER) user = 0;
+
+        if (!ClientOn[user])// 자리가 남았을때
+        {
+            ClientOn[user] = true;
+            client.id = user++;
+        }
+
+
+        // 스레드 생성
+        hThread = CreateThread(NULL, 0, ProcessClient,
+            (LPVOID)&client, 0, NULL);
+        if (hThread == NULL) { closesocket(client_sock); }
+        else { CloseHandle(hThread); }
     }
 
-    // 접속한 클라이언트 정보 출력
-    char addr[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
-    printf("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\n",
-        addr, ntohs(clientaddr.sin_port));
+    // 소켓 닫기
+    closesocket(listen_sock);
 
-    USER client;
-    client.client_sock = client_sock;
-
-    client.id = 0;
-    if (users > MAXUSER) users = 0;
-
-    hThread = CreateThread(NULL, 0, ProcessClient,
-			(LPVOID)&client, 0, NULL);
+    // 윈속 종료
+    WSACleanup();
+    return 0;
 }
 
 // 클라이언트와 데이터 통신
@@ -308,6 +318,9 @@ DWORD WINAPI ProcessClient(LPVOID arg)
     getpeername(player_sock, (struct sockaddr*)&Tclientaddr, &Taddrlen);
     inet_ntop(AF_INET, &Tclientaddr.sin_addr, addr, sizeof(addr));
 
+    player[id] = new Player({ 0,0,0 });
+    monsterManager->SetPlayer(player[id]);
+    waveManager->SetPlayer(player[id]);
     
 
  //   if (player_sock != NULL) player[id]->InitPlayer(player_sock,id);
@@ -317,12 +330,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
       //  monsterManager->MonsterSend(player_sock);
        // player[id]->PlayerSend(player_sock);
 
-        char buf[512] = "전송중";
-        send(player_sock,buf,sizeof(buf),0);
-        cout << "전송 완료 " << endl;
-        printf("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\n",
-            addr, ntohs(Tclientaddr.sin_port));
-        
+        monsterManager->MonsterSend(player_sock);
         Sleep(1000/60);
     }
     /*
@@ -330,7 +338,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 
     1. player[0]->Update(client_sock()); -> 클라에서 변환된 부분 받음
     2.	bulletManager->send(client_sock);
-    3.	monsterManager->send(client_sock);
+    3.
     4.	buildingManager->send(client_sock);
     5.	turretManager->send(client_sock);
     6.	waveManager->send(client_sock);
