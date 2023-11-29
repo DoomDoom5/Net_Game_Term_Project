@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Shader.h"
 #include "Object.h"
-#include "Player.h"
+#include "player.h"
 #include "Model.h"
 #include "Timer.h"
 #include "Camera.h"
@@ -68,7 +68,13 @@ UIManager* uiManager = nullptr;
 
 // objects
 Map* crntMap = nullptr;
-Player* player = nullptr;
+
+struct USER
+{
+	int id = 0;
+	Player* player = nullptr;
+};
+USER user[3];
 
 // modes
 GLboolean isPersp = GL_TRUE;
@@ -129,6 +135,7 @@ GLint main(GLint argc, GLchar** argv)
 // sock
 SOCKET sock = NULL;
 
+GLvoid playersUpdate(SOCKET& sock);
 
 ///// INIT /////
 MyColor backColor;
@@ -224,10 +231,13 @@ GLvoid InitMeshes()
 	light->SetPosition({ 0, 400, 0 });
 
 	crntMap = new Map();
-	player = new Player({ 0,0,0 }, &cameraMode);
-	uiManager->SetPlayer(player);
-	monsterManager->SetPlayer(player);
-	waveManager->SetPlayer(player);
+	user[0].player = new Player({0,0,0}, &cameraMode);
+	uiManager->SetPlayer(user[0].player);
+	monsterManager->SetPlayer(user[0].player);
+	waveManager->SetPlayer(user[0].player);
+
+	user[1].player = new Player({ 0,0,0 }, &cameraMode);
+	user[2].player = new Player({ 0,0,0 }, &cameraMode);
 }
 GLvoid Reset()
 {
@@ -257,16 +267,15 @@ GLvoid Reset()
 		delete crntMap;
 		crntMap = nullptr;
 	}
-	if (player != nullptr)
+	if (user[0].player != nullptr)
 	{
-		delete player;
-		player = nullptr;
+		delete user[0].player;
+		user[0].player = nullptr;
 	}
 	cameraMode = CameraMode::Free;
 
 	Init();
 }
-
 
 ///// Draw /////
 GLvoid SetWindow(GLint index)
@@ -332,10 +341,19 @@ GLvoid DrawScene()
 	monsterManager->Draw();
 	buildingManager->Draw();
 
-	if (player != nullptr)
+	if (user[0].player != nullptr)
 	{
-		player->Draw(cameraMode);
+		user[0].player->Draw(cameraMode);
 	}
+	if (user[1].player != nullptr)
+	{
+		user[1].player->Draw(cameraMode);
+	}
+	if (user[2].player != nullptr)
+	{
+		user[2].player->Draw(cameraMode);
+	}
+
 
 	glCullFace(GL_FRONT);
 	cubeMap->Draw();
@@ -377,15 +395,15 @@ GLvoid Initsock(SOCKET& sock)
 void sendPlayerInfo(Player* player, SOCKET& sock)
 {
 	char dirX, dirY, dirZ =0;
-	dirX = player->GetDirX();
-	dirY = player->GetDirY();
-	dirZ = player->GetDirZ();
+	dirX = user[0].player->GetDirX();
+	dirY = user[0].player->GetDirY();
+	dirZ = user[0].player->GetDirZ();
 
-	bool misFIre = player->GetIsFIre();
+	bool misFIre = user[0].player->GetIsFIre();
 
 	float yaw, pitch  = 0;
-	yaw = player->GetYaw();
-	pitch = player->GetPitch();
+	yaw = user[0].player->GetYaw();
+	pitch = user[0].player->GetPitch();
 
 
 	int retval;
@@ -404,31 +422,6 @@ void sendPlayerInfo(Player* player, SOCKET& sock)
 	// 데이터 보내기
 	retval = send(sock, buf, (int)strlen(buf), 0);
 	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
-}
-
-// recv
-glm::vec3 recvVector(SOCKET& sock)
-{
-	char buffer[512];
-	int retval = 0;
-	// 데이터 받기
-	retval = recv(sock, buffer, BUFSIZE, 0);
-	if (retval == SOCKET_ERROR) {
-		err_display("recv()");
-		return glm::vec3(0, 0, 0);
-	}
-	else if (retval == 0)
-		return glm::vec3(0,0,0);
-
-	// 데이터 수신
-	// 문자열을 스트림에 넣어 공백을 기준으로 분리
-	std::istringstream iss(buffer);
-	float x, y, z;
-	iss >> x >> y >> z;
-	// 받은 데이터를 출력
-	cout << "Received Vector: (" << x << ", " << y << ", " << z << ")\n";
-	return glm::vec3(x, y, z);
-
 }
 
 ///// [ HANDLE EVENTS ] /////
@@ -452,11 +445,20 @@ GLvoid Update()
 	timer::CalculateFPS();
 	timer::Update();
 
-	if (player != nullptr) player->Update(sock);
+	//UpdateplayersPos(sock);
+
+	char buf[512];
+	recv(sock,buf, 512,0);
+	cout << buf << endl;
+
+
+//	if (user[0].player != nullptr) user[0].player->PlayerSend(sock);
+//	if (user[0].player != nullptr ) user[0].player->Update();
 	//bulletManager->Update(sock);
-	//monsterManager->Update(sock);
+//	monsterManager->Update(sock);
 	//turretManager->Update(sock);
 	//waveManager->Update(sock);
+//	if (user[0].player != nullptr) user[0].player->PlayerRecv(sock);
 	
 	constexpr GLfloat cameraMovement = 100.0f;
 	GLfloat cameraSpeed = cameraMovement;
@@ -546,9 +548,9 @@ GLvoid Mouse(GLint button, GLint state, GLint x, GLint y)
 		break;
 	}
 
-	if (player != nullptr)
+	if (user[0].player != nullptr)
 	{
-		player->ProcessMouse(button, state, x, y);
+		user[0].player->ProcessMouse(button, state, x, y);
 	}
 }
 GLvoid MouseMotion(GLint x, GLint y)
@@ -585,9 +587,9 @@ GLvoid MousePassiveMotion(GLint x, GLint y)
 			light->RotateLocal(dy, dx, 0.0f);
 		}
 	}
-	else if(player != nullptr)
+	else if(user[0].player != nullptr)
 	{
-		player->Rotate(dy, dx, 0.0f);
+		user[0].player->Rotate(dy, dx, 0.0f);
 	}
 
 	SetCursorPos(mouseCenter.x, mouseCenter.y);
@@ -659,9 +661,9 @@ GLvoid ProcessKeyDown(unsigned char key, GLint x, GLint y)
 
 	}
 
-	if (player != nullptr)
+	if (user[0].player != nullptr)
 	{
-		player->ProcessKeyDown(key);
+		user[0].player->ProcessKeyDown(key);
 	}
 }
 GLvoid ProcessKeyUp(unsigned char key, GLint x, GLint y)
@@ -676,9 +678,9 @@ GLvoid ProcessKeyUp(unsigned char key, GLint x, GLint y)
 		key = CtrlMap[key];
 	}
 
-	if (player != nullptr)
+	if (user[0].player != nullptr)
 	{
-		player->ProcessKeyUp(key);
+		user[0].player->ProcessKeyUp(key);
 	}
 }
 GLvoid ProcessSpecialKeyDown(GLint key, GLint x, GLint y)
@@ -699,14 +701,14 @@ GLvoid ProcessSpecialKeyDown(GLint key, GLint x, GLint y)
 	//	break;
 	//}
 
-	if (player != nullptr)
+	if (user[0].player != nullptr)
 	{
 		if (key == GLUT_KEY_LEFT)
 		{
 			return;
 		}
 
-		player->ProcessKeyDown(key);
+		user[0].player->ProcessKeyDown(key);
 	}
 }
 GLvoid ProcessSpecialKeyUp(GLint key, GLint x, GLint y)
@@ -716,13 +718,13 @@ GLvoid ProcessSpecialKeyUp(GLint key, GLint x, GLint y)
 		return;
 	}
 
-	if (player != nullptr)
+	if (user[0].player != nullptr)
 	{
 		if (key == GLUT_KEY_LEFT)
 		{
 			return;
 		}
-		player->ProcessKeyUp(key);
+		user[0].player->ProcessKeyUp(key);
 	}
 }
 
@@ -739,15 +741,15 @@ GLvoid SetCameraMode(const CameraMode& mode)
 		cameraMain = cameraFree;
 		break;
 	case CameraMode::FirstPerson:
-		if (player != nullptr)
+		if (user[0].player != nullptr)
 		{
-			cameraMain = player->GetFirstPersonCamera();
+			cameraMain = user[0].player->GetFirstPersonCamera();
 		}
 		break;
 	case CameraMode::ThirdPerson:
-		if (player != nullptr)
+		if (user[0].player != nullptr)
 		{
-			cameraMain = player->GetThirdPersonCamera();
+			cameraMain = user[0].player->GetThirdPersonCamera();
 		}
 		break;
 	case CameraMode::Light:
@@ -758,4 +760,35 @@ GLvoid SetCameraMode(const CameraMode& mode)
 	}
 
 	cameraMode = mode;
+}
+
+struct checkPlayer
+{
+	int id = 0;
+	int x, y, z = 0;
+};
+
+GLvoid UpdateplayersPos(SOCKET& sock)
+{
+	int retval = 0;
+	char buf[sizeof(checkPlayer) * 3];
+	recv(sock, buf, sizeof(checkPlayer) * 3, 0);
+
+	for (size_t i = 0; i < 3; i++)
+	{
+		int id = 0;
+		int x, y, z = 0;
+		std::istringstream iss(buf);
+		iss >> id >> x >> y >> z;
+		glm::vec3 newPos(x, y, z);
+
+		if (id == user[0].id)
+		{
+			if (user[0].player != nullptr) user[0].player->SetPosition(newPos);
+		}
+		else
+		{
+			if (user[id].player != nullptr) user[id].player->SetPosition(newPos);
+		}
+	}
 }

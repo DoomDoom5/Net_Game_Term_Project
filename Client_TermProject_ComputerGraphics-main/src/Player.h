@@ -9,7 +9,6 @@
 
 #define RUN_SOUND_TERM 0.5 // 1초에 1번씩
 
-
 class SharedObject;
 class Camera;
 class Cuboid;
@@ -143,7 +142,7 @@ public:
 	GLvoid ChangeState(const State& playerState, const Event& e = Event::None, const GLint& value = 0);
 
 	// Frame
-	GLvoid Update(SOCKET& sock);
+	GLvoid Update();
 	GLvoid Draw(const CameraMode& cameraMode) const;
 	GLvoid DrawIcon() const;
 
@@ -186,6 +185,10 @@ public:
 	bool GetIsFIre() { return mlsFire; };
 	GLfloat GetYaw() { return mYaw; };
 	GLfloat GetPitch() { return mPitch; };
+
+	// ==== send/recv ====
+	GLvoid PlayerSend(SOCKET& sock);
+	GLvoid PlayerRecv(SOCKET& sock);
 
 
 	// ======= Set ======

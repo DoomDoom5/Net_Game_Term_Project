@@ -142,7 +142,7 @@ public:
 	GLvoid ChangeState(const State& playerState, const Event& e = Event::None, const GLint& value = 0);
 
 	// Frame
-	GLvoid InitPlayer(SOCKET& client_sock);
+	GLvoid InitPlayer(SOCKET& client_sock, int id);
 	GLvoid Update(SOCKET& client_sock);
 	GLvoid Draw(const CameraMode& cameraMode) const;
 	GLvoid DrawIcon() const;
@@ -183,12 +183,14 @@ public:
 	GLfloat GetHp() const;
 	GunType GetGunType() const;
 
-
 	// Add
 	GLvoid AddHoldturret(const GLint& value);
-
 
 	// Skills
 	GLvoid Install_Turret();
 	GLvoid ChaingeGun();
+
+	// send / recv
+	GLvoid PlayerSend(SOCKET& client_sock);
+	GLvoid PlayerRecv(SOCKET& client_sock);
 };

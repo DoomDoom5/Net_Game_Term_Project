@@ -380,44 +380,11 @@ GLvoid Player::ChangeState(const State& playerState, const Event& e, const GLint
 }
 
 
-
-
-
-GLvoid Player::Update(SOCKET& sock)
+GLvoid Player::Update()
 {
-	int retval;
-	// ==============클라이언트 정보 송신====================
-	char HPbuf[8];
-	retval = recv(sock, HPbuf, sizeof(int), 0);
-	mHP = stoi(HPbuf);
-	cout << "MY HP : " << mHP << '\n';
-	// ==================================
-
 	mCrntState->Update();
-
 	mPosition = mBody->GetPviotedPosition();
-
 	mCrntGun->Update();
-
-
-	// ===================클라이언트 정보 수신===============
-	// glm::vec3를 문자열로 변환
-	string vec3AsString =
-		to_string((int)mPosition.x) + " " +
-		to_string((int)mPosition.y) + " " +
-		to_string((int)mPosition.z) + " " +
-		to_string(mlsFire) + " " + 
-		to_string(mIsInstall) + " ";
-
-	// 문자열을 C 스타일의 문자열로 변환
-	const char* buf = vec3AsString.c_str();
-
-	// 데이터 보내기
-	retval = send(sock, buf, (int)strlen(buf), 0);
-	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
-	mIsInstall = false;
-	// ======================
-
 }
 GLvoid Player::Draw(const CameraMode& cameraMode) const
 {
@@ -482,12 +449,12 @@ GLvoid Player::ProcessMouse(GLint button, GLint state, GLint x, GLint y)
 	case GLUT_LEFT_BUTTON:
 		if (state == GLUT_DOWN)
 		{
-			mCrntGun->StartFire();
+			//mCrntGun->StartFire();
 			mlsFire = true;
 		}
 		else if (state == GLUT_UP)
 		{
-			mCrntGun->StopFire();
+			//mCrntGun->StopFire();
 			mlsFire = false;
 		}
 		
@@ -645,6 +612,41 @@ GunType Player::GetGunType() const
 {
 	if (mCrntGun != nullptr) return mCrntGun->GetType();
 	else return GunType::None;
+}
+
+GLvoid Player::PlayerSend(SOCKET& sock)
+{
+	int retval = 0;
+	// ===================클라이언트 정보 수신===============
+	// glm::vec3를 문자열로 변환
+	string vec3AsString =
+		to_string((int)mPosition.x) + " " +
+		to_string((int)mPosition.y) + " " +
+		to_string((int)mPosition.z) + " " +
+		to_string(mlsFire) + " " +
+		to_string(mIsInstall) + " ";
+
+	// 문자열을 C 스타일의 문자열로 변환
+	const char* buf = vec3AsString.c_str();
+
+	// 데이터 보내기
+	retval = send(sock, buf, (int)strlen(buf), 0);
+	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
+	mIsInstall = false;
+	// ======================
+
+	return GLvoid();
+}
+
+GLvoid Player::PlayerRecv(SOCKET& sock)
+{
+	int retval;
+	// ==============클라이언트 정보 송신====================
+	char HPbuf[8];
+	retval = recv(sock, HPbuf, 8, 0);
+	mHP = stoi(HPbuf);
+	cout << "MY HP : " << mHP << '\n';
+	// ==================================
 }
 
 GLvoid Player::SetPosition(glm::vec3 newPos)

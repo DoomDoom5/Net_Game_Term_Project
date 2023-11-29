@@ -52,9 +52,7 @@ WaveManager* waveManager = nullptr;
 
 // objects
 Map* crntMap = nullptr;
-Player* player = nullptr;
-Player* player1 = nullptr;
-Player* player2 = nullptr;
+Player* player[3] = { nullptr ,};
 
 // socket
 SOCKET listen_sock = NULL;
@@ -62,12 +60,22 @@ SOCKET listen_sock = NULL;
 // 데이터 통신에 사용할 변수
 SOCKET client_sock = NULL;
 struct sockaddr_in clientaddr;
-int addrlen;
+int addrlen = 0;
 // 일단은 1 : 1 플레이
 
 // 멀티 플레이용 변수
 HANDLE hThread;
 int users = 0;
+DWORD WINAPI ProcessClient(LPVOID arg);
+
+///// [Thread] /////
+struct  USER
+{
+    SOCKET client_sock = NULL;
+    int id;
+};
+
+
 
 GLint main(GLint argc, GLchar** argv)
 {
@@ -113,7 +121,6 @@ GLvoid Init()
         init_Client_Sock(client_sock, clientaddr, addrlen);
         Sleep(1000/60);
     }
-    if (client_sock != NULL) player->InitPlayer(client_sock);
 
 
 	system("cls");
@@ -133,9 +140,12 @@ GLvoid InitMeshes()
     turretManager->Create(glm::vec3(100,0,450));
 
 	crntMap = new Map();
-	player = new Player({ 0,0,0 });
-	monsterManager->SetPlayer(player);
-	waveManager->SetPlayer(player);
+    for (size_t i = 0; i < 3; i++)
+    {
+        player[i] = new Player({ 0,0,0 });
+        monsterManager->SetPlayer(player[i]);
+        waveManager->SetPlayer(player[i]);
+    }
 }
 GLvoid Reset()
 {
@@ -163,10 +173,10 @@ GLvoid Reset()
         delete crntMap;
         crntMap = nullptr;
     }
-    if (player != nullptr)
+    if (player[0] != nullptr)
     {
-        delete player;
-        player = nullptr;
+        delete player[0];
+        player[0] = nullptr;
     }
 
     Init();
@@ -213,9 +223,9 @@ GLvoid Update()
     timer::CalculateFPS();
     timer::Update();
 
-    if (player != nullptr) player->Update(client_sock);
+   // if (player[0] != nullptr) player[0]->Update(client_sock);
 	//bulletManager->Update(client_sock);
-	//monsterManager->Update(client_sock);
+	//monsterManager->Update();
 	//buildingManager->Update(client_sock);
 	//turretManager->Update(client_sock);
 	//waveManager->Update(client_sock);
@@ -270,112 +280,62 @@ GLvoid init_Client_Sock(SOCKET& Client_sock, sockaddr_in& clientaddr, int addrle
     inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
     printf("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\n",
         addr, ntohs(clientaddr.sin_port));
+
+    USER client;
+    client.client_sock = client_sock;
+
+    client.id = 0;
+    if (users > MAXUSER) users = 0;
+
+    hThread = CreateThread(NULL, 0, ProcessClient,
+			(LPVOID)&client, 0, NULL);
 }
-GLvoid sendVector(SOCKET& sock)
-{
-    int retval;
-
-    // 데이터 통신에 사용할 변수
-    SOCKET client_sock;
-    struct sockaddr_in clientaddr;
-    int addrlen;
-    while (1) {
-        // accept()
-        addrlen = sizeof(clientaddr);
-        client_sock = accept(sock, (struct sockaddr*)&clientaddr, &addrlen);
-        if (client_sock == INVALID_SOCKET) {
-            err_display("accept()");
-            break;
-        }
-
-        // 접속한 클라이언트 정보 출력
-        char addr[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
-        printf("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\n",
-            addr, ntohs(clientaddr.sin_port));
-
-        // ============ 클라이언트와 데이터 통신 ==================
-        char buffer[BUFSIZE];
-        float PlayerX = 0.0f;
-        float PlayerY = 0.0f;
-        float PlayerZ = 0.0f;
-        while (1) {
-            // 데이터 송신
-            // 데이터 수신
-            {
-                PlayerX += 0.2f;
-                // glm::vec3를 문자열로 변환
-                std::string vec3AsString =
-                    std::to_string(PlayerX) + " " +
-                    std::to_string(PlayerY) + " " +
-                    std::to_string(PlayerZ);
-
-                // 문자열을 C 스타일의 문자열로 변환
-                const char* buf = vec3AsString.c_str();
-
-                // 데이터 보내기
-                retval = send(client_sock, buf, (int)strlen(buf), 0);
-                if (retval == SOCKET_ERROR) {
-                    err_display("send()");
-                    break;
-                }
-                printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
-                Sleep(500);
-            }
-        }
-        // 소켓 닫기
-        closesocket(client_sock);
-        printf("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n",
-            addr, ntohs(clientaddr.sin_port));
-    }
-}
-
-///// [Thread] /////
-struct  USER
-{
-    SOCKET client_sock = NULL;
-    int id;
-};
-
 
 // 클라이언트와 데이터 통신
 DWORD WINAPI ProcessClient(LPVOID arg)
 {
     int retval;
     USER* usr = (USER*)arg;
-
     int id = usr->id;
-    SOCKET client_sock = usr->client_sock;
-    struct sockaddr_in clientaddr;
+
+    SOCKET player_sock = usr->client_sock;
+    struct sockaddr_in Tclientaddr;
     char addr[INET_ADDRSTRLEN];
-    int addrlen;
-    char buf[BUFSIZE + 1];
+    int Taddrlen;
 
     // 클라이언트 정보 얻기
-    addrlen = sizeof(clientaddr);
-    getpeername(client_sock, (struct sockaddr*)&clientaddr, &addrlen);
-    inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
+    Taddrlen = sizeof(Tclientaddr);
+    getpeername(player_sock, (struct sockaddr*)&Tclientaddr, &Taddrlen);
+    inet_ntop(AF_INET, &Tclientaddr.sin_addr, addr, sizeof(addr));
 
-    char* buffer = new char[BUFSIZE];
-    int resultData = 0;
+    
 
+ //   if (player_sock != NULL) player[id]->InitPlayer(player_sock,id);
+    while (1)
+    {
+     //   player[id]->PlayerRecv(player_sock);
+      //  monsterManager->MonsterSend(player_sock);
+       // player[id]->PlayerSend(player_sock);
+
+        char buf[512] = "전송중";
+        send(player_sock,buf,sizeof(buf),0);
+        cout << "전송 완료 " << endl;
+        printf("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\n",
+            addr, ntohs(Tclientaddr.sin_port));
+        
+        Sleep(1000/60);
+    }
     /*
     send/recv 순서  [꼭 지킬것!]
 
-    1. player->Update(client_sock()); -> 클라에서 변환된 부분 받음
+    1. player[0]->Update(client_sock()); -> 클라에서 변환된 부분 받음
     2.	bulletManager->send(client_sock);
     3.	monsterManager->send(client_sock);
     4.	buildingManager->send(client_sock);
     5.	turretManager->send(client_sock);
     6.	waveManager->send(client_sock);
-    7. player->recv(client_sock(); -> 플레이어 변화된 부분 클라에게 전달
+    7. player[0]->recv(client_sock(); -> 플레이어 변화된 부분 클라에게 전달
 
     */
 
-    while (1)
-    {
-     
-
-    }
-   
-}
+} 

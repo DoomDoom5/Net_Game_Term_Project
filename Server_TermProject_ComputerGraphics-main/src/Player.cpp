@@ -206,12 +206,6 @@ GLvoid Jump::HandleEvent(const Event& e, const GLint& key)
 
 
 
-
-
-
-
-
-
 ////////////////////////////// [ Player ] //////////////////////////////
 Player::Player(const glm::vec3& position)
 {
@@ -265,17 +259,7 @@ Player::Player(const glm::vec3& position)
 	mLauncher = new Launcher(gunPosition, &mPosition);
 
 
-	// Gun* mPlayGun = nullptr
 	mCrntGun = mRifle;
-	// 총 교체에 따라 
-	// mPlayGun =  mShotgun
-	// mPlayGun =  mPistol
-	// mplayGun  = mSniper 해서
-	// 
-	// mPlayGun->StartFire();
-	// 으로 되도록
-
-
 	mBoundingCircle = new Circle(mBody->GetRefPos(), PLAYER_RADIUS, GL_TRUE);
 	mBoundingCircle->SetColor(BLUE);
 
@@ -386,29 +370,19 @@ GLvoid Player::ChangeState(const State& playerState, const Event& e, const GLint
 
 
 
-GLvoid Player::InitPlayer(SOCKET& client_sock)
+GLvoid Player::InitPlayer(SOCKET& client_sock, int id)
 {
 	int retval;
 	// 초기 보낼 정보 HP, 시작 위치, id,....?
-	std::string stringValue = std::to_string(mHP);
-	retval = send(client_sock, stringValue.c_str(), sizeof(int), 0);
+	std::string stringValue = to_string((int)mHP);
+	retval = send(client_sock, stringValue.c_str(), sizeof(stringValue) , 0);
 	 
 }
 
+
 GLvoid Player::Update(SOCKET& client_sock)
 {
-	// ======= 사용자 정보수신 ======
 
-	bool mIsInstall = false;
-	bool mlsFire = false;
-	char buffer[100]{};
-	int retval = 0;
-	retval = recv(client_sock, buffer, 100, 0);
-
-	std::istringstream iss(buffer);
-	iss >> mPosition.x >> mPosition.y >> mPosition.z >> mlsFire >>mIsInstall;
-	cout << "RECV POSTION : " << mPosition.x  << mPosition.y 	<< mPosition.z << " , ";
-	if (mIsInstall) Install_Turret();
 	// ============================
 
 	mCrntState->Update();
@@ -417,11 +391,6 @@ GLvoid Player::Update(SOCKET& client_sock)
 
 	mCrntGun->Update();
 
-
-	// ======= 사용자 정보 송신 ======
-	std::string stringValue = std::to_string(mHP);
-	retval = send(client_sock, stringValue.c_str(), sizeof(int), 0);
-	// ======= ========== ======
 }
 GLvoid Player::Draw(const CameraMode& cameraMode) const
 {
@@ -697,6 +666,37 @@ GLvoid Player::ChaingeGun()
 	}
 
 	mCrntGun->RotateLocal(prevGun->GetYaw(), prevGun->GetPitch());
+}
+
+GLvoid Player::PlayerSend(SOCKET& client_sock)
+{
+	int retval = 0;
+	// ======= 사용자 정보 송신 ======
+	std::string stringValue = std::to_string(mHP);
+	retval = send(client_sock, stringValue.c_str(), 8, 0);
+	// ======= ========== ======
+}
+
+GLvoid Player::PlayerRecv(SOCKET& client_sock)
+{
+	// ======= 사용자 정보수신 ======
+
+	char buffer[100]{};
+	int retval = 0;
+	int x, y, z = 0;
+	bool isFire , isInstall = false;
+
+	retval = recv(client_sock, buffer, 100, 0);
+
+	std::istringstream iss(buffer);
+	iss >> x >> y >> z >> isFire >> isInstall;
+	mPosition.x = x;
+	mPosition.y = y;
+	mPosition.z = z;
+	mIsInstall = isInstall;
+	cout << "RECV POSTION : " << mPosition.x << mPosition.y << mPosition.z << " , ";
+	if (mIsInstall) Install_Turret();
+	mIsInstall = false;
 }
 
 GLvoid Player::AddHoldturret(const GLint& value)

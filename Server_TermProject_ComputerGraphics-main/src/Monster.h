@@ -95,22 +95,30 @@ public:
 	GLvoid Update(const glm::vec3* target) override;
 };
 
-
+struct MonsterInfo {
+	char monsterNumBuf[sizeof(int)];
+	char monsterPosBuf[sizeof(float) * 3 * 20];		// num은 10이 최대
+	char monsterTypeBuf[sizeof(int) * 20];
+	char monsterTargetBuf[sizeof(float) * 3 * 20];
+};
 
 class MonsterManager {
 private:
 	vector<Monster*> mMonsterList;
 	Player* mPlayer = nullptr;
-
+	char buf[sizeof(MonsterInfo)];
 	const glm::vec3* FindTargetPos(const glm::vec3& monsterPos, const GLfloat& radius) const;
 public:
 	MonsterManager();
 	~MonsterManager();
 	GLvoid Create(const MonsterType& monsterType, const glm::vec3& position);
-	GLvoid Update(const SOCKET sock);
+	GLvoid Update();
 	GLvoid Draw() const;
 	GLvoid SetPlayer(Player* player);
 	GLboolean GetShortestMonsterPos(const glm::vec3& srcPos, const GLfloat& radius, glm::vec3& targetPos) const;
 	GLvoid CheckCollision(Monster* monster);
 	bool CheckEnemyEmpty();
+
+
+	GLvoid MonsterSend(const SOCKET& client_sock);
 };

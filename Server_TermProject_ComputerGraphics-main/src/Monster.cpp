@@ -359,14 +359,9 @@ GLvoid MonsterManager::Create(const MonsterType& monsterType, const glm::vec3& p
 	mMonsterList.emplace_back(monster);
 }
 
-struct MonsterInfo {
-	char monsterNumBuf[sizeof(int)];
-	char monsterPosBuf[sizeof(float) * 3 * 20];		// num은 10이 최대
-	char monsterTypeBuf[sizeof(int) * 20];
-	char monsterTargetBuf[sizeof(float) * 3 * 20];
-};
 
-GLvoid MonsterManager::Update(SOCKET sock)
+
+GLvoid MonsterManager::Update()
 {
 	MonsterInfo monsterInfo{};
 
@@ -429,9 +424,7 @@ GLvoid MonsterManager::Update(SOCKET sock)
 	}
 	memcpy(&monsterInfo.monsterTargetBuf, &converToFloat, sizeof(uint32_t) * 3 * nMonsters);
 
-	char buf[sizeof(MonsterInfo)];
 	memcpy(&buf, &monsterInfo, sizeof(MonsterInfo));
-	send(sock, buf, sizeof(MonsterInfo), 0);
 }
 
 GLvoid MonsterManager::Draw() const
@@ -504,4 +497,9 @@ GLvoid MonsterManager::CheckCollision(Monster* monster)
 bool MonsterManager::CheckEnemyEmpty()
 {
 	return mMonsterList.empty(); 
+}
+
+GLvoid MonsterManager::MonsterSend(const SOCKET& client_sock)
+{
+	send(client_sock, buf, sizeof(MonsterInfo), 0);
 }
