@@ -210,9 +210,12 @@ GLvoid Update()
     timer::CalculateFPS();
     timer::Update();
 
-   // if (player[0] != nullptr) player[0]->Update(client_sock);
 	//bulletManager->Update(client_sock);
 	monsterManager->Update();
+    for (size_t i = 0; i < users; i++)
+    {
+        if (player[i] != nullptr) player[i]->Update();
+    }
 	//buildingManager->Update(client_sock);
 	//turretManager->Update(client_sock);
 	//waveManager->Update(client_sock);
@@ -256,10 +259,15 @@ DWORD WINAPI ServerMain(LPVOID arg)
     HANDLE hThread;
     int user = 0;
 
+
+
     // 화면 초기화 쓰레드
-   //  HANDLE h_cThread = CreateThread(NULL, 0, SleepCls, NULL, 0, NULL);
+    HANDLE h_cThread = CreateThread(NULL, 0, SleepCls,
+        NULL, 0, NULL);
 
     while (1) {
+        system("cls");
+        printf("서버 접속자 수 %d / %d", users, MAXUSER);
         // accept()
         addrlen = sizeof(clientaddr);
         client_sock = accept(listen_sock, (struct sockaddr*)&clientaddr, &addrlen);
@@ -277,7 +285,6 @@ DWORD WINAPI ServerMain(LPVOID arg)
         USER client;
         client.client_sock = client_sock;
 
-        if (user > MAXUSER) user = 0;
 
         if (!ClientOn[user])// 자리가 남았을때
         {
@@ -291,6 +298,8 @@ DWORD WINAPI ServerMain(LPVOID arg)
             (LPVOID)&client, 0, NULL);
         if (hThread == NULL) { closesocket(client_sock); }
         else { CloseHandle(hThread); }
+
+        Sleep(1000 / 60);
     }
 
     // 소켓 닫기
@@ -300,6 +309,23 @@ DWORD WINAPI ServerMain(LPVOID arg)
     WSACleanup();
     return 0;
 }
+
+// 화면 초기화
+DWORD WINAPI SleepCls(LPVOID arg)
+{
+    while (true)
+    {
+        Sleep(2000);
+        system("cls");
+    }
+}
+
+
+struct PlayersInfo
+{
+    int id;
+    glm::vec3 pos;
+};
 
 // 클라이언트와 데이터 통신
 DWORD WINAPI ProcessClient(LPVOID arg)
@@ -323,14 +349,12 @@ DWORD WINAPI ProcessClient(LPVOID arg)
     waveManager->SetPlayer(player[id]);
     
 
- //   if (player_sock != NULL) player[id]->InitPlayer(player_sock,id);
+  //  if (player_sock != NULL) player[id]->InitPlayer(player_sock,id);
     while (1)
     {
-     //   player[id]->PlayerRecv(player_sock);
-      //  monsterManager->MonsterSend(player_sock);
-       // player[id]->PlayerSend(player_sock);
-
+        player[id]->PlayerRecv(player_sock);
         monsterManager->MonsterSend(player_sock);
+        player[id]->PlayerSend(player_sock);
         Sleep(1000/60);
     }
     /*

@@ -380,7 +380,7 @@ GLvoid Player::InitPlayer(SOCKET& client_sock, int id)
 }
 
 
-GLvoid Player::Update(SOCKET& client_sock)
+GLvoid Player::Update()
 {
 
 	// ============================
@@ -681,12 +681,12 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 {
 	// ======= 사용자 정보수신 ======
 
-	char buffer[100]{};
+	char buffer[512]{};
 	int retval = 0;
 	int x, y, z = 0;
 	bool isFire , isInstall = false;
 
-	retval = recv(client_sock, buffer, 100, 0);
+	retval = recv(client_sock, buffer, 512, 0);
 
 	std::istringstream iss(buffer);
 	iss >> x >> y >> z >> isFire >> isInstall;
@@ -694,7 +694,9 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	mPosition.y = y;
 	mPosition.z = z;
 	mIsInstall = isInstall;
-	cout << "RECV POSTION : " << mPosition.x << mPosition.y << mPosition.z << " , ";
+	cout << "RECV POSTION : " << mPosition.x << ", " << mPosition.y << ", " << mPosition.z << endl;
+	cout << "RECV INFO : " << isFire << ", " << isInstall << endl;
+
 	if (mIsInstall) Install_Turret();
 	mIsInstall = false;
 }

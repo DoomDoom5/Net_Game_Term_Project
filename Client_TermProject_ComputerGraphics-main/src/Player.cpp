@@ -630,12 +630,11 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	const char* buf = vec3AsString.c_str();
 
 	// 데이터 보내기
-	retval = send(sock, buf, (int)strlen(buf), 0);
+	retval = send(sock, buf, vec3AsString.size(), 0);
 	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
 	mIsInstall = false;
 	// ======================
 
-	return GLvoid();
 }
 
 GLvoid Player::PlayerRecv(SOCKET& sock)
@@ -662,7 +661,6 @@ GLint Player::GetHoldTullet() const
 
 GLvoid Player::Damage(const GLfloat& damage)
 {
-	mHP -= damage;
 	soundManager->PlayEffectSound(EffectSound::Hit);
 	if (mHP <= 0)
 	{

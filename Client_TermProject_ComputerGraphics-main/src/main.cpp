@@ -75,6 +75,7 @@ struct USER
 	Player* player = nullptr;
 };
 USER user[3];
+int users = 1;
 
 // modes
 GLboolean isPersp = GL_TRUE;
@@ -341,19 +342,8 @@ GLvoid DrawScene()
 	monsterManager->Draw();
 	buildingManager->Draw();
 
-	if (user[0].player != nullptr)
-	{
-		user[0].player->Draw(cameraMode);
-	}
-	if (user[1].player != nullptr)
-	{
-		user[1].player->Draw(cameraMode);
-	}
-	if (user[2].player != nullptr)
-	{
-		user[2].player->Draw(cameraMode);
-	}
-
+	for (int i = 0; i < users; ++i)
+		if (user[i].player != nullptr) user[i].player->Draw(cameraMode);
 
 	glCullFace(GL_FRONT);
 	cubeMap->Draw();
@@ -391,39 +381,6 @@ GLvoid Initsock(SOCKET& sock)
 	printf("initsocket 함수\n");
 }
 
-// send
-void sendPlayerInfo(Player* player, SOCKET& sock)
-{
-	char dirX, dirY, dirZ =0;
-	dirX = user[0].player->GetDirX();
-	dirY = user[0].player->GetDirY();
-	dirZ = user[0].player->GetDirZ();
-
-	bool misFIre = user[0].player->GetIsFIre();
-
-	float yaw, pitch  = 0;
-	yaw = user[0].player->GetYaw();
-	pitch = user[0].player->GetPitch();
-
-
-	int retval;
-	// glm::vec3를 문자열로 변환
-	string vec3AsString =
-		to_string(dirX) + " " +
-		to_string(dirY) + " " +
-		to_string(dirZ) + " " +
-		to_string(misFIre) + " " +
-		to_string(yaw) + " " +
-		to_string(pitch);
-
-	// 문자열을 C 스타일의 문자열로 변환
-	const char* buf = vec3AsString.c_str();
-
-	// 데이터 보내기
-	retval = send(sock, buf, (int)strlen(buf), 0);
-	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
-}
-
 ///// [ HANDLE EVENTS ] /////
 GLvoid Update()
 {
@@ -448,13 +405,14 @@ GLvoid Update()
 	//UpdateplayersPos(sock);
 
 
-//	if (user[0].player != nullptr) user[0].player->PlayerSend(sock);
-//	if (user[0].player != nullptr ) user[0].player->Update();
+	if (user[0].player != nullptr ) user[0].player->Update();
+
+	if (user[0].player != nullptr) user[0].player->PlayerSend(sock);
 	//bulletManager->Update(sock);
 	monsterManager->Update(sock);
 	//turretManager->Update(sock);
 	//waveManager->Update(sock);
-//	if (user[0].player != nullptr) user[0].player->PlayerRecv(sock);
+	if (user[0].player != nullptr) user[0].player->PlayerRecv(sock);
 	
 	constexpr GLfloat cameraMovement = 100.0f;
 	GLfloat cameraSpeed = cameraMovement;
@@ -682,20 +640,7 @@ GLvoid ProcessKeyUp(unsigned char key, GLint x, GLint y)
 GLvoid ProcessSpecialKeyDown(GLint key, GLint x, GLint y)
 {
 	if (IsGameOver() == GL_TRUE)
-	{
 		return;
-	}
-
-	// WARNING : (GLUT_KEY_LEFT == 'd') -> 100 //
-	//switch (key)
-	//{
-	//case GLUT_KEY_HOME:
-	//	cameraFree->Look({ 0,0,0 });
-	//	break;
-	//case GLUT_KEY_F1:
-	//	isWireFrame = !isWireFrame;
-	//	break;
-	//}
 
 	if (user[0].player != nullptr)
 	{
@@ -770,7 +715,7 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 	char buf[sizeof(checkPlayer) * 3];
 	recv(sock, buf, sizeof(checkPlayer) * 3, 0);
 
-	for (size_t i = 0; i < 3; i++)
+	for (size_t i = 0; i < users; i++)
 	{
 		int id = 0;
 		int x, y, z = 0;
@@ -778,13 +723,5 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 		iss >> id >> x >> y >> z;
 		glm::vec3 newPos(x, y, z);
 
-		if (id == user[0].id)
-		{
-			if (user[0].player != nullptr) user[0].player->SetPosition(newPos);
-		}
-		else
-		{
-			if (user[id].player != nullptr) user[id].player->SetPosition(newPos);
-		}
 	}
 }

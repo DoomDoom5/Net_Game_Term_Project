@@ -143,7 +143,7 @@ public:
 
 	// Frame
 	GLvoid InitPlayer(SOCKET& client_sock, int id);
-	GLvoid Update(SOCKET& client_sock);
+	GLvoid Update();
 	GLvoid Draw(const CameraMode& cameraMode) const;
 	GLvoid DrawIcon() const;
 
