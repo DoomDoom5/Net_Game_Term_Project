@@ -4,6 +4,12 @@
 #include <ws2tcpip.h> // 윈속2 확장 헤더
 
 class SharedObject;
+#define MAX_TURRET 100
+struct TurretInfo {
+	char num[sizeof(int)];
+	char look[sizeof(uint32_t) * 3 * MAX_TURRET];
+	char pos[sizeof(uint32_t) * 3 * MAX_TURRET];
+};
 
 class TurretManager {
 private:
@@ -22,7 +28,7 @@ private:
 	public:
 		Turret(const glm::vec3& position);
 		~Turret();
-
+		GLvoid SetLook(const glm::vec3& look);
 		GLvoid Update();
 		GLvoid Draw() const;
 		GLvoid Fire();
@@ -33,8 +39,7 @@ public:
 	TurretManager();
 	~TurretManager();
 
-	GLvoid Update();
+	GLvoid Update(const SOCKET& sock);
 	GLvoid Draw() const;
-
 	GLvoid Create(const glm::vec3& position);
 };

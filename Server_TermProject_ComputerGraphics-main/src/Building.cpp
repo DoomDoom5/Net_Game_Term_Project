@@ -242,7 +242,7 @@ GLvoid BuildingManager::Update()
 		printf("%d Position: %.2f, %.2f, %.2f / ", i, pos.x, pos.y, pos.z);
 		switch (types[i]) {
 		case BuildingType::Core:
-			printf("Type: Core / ");
+			printf("Type: Core\n");
 			break;
 		};
 #endif

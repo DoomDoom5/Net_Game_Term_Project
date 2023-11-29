@@ -65,5 +65,8 @@ GLvoid WaveManager::Update(SOCKET& sock)
 
 		WaveManager::Start();
 	}
+
+#ifdef DEBUG
 	cout << "mCrntWave: " << mCrntWave << endl;
+#endif
 }

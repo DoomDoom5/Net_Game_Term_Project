@@ -215,7 +215,7 @@ GLvoid BuildingManager::Update(SOCKET& sock)
 	buildings.clear();
 	for (int i = 0; i < nBuilding; ++i) {
 #ifdef DEBUG
-		printf("%d Position: (%2f, %2f, %2f) / ", i, fPos[i].x, fPos[i].y, fPos[i].z);
+		printf("%d Position: %.1f, %.1f, %.1f / ", i, fPos[i].x, fPos[i].y, fPos[i].z);
 		switch (types[i]) {
 		case BuildingType::Core:
 			printf("Type: Core\n");

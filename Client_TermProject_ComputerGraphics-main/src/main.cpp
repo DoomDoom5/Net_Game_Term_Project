@@ -460,7 +460,7 @@ GLvoid Update()
 	//bulletManager->Update(sock);
 	monsterManager->Update(sock);
 	buildingManager->Update(sock);
-	//turretManager->Update();
+	turretManager->Update(sock);
 	waveManager->Update(sock);
 
 	constexpr GLfloat cameraMovement = 100.0f;

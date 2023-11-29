@@ -33,6 +33,11 @@ GLvoid TurretManager::Turret::Draw() const
 	mObject_Head->Draw();
 }
 
+GLvoid TurretManager::Turret::SetLook(const glm::vec3& look)
+{
+	mObject_Head->SetLook(look);
+}
+
 GLvoid TurretManager::Turret::Update()
 {
 	mCrntFireDelay += timer::DeltaTime();
@@ -100,13 +105,51 @@ TurretManager::~TurretManager()
 	}
 }
 
-GLvoid TurretManager::Update()
+GLvoid TurretManager::Update(const SOCKET& sock)
 {
-	for (Turret* turret : turrets)
-	{
-		turret->Update();
+#ifdef DEBUG
+	printf("Turret: ");
+#endif
+	TurretInfo turretInfo{};
+	char buf[sizeof(TurretInfo)];
+	int retval = recv(sock, buf, sizeof(TurretInfo), 0);
+	if (retval == SOCKET_ERROR) {
+		printf("SOCKET_ERROR\n");
+		return;
+	}
+	memcpy(&turretInfo, &buf, sizeof(TurretInfo));
+
+	int nTurrets = 0;
+	memcpy(&nTurrets, &turretInfo.num, sizeof(int));
+	printf("%d\n", nTurrets);
+
+	uint32_t nPos[MAX_TURRET * 3];
+	memcpy(&nPos, &turretInfo.pos, sizeof(uint32_t) * 3 * nTurrets);
+	uint32_t nLook[MAX_TURRET * 3];
+	memcpy(&nLook, &turretInfo.look, sizeof(uint32_t) * 3 * nTurrets);
+
+	glm::vec3 fPos[MAX_TURRET];
+	glm::vec3 fLook[MAX_TURRET];
+	for (int i = 0; i < nTurrets; ++i) {
+		fPos[i].x = *reinterpret_cast<float*>(&nPos[3 * i + 0]);
+		fPos[i].y = *reinterpret_cast<float*>(&nPos[3 * i + 1]);
+		fPos[i].z = *reinterpret_cast<float*>(&nPos[3 * i + 2]);
+		fLook[i].x = *reinterpret_cast<float*>(&fLook[3 * i + 0]);
+		fLook[i].y = *reinterpret_cast<float*>(&fLook[3 * i + 1]);
+		fLook[i].z = *reinterpret_cast<float*>(&fLook[3 * i + 2]);
+#ifdef DEBUG
+		printf("%d Position: %.1f, %.1f, %.1f / ", i, fPos[i].x, fPos[i].y, fPos[i].z);
+		printf("Look: %.1f, %.1f, %.1f\n", fLook[i].x, fLook[i].y, fLook[i].z);
+#endif
+	}
+
+	turrets.clear();
+	for (int i = 0; i < nTurrets; ++i) {
+		Create(fPos[i]);
+		turrets[i]->SetLook(fLook[i]);
 	}
 }
+
 GLvoid TurretManager::Draw() const
 {
 	for (const Turret* turret : turrets)

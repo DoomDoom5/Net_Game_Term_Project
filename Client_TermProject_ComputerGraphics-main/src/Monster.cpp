@@ -416,7 +416,7 @@ GLvoid MonsterManager::Update(SOCKET& sock)
 		fTarget[i].z = *reinterpret_cast<float*>(&nTarget[3 * i + 2]);
 
 #ifdef DEBUG
-		printf("%d Position: %.2f, %.2f, %.2f / ", i, fPos[i].x, fPos[i].y, fPos[i].z);
+		printf("%d Position: %.1f, %.1f, %.1f / ", i, fPos[i].x, fPos[i].y, fPos[i].z);
 		switch (types[i]) {
 		case MonsterType::Blooper:
 			printf("Type: Blooper / ");
@@ -431,7 +431,7 @@ GLvoid MonsterManager::Update(SOCKET& sock)
 			printf("Type: None / ");
 			break;
 		};
-		printf("Target: %.2f, %.2f, %.2f\n", i, fTarget[i].x, fTarget[i].y, fTarget[i].z);
+		printf("Target: %.1f, %.1f, %.1f\n", i, fTarget[i].x, fTarget[i].y, fTarget[i].z);
 #endif
 	}
 

@@ -426,7 +426,7 @@ GLvoid MonsterManager::Update()
 		nTarget[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&xyz[1]);
 		nTarget[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&xyz[2]);
 #ifdef DEBUG
-		printf("%d Position: (%.2f, %.2f, %.2f) / ", i, pos.x, pos.y, pos.z);
+		printf("%d Position: %.1f, %.1f, %.1f / ", i, pos.x, pos.y, pos.z);
 		switch (types[i]) {
 		case MonsterType::Blooper:
 			printf("Type: Blooper / ");
@@ -441,7 +441,7 @@ GLvoid MonsterManager::Update()
 			printf("Type: None / ");
 			break;
 		};
-		printf("Target: (%.2f, %.2f, %.2f)\n", xyz[0], xyz[1], xyz[2]);
+		printf("Target: %.1f, %.1f, %.1f\n", xyz[0], xyz[1], xyz[2]);
 #endif
 	}
 	memcpy(&monsterInfo.monsterPosBuf, &nPos, sizeof(uint32_t) * 3 * nMonsters);

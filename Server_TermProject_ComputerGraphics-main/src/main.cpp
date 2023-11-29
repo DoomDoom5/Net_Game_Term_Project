@@ -354,7 +354,8 @@ GLvoid Update()
 	monsterManager->SendBuf(client_sock);
 	buildingManager->Update();
 	buildingManager->SendBuf(client_sock);
-	//turretManager->Update();
+	turretManager->Update();
+	turretManager->SendBuf(client_sock);
 	waveManager->Update(client_sock);
 
 
