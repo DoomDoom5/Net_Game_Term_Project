@@ -94,13 +94,17 @@ public:
 	GLvoid Update(const glm::vec3* target) override;
 };
 
-
+struct MonsterInfo {
+	char monsterNumBuf[sizeof(int)];
+	char monsterPosBuf[sizeof(float) * 3 * 20];		// num은 10이 최대
+	char monsterTypeBuf[sizeof(MonsterType) * 20];
+	char monsterTargetBuf[sizeof(float) * 3 * 20];
+};
 
 class MonsterManager {
 private:
 	vector<Monster*> mMonsterList;
 	Player* mPlayer = nullptr;
-	float monsterlist_pos[30][3];
 
 	const glm::vec3* FindTargetPos(const glm::vec3& monsterPos, const GLfloat& radius) const;
 public:

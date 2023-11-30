@@ -31,6 +31,12 @@ public:
 	GLvoid SetHP(GLfloat newHp) { mHP = newHp; };
 };
 
+struct BuildingInfo {
+	char numBuf[sizeof(int)];
+	char posBuf[sizeof(float) * 3 * 20];
+	char typeBuf[sizeof(BuildingType) * 20];
+};
+
 class BuildingManager {
 private:
 	vector<Building*> buildings;

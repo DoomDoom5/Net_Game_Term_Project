@@ -43,7 +43,7 @@ public:
 	GLboolean CheckCollisionBullet(const BulletAtt& bullet, glm::vec3& hitPoint, glm::vec3& normal);
 	glm::vec3 GetPosition() const;
 	glm::vec3 GetCenter() const;
-
+	MonsterType GetType() const { return mType; }
 	GLvoid Damage(const GLfloat& damage);
 
 	GLvoid Attack(Player* player);
@@ -98,7 +98,7 @@ public:
 struct MonsterInfo {
 	char monsterNumBuf[sizeof(int)];
 	char monsterPosBuf[sizeof(float) * 3 * 20];		// num은 10이 최대
-	char monsterTypeBuf[sizeof(int) * 20];
+	char monsterTypeBuf[sizeof(MonsterType) * 20];
 	char monsterTargetBuf[sizeof(float) * 3 * 20];
 };
 
@@ -106,8 +106,9 @@ class MonsterManager {
 private:
 	vector<Monster*> mMonsterList;
 	Player* mPlayer = nullptr;
-	char buf[sizeof(MonsterInfo)];
 	const glm::vec3* FindTargetPos(const glm::vec3& monsterPos, const GLfloat& radius) const;
+
+	char m_cBuf[sizeof(MonsterInfo)];
 public:
 	MonsterManager();
 	~MonsterManager();
@@ -119,6 +120,5 @@ public:
 	GLvoid CheckCollision(Monster* monster);
 	bool CheckEnemyEmpty();
 
-
-	GLvoid MonsterSend(const SOCKET& client_sock);
+	GLvoid SendBuf(const SOCKET& sock) { send(sock, m_cBuf, sizeof(MonsterInfo), 0); }
 };

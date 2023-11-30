@@ -379,75 +379,66 @@ GLvoid MonsterManager::Create(const MonsterType& monsterType, const glm::vec3& p
 
 	mMonsterList.emplace_back(monster);
 }
-
-struct MonsterInfo {
-	char monsterNumBuf[sizeof(int)];
-	char monsterPosBuf[sizeof(float) * 3 * 20];		// num은 10이 최대
-	char monsterTypeBuf[sizeof(int) * 20];
-	char monsterTargetBuf[sizeof(float) * 3 * 20];
-};
-
+#define MAX_MONSTERS 100
 GLvoid MonsterManager::Update(SOCKET& sock)
 {
-	// system("cls");
-	// printf("\nmonster 업데이트 진입\n");
-
+#ifdef DEBUG
+	printf("Monster:\n");
+#endif
 	MonsterInfo monsterInfo{};
 	char buf[sizeof(MonsterInfo)];
-	char nMonsterBuf[sizeof(int)];
 	int retval = recv(sock, buf, sizeof(MonsterInfo), 0);
 	if (retval == SOCKET_ERROR) {
 		printf("SOCKET_ERROR\n");
 		return;
 	}
 	memcpy(&monsterInfo, &buf, sizeof(MonsterInfo));
-	int nMonsters;
+
+	int nMonsters = 0;
 	memcpy(&nMonsters, &monsterInfo.monsterNumBuf, sizeof(int));
-	nMonsters = ntohl(nMonsters);
-	//cout << nMonsters << "개의 데이터를 받을게요" << endl;
-
-	// 데이터 받기
-	uint32_t convertToFloat[1000];
-	memcpy(&convertToFloat, &monsterInfo.monsterPosBuf, sizeof(uint32_t) * 3 * nMonsters);
-	float fMonsterPos[1000]{ 0 };
-	for (int i = 0; i < nMonsters * 3; ++i) {
-		convertToFloat[i] = ntohl(convertToFloat[i]);
-		fMonsterPos[i] = *reinterpret_cast<float*>(&convertToFloat[i]);
-	}
-	// for (int i = 0; i < nMonsters; ++i) {
-	//		printf("%d Position: (%f, %f, %f)\n", i, fMonsterPos[i * 3 + 0],
-	//			fMonsterPos[i * 3 + 1], fMonsterPos[i * 3 + 2]);
-	// }
-
-	memset(convertToFloat, 0, sizeof(uint32_t));
-	memcpy(&convertToFloat, &monsterInfo.monsterTargetBuf, sizeof(uint32_t) * 3 * nMonsters);
-	float fMonsterTarget[1000]{ 0 };
-	for (int i = 0; i < nMonsters * 3; ++i) {
-		convertToFloat[i] = ntohl(convertToFloat[i]);
-		fMonsterTarget[i] = *reinterpret_cast<float*>(&convertToFloat[i]);
-	}
-	// for (int i = 0; i < nMonsters; ++i) {
-	// 	printf("%d Target: (%f, %f, %f)\n", i, fMonsterTarget[i * 3 + 0],
-	// 		fMonsterTarget[i * 3 + 1], fMonsterTarget[i * 3 + 2]);
-	// }
-
-	int cnt2 = 0;
-	for (auto it = mMonsterList.begin(); it != mMonsterList.end();)
-	{
-		Monster* monster = *it;
-		if (monster->IsDestroyed() == GL_TRUE)
-		{
-			it = mMonsterList.erase(it);
-		}
-		else
-		{
-			monster->SetPosition(fMonsterPos[3 * cnt2 + 0], fMonsterPos[3 * cnt2 + 1], fMonsterPos[3 * cnt2 + 2]);
-			const glm::vec3* target = new glm::vec3(fMonsterTarget[cnt2 * 3 + 0], fMonsterTarget[cnt2 * 3 + 1], fMonsterTarget[cnt2 * 3 + 2]);
-			monster->Look(target);
-			++it;
-			++cnt2;
-		}
 	
+	MonsterType types[MAX_MONSTERS];
+	memcpy(&types, &monsterInfo.monsterTypeBuf, sizeof(MonsterType) * nMonsters);
+
+	uint32_t nPos[MAX_MONSTERS * 3];
+	memcpy(&nPos, &monsterInfo.monsterPosBuf, sizeof(uint32_t) * 3 * nMonsters);
+	uint32_t nTarget[MAX_MONSTERS * 3];
+	memcpy(&nTarget, &monsterInfo.monsterTargetBuf, sizeof(uint32_t) * 3 * nMonsters);
+	
+	glm::vec3 fPos[MAX_MONSTERS];
+	glm::vec3 fTarget[MAX_MONSTERS];
+	for (int i = 0; i < nMonsters; ++i) {
+		fPos[i].x = *reinterpret_cast<float*>(&nPos[3 * i + 0]);
+		fPos[i].y = *reinterpret_cast<float*>(&nPos[3 * i + 1]);
+		fPos[i].z = *reinterpret_cast<float*>(&nPos[3 * i + 2]);
+		fTarget[i].x = *reinterpret_cast<float*>(&nTarget[3 * i + 0]);
+		fTarget[i].y = *reinterpret_cast<float*>(&nTarget[3 * i + 1]);
+		fTarget[i].z = *reinterpret_cast<float*>(&nTarget[3 * i + 2]);
+
+#ifdef DEBUG
+		printf("%d Position: %.1f, %.1f, %.1f / ", i, fPos[i].x, fPos[i].y, fPos[i].z);
+		switch (types[i]) {
+		case MonsterType::Blooper:
+			printf("Type: Blooper / ");
+			break;
+		case MonsterType::Egg:
+			printf("Type: Egg / ");
+			break;
+		case MonsterType::Koromon:
+			printf("Type: Koromon / ");
+			break;
+		case MonsterType::None:
+			printf("Type: None / ");
+			break;
+		};
+		printf("Target: %.1f, %.1f, %.1f\n", i, fTarget[i].x, fTarget[i].y, fTarget[i].z);
+#endif
+	}
+
+	mMonsterList.clear();
+	for (int i = 0; i < nMonsters; ++i) {
+		Create(types[i], fPos[i]);
+		mMonsterList[i]->Look(&fTarget[i]);
 	}
 }
 

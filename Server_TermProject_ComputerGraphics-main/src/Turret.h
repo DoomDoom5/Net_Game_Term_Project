@@ -1,8 +1,17 @@
 #pragma once
+#include <winsock2.h> // 윈속2 메인 헤더
+#include <ws2tcpip.h> // 윈속2 확장 헤더
 #include "stdafx.h"
 #include "Object.h"
 
-class SharedObject;
+//class SharedObject;
+
+#define MAX_TURRET 100
+struct TurretInfo {
+	char num[sizeof(int)];
+	char look[sizeof(uint32_t) * 3 * MAX_TURRET];
+	char pos[sizeof(uint32_t) * 3 * MAX_TURRET];
+};
 
 class TurretManager {
 private:
@@ -25,9 +34,11 @@ private:
 		GLvoid Update();
 		GLvoid Draw() const;
 		GLvoid Fire();
-		glm::vec3 GetBodyPosition() { return mObject_Body->GetPosition(); };
+		glm::vec3 GetPosition() { return mObject_Body->GetPosition(); }
+		glm::vec3 GetLook() { return mObject_Head->GetLook(); }
 	};
 
+	char m_cBuf[sizeof(TurretInfo)];
 	vector<Turret*> turrets;
 public:
 	TurretManager();
@@ -37,4 +48,5 @@ public:
 	GLvoid Draw() const;
 
 	GLvoid Create(const glm::vec3& position);
+	GLvoid SendBuf(const SOCKET& sock) { send(sock, m_cBuf, sizeof(TurretInfo), 0); }
 };

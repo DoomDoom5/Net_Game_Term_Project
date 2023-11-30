@@ -169,12 +169,13 @@ GLvoid Init()
 	waveManager->Start();
 	soundManager->PlayBGMSound(BGMSound::Normal, 0.2f, GL_TRUE);
 
-	//******************************//
+	//************ [Server]************
 	if (sock == NULL)Initsock(sock);
 
 
 	system("cls");
 }
+
 GLvoid InitMeshes()
 {
 	InitModels();

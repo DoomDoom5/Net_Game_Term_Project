@@ -33,6 +33,11 @@ GLvoid TurretManager::Turret::Draw() const
 	mObject_Head->Draw();
 }
 
+GLvoid TurretManager::Turret::SetLook(const glm::vec3& look)
+{
+	mObject_Head->SetLook(look);
+}
+
 GLvoid TurretManager::Turret::Update()
 {
 	mCrntFireDelay += timer::DeltaTime();
@@ -100,71 +105,51 @@ TurretManager::~TurretManager()
 	}
 }
 
-
-struct TurretInfo {
-	char TurretNumBuf[sizeof(int)];
-	char TurretPosBuf[sizeof(float) * 3 * 20];		// num은 10이 최대
-	char TurretTypeBuf[sizeof(int) * 20];
-	char TurretTargetBuf[sizeof(float) * 3 * 20];
-};
-
-
-GLvoid TurretManager::Update(SOCKET& sock)
+GLvoid TurretManager::Update(const SOCKET& sock)
 {
-	printf("\n Turret 업데이트 진입\n");
-
-	TurretInfo monsterInfo{};
+#ifdef DEBUG
+	printf("Turret: ");
+#endif
+	TurretInfo turretInfo{};
 	char buf[sizeof(TurretInfo)];
-	char nMonsterBuf[sizeof(int)];
 	int retval = recv(sock, buf, sizeof(TurretInfo), 0);
 	if (retval == SOCKET_ERROR) {
 		printf("SOCKET_ERROR\n");
 		return;
 	}
-	memcpy(&monsterInfo, &buf, sizeof(TurretInfo));
-	int nMonsters;
-	memcpy(&nMonsters, &monsterInfo.TurretNumBuf, sizeof(int));
-	nMonsters = ntohl(nMonsters);
-	cout << nMonsters << "개의 데이터를 받을게요" << endl;
+	memcpy(&turretInfo, &buf, sizeof(TurretInfo));
 
-	// 데이터 받기
-	uint32_t convertToFloat[1000];
-	memcpy(&convertToFloat, &monsterInfo.TurretPosBuf, sizeof(uint32_t) * 3 * nMonsters);
-	float fMonsterPos[1000]{ 0 };
-	for (int i = 0; i < nMonsters * 3; ++i) {
-		convertToFloat[i] = ntohl(convertToFloat[i]);
-		fMonsterPos[i] = *reinterpret_cast<float*>(&convertToFloat[i]);
+	int nTurrets = 0;
+	memcpy(&nTurrets, &turretInfo.num, sizeof(int));
+	printf("%d\n", nTurrets);
+
+	uint32_t nPos[MAX_TURRET * 3];
+	memcpy(&nPos, &turretInfo.pos, sizeof(uint32_t) * 3 * nTurrets);
+	uint32_t nLook[MAX_TURRET * 3];
+	memcpy(&nLook, &turretInfo.look, sizeof(uint32_t) * 3 * nTurrets);
+
+	glm::vec3 fPos[MAX_TURRET];
+	glm::vec3 fLook[MAX_TURRET];
+	for (int i = 0; i < nTurrets; ++i) {
+		fPos[i].x = *reinterpret_cast<float*>(&nPos[3 * i + 0]);
+		fPos[i].y = *reinterpret_cast<float*>(&nPos[3 * i + 1]);
+		fPos[i].z = *reinterpret_cast<float*>(&nPos[3 * i + 2]);
+		fLook[i].x = *reinterpret_cast<float*>(&fLook[3 * i + 0]);
+		fLook[i].y = *reinterpret_cast<float*>(&fLook[3 * i + 1]);
+		fLook[i].z = *reinterpret_cast<float*>(&fLook[3 * i + 2]);
+#ifdef DEBUG
+		printf("%d Position: %.1f, %.1f, %.1f / ", i, fPos[i].x, fPos[i].y, fPos[i].z);
+		printf("Look: %.1f, %.1f, %.1f\n", fLook[i].x, fLook[i].y, fLook[i].z);
+#endif
 	}
-	for (int i = 0; i < nMonsters; ++i) {
-		printf("%d Position: (%f, %f, %f)\n", i, fMonsterPos[i * 3 + 0],
-			fMonsterPos[i * 3 + 1], fMonsterPos[i * 3 + 2]);
-	}
 
-	memset(convertToFloat, 0, sizeof(uint32_t));
-	memcpy(&convertToFloat, &monsterInfo.TurretTargetBuf, sizeof(uint32_t) * 3 * nMonsters);
-	float fMonsterTarget[1000]{ 0 };
-	for (int i = 0; i < nMonsters * 3; ++i) {
-		convertToFloat[i] = ntohl(convertToFloat[i]);
-		fMonsterTarget[i] = *reinterpret_cast<float*>(&convertToFloat[i]);
-	}
-
-
-	int cnt2 = 0;
-	for (auto it = turrets.begin(); it != turrets.end();)
-	{
-		Turret* monster = *it;
-		
-		{
-			monster->SetPosition(fMonsterPos[3 * cnt2 + 0], fMonsterPos[3 * cnt2 + 1], fMonsterPos[3 * cnt2 + 2]);
-		
-			//monster->Update(target);
-			//MonsterManager::CheckCollision(monster);
-			++it;
-			++cnt2;
-		}
-
+	turrets.clear();
+	for (int i = 0; i < nTurrets; ++i) {
+		Create(fPos[i]);
+		turrets[i]->SetLook(fLook[i]);
 	}
 }
+
 GLvoid TurretManager::Draw() const
 {
 	for (const Turret* turret : turrets)
