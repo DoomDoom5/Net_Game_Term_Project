@@ -382,6 +382,9 @@ GLvoid MonsterManager::Update()
 	printf("Monster:\n");
 #endif
 	MonsterInfo monsterInfo{};
+
+	GLboolean playerCollision = GL_FALSE;
+	GLboolean buildingCollision = GL_FALSE;
 	for (auto it = mMonsterList.begin(); it != mMonsterList.end();)
 	{
 		Monster* monster = *it;
@@ -391,7 +394,8 @@ GLvoid MonsterManager::Update()
 		}
 		else
 		{
-			MonsterManager::CheckCollision(monster);
+			playerCollision = MonsterManager::CheckPlayerCollision(monster);
+			buildingCollision = MonsterManager::CheckBuildingCollision(monster);
 			++it;
 		}
 	}
@@ -487,7 +491,7 @@ GLboolean MonsterManager::GetShortestMonsterPos(const glm::vec3& srcPos, const G
 	return GL_TRUE;
 }
 
-GLvoid MonsterManager::CheckCollision(Monster* monster)
+GLboolean MonsterManager::CheckPlayerCollision(Monster* monster)
 {
 	if (monster->CanAttack() == GL_FALSE)
 	{
@@ -502,8 +506,19 @@ GLvoid MonsterManager::CheckCollision(Monster* monster)
 	if (::CheckCollision(playerCenter, monsterCenter, playerRadius, monsterRadius) == GL_TRUE)
 	{
 		monster->Attack(mPlayer);
-		return;
+		return GL_TRUE;
 	}
+}
+
+GLboolean MonsterManager::CheckBuildingCollision(Monster* monster)
+{
+	if (monster->CanAttack() == GL_FALSE)
+	{
+		return GL_FALSE;
+	}
+
+	glm::vec2 monsterCenter = ConvertVec2(monster->GetPosition());
+	GLfloat monsterRadius = monster->GetRadius();
 
 	Building* core = buildingManager->GetCore();
 	if (core != nullptr)
@@ -512,11 +527,10 @@ GLvoid MonsterManager::CheckCollision(Monster* monster)
 		{
 			monster->Attack(core);
 			monster->Destroy();
-			return;
+			return GL_TRUE;
 		}
 	}
 }
-
 
 bool MonsterManager::CheckEnemyEmpty()
 {
