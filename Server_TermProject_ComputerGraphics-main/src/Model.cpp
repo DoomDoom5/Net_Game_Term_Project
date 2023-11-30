@@ -361,14 +361,13 @@ GLvoid ImportTextureData(mutex& m, unordered_set<GLuint>& emptyCore, const GLuin
 
 	if (stbi_failure_reason())
 	{
-		cout << "[ stbi_failure ] : " << stbi_failure_reason() << endl;
-		cout << "[ path ] : " << path << endl;
+
 		assert(0);
 	}
 
 	if (!data)
 	{
-		cout << "Failed to load texture : " << path << endl;
+		
 		assert(0);
 	}
 
@@ -424,7 +423,6 @@ GLvoid InitModels()
 	GLubyte* textureDataList[NUM_TEXTURE];
 	ImageData imageDataList[NUM_TEXTURE];
 
-	cout << "load textures..." << endl;
 	for (GLsizei i = 0; i < NUM_TEXTURE; ++i)
 	{
 		// find empty core id
@@ -487,8 +485,7 @@ GLvoid InitModels()
 	}
 
 	auto duration = chrono::high_resolution_clock::now() - start;
-	cout << "Model loading time : " << chrono::duration_cast<chrono::milliseconds>(duration).count() << "ms" << endl;
-
+	
 	system("cls");
 }
 

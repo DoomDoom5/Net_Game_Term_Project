@@ -69,13 +69,10 @@ UIManager* uiManager = nullptr;
 // objects
 Map* crntMap = nullptr;
 
-struct USER
-{
-	int id = 0;
-	Player* player = nullptr;
-};
-USER user[3];
-int users = 1;
+GLvoid UpdateplayersPos(SOCKET& sock);
+Player* player[3] = { nullptr ,nullptr, nullptr};
+int users = 0;
+int myid = 0;
 
 // modes
 GLboolean isPersp = GL_TRUE;
@@ -136,10 +133,9 @@ GLint main(GLint argc, GLchar** argv)
 // sock
 SOCKET sock = NULL;
 
-GLvoid playersUpdate(SOCKET& sock);
-
 ///// INIT /////
 MyColor backColor;
+
 GLvoid Init()
 {
 	glewInit();
@@ -231,14 +227,15 @@ GLvoid InitMeshes()
 	light = new Light();
 	light->SetPosition({ 0, 400, 0 });
 
-	crntMap = new Map();
-	user[0].player = new Player({0,0,0}, &cameraMode);
-	uiManager->SetPlayer(user[0].player);
-	monsterManager->SetPlayer(user[0].player);
-	waveManager->SetPlayer(user[0].player);
+	for (int i = 0; i < 1; ++i)	player[i] = new Player({ 0,0,0 }, &cameraMode);
 
-	user[1].player = new Player({ 0,0,0 }, &cameraMode);
-	user[2].player = new Player({ 0,0,0 }, &cameraMode);
+	crntMap = new Map();
+	uiManager->SetPlayer(player[myid]);
+	monsterManager->SetPlayer(player[myid]);
+	waveManager->SetPlayer(player[myid]);
+
+
+	
 }
 GLvoid Reset()
 {
@@ -268,10 +265,10 @@ GLvoid Reset()
 		delete crntMap;
 		crntMap = nullptr;
 	}
-	if (user[0].player != nullptr)
+	if (player[myid] != nullptr)
 	{
-		delete user[0].player;
-		user[0].player = nullptr;
+		delete player[myid];
+		player[myid] = nullptr;
 	}
 	cameraMode = CameraMode::Free;
 
@@ -343,7 +340,7 @@ GLvoid DrawScene()
 	buildingManager->Draw();
 
 	for (int i = 0; i < users; ++i)
-		if (user[i].player != nullptr) user[i].player->Draw(cameraMode);
+		if (player[i] != nullptr) player[i]->Draw(cameraMode);
 
 	glCullFace(GL_FRONT);
 	cubeMap->Draw();
@@ -402,17 +399,14 @@ GLvoid Update()
 	timer::CalculateFPS();
 	timer::Update();
 
-	//UpdateplayersPos(sock);
+	if (player[myid] != nullptr) UpdateplayersPos(sock);
+	if (player[myid] != nullptr ) player[myid]->Update();
+	if (player[myid] != nullptr) player[myid]->PlayerSend(sock);
 
-
-	if (user[0].player != nullptr ) user[0].player->Update();
-
-	if (user[0].player != nullptr) user[0].player->PlayerSend(sock);
 	//bulletManager->Update(sock);
-	monsterManager->Update(sock);
+	//monsterManager->Update(sock);
 	//turretManager->Update(sock);
 	//waveManager->Update(sock);
-	if (user[0].player != nullptr) user[0].player->PlayerRecv(sock);
 	
 	constexpr GLfloat cameraMovement = 100.0f;
 	GLfloat cameraSpeed = cameraMovement;
@@ -502,9 +496,9 @@ GLvoid Mouse(GLint button, GLint state, GLint x, GLint y)
 		break;
 	}
 
-	if (user[0].player != nullptr)
+	if (player[myid] != nullptr)
 	{
-		user[0].player->ProcessMouse(button, state, x, y);
+		player[myid]->ProcessMouse(button, state, x, y);
 	}
 }
 GLvoid MouseMotion(GLint x, GLint y)
@@ -541,9 +535,9 @@ GLvoid MousePassiveMotion(GLint x, GLint y)
 			light->RotateLocal(dy, dx, 0.0f);
 		}
 	}
-	else if(user[0].player != nullptr)
+	else if(player[myid] != nullptr)
 	{
-		user[0].player->Rotate(dy, dx, 0.0f);
+		player[myid]->Rotate(dy, dx, 0.0f);
 	}
 
 	SetCursorPos(mouseCenter.x, mouseCenter.y);
@@ -615,9 +609,9 @@ GLvoid ProcessKeyDown(unsigned char key, GLint x, GLint y)
 
 	}
 
-	if (user[0].player != nullptr)
+	if (player[myid] != nullptr)
 	{
-		user[0].player->ProcessKeyDown(key);
+		player[myid]->ProcessKeyDown(key);
 	}
 }
 GLvoid ProcessKeyUp(unsigned char key, GLint x, GLint y)
@@ -632,9 +626,9 @@ GLvoid ProcessKeyUp(unsigned char key, GLint x, GLint y)
 		key = CtrlMap[key];
 	}
 
-	if (user[0].player != nullptr)
+	if (player[myid] != nullptr)
 	{
-		user[0].player->ProcessKeyUp(key);
+		player[myid]->ProcessKeyUp(key);
 	}
 }
 GLvoid ProcessSpecialKeyDown(GLint key, GLint x, GLint y)
@@ -642,14 +636,14 @@ GLvoid ProcessSpecialKeyDown(GLint key, GLint x, GLint y)
 	if (IsGameOver() == GL_TRUE)
 		return;
 
-	if (user[0].player != nullptr)
+	if (player[myid] != nullptr)
 	{
 		if (key == GLUT_KEY_LEFT)
 		{
 			return;
 		}
 
-		user[0].player->ProcessKeyDown(key);
+		player[myid]->ProcessKeyDown(key);
 	}
 }
 GLvoid ProcessSpecialKeyUp(GLint key, GLint x, GLint y)
@@ -659,13 +653,13 @@ GLvoid ProcessSpecialKeyUp(GLint key, GLint x, GLint y)
 		return;
 	}
 
-	if (user[0].player != nullptr)
+	if (player[myid] != nullptr)
 	{
 		if (key == GLUT_KEY_LEFT)
 		{
 			return;
 		}
-		user[0].player->ProcessKeyUp(key);
+		player[myid]->ProcessKeyUp(key);
 	}
 }
 
@@ -682,15 +676,15 @@ GLvoid SetCameraMode(const CameraMode& mode)
 		cameraMain = cameraFree;
 		break;
 	case CameraMode::FirstPerson:
-		if (user[0].player != nullptr)
+		if (player[myid] != nullptr)
 		{
-			cameraMain = user[0].player->GetFirstPersonCamera();
+			cameraMain = player[myid]->GetFirstPersonCamera();
 		}
 		break;
 	case CameraMode::ThirdPerson:
-		if (user[0].player != nullptr)
+		if (player[myid] != nullptr)
 		{
-			cameraMain = user[0].player->GetThirdPersonCamera();
+			cameraMain = player[myid]->GetThirdPersonCamera();
 		}
 		break;
 	case CameraMode::Light:
@@ -703,7 +697,7 @@ GLvoid SetCameraMode(const CameraMode& mode)
 	cameraMode = mode;
 }
 
-struct checkPlayer
+struct PlayersInfo
 {
 	int id = 0;
 	int x, y, z = 0;
@@ -712,16 +706,23 @@ struct checkPlayer
 GLvoid UpdateplayersPos(SOCKET& sock)
 {
 	int retval = 0;
-	char buf[sizeof(checkPlayer) * 3];
-	recv(sock, buf, sizeof(checkPlayer) * 3, 0);
+	char buf[BUFSIZE];
+	recv(sock, buf, BUFSIZE, 0);
 
+	std::istringstream iss(buf);
+	iss >> users;
+
+	int id = 0;
+	int x = 0, y = 0, z = 0;
 	for (size_t i = 0; i < users; i++)
 	{
-		int id = 0;
-		int x, y, z = 0;
-		std::istringstream iss(buf);
+		cout << "변환 전 id : " << id << ", x : " << x << ", y : " << y << ", z : " << z << endl;
+		if (player[i] == nullptr) return;
 		iss >> id >> x >> y >> z;
-		glm::vec3 newPos(x, y, z);
+		if (id == myid) continue;
 
+		glm::vec3 newPos(x, y, z);
+		player[i]->SetPosition(newPos);
+		cout << "변환 후 id : " << id << ", x : " << x << ", y : " << y << ", z : " << z << endl;
 	}
 }

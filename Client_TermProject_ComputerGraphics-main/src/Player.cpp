@@ -620,11 +620,11 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	// ===================클라이언트 정보 수신===============
 	// glm::vec3를 문자열로 변환
 	string vec3AsString =
-		to_string((int)mPosition.x) + " " +
-		to_string((int)mPosition.y) + " " +
-		to_string((int)mPosition.z) + " " +
-		to_string(mlsFire) + " " +
-		to_string(mIsInstall) + " ";
+		to_string((int)mPosition.x) + ' ' +
+		to_string((int)mPosition.y) + ' ' +
+		to_string((int)mPosition.z) + ' ' +
+		to_string(mlsFire) + ' ' +
+		to_string(mIsInstall);
 
 	// 문자열을 C 스타일의 문자열로 변환
 	const char* buf = vec3AsString.c_str();

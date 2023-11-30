@@ -1358,24 +1358,6 @@ GLboolean PaintPlane::Update()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // identity simple objects
 static const LineObject* lineObject = nullptr;
 

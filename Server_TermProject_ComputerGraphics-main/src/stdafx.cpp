@@ -5,13 +5,7 @@ extern GLint screenPosY;
 extern GLsizei screenWidth;
 extern GLsizei screenHeight;
 
-GLvoid Reshape(GLint w, GLint h)
-{
-	glViewport(0, 0, w, h);
-	screenWidth = w;
-	screenHeight = h;
-	
-}
+
 GLvoid RePosition(GLint x, GLint y)
 {
 	screenPosX = x;

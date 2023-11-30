@@ -28,17 +28,11 @@ GLvoid Update();
 
 GLvoid ToggleDepthTest();
 
-// network
-GLvoid init_Listen_Sock(SOCKET& listen_sock);
-GLvoid init_Client_Sock(SOCKET& client_sock, sockaddr_in& clientaddr, int addrlen);
-
-
 // values
 GLint screenPosX = DEFAULT_SCREEN_POS_X;
 GLint screenPosY = DEFAULT_SCREEN_POS_Y;
 GLint screenWidth = DEFAULT_SCREEN_WIDTH;
 GLint screenHeight = DEFAULT_SCREEN_HEIGHT;
-
 // world
 glm::vec3 worldPosition(0.0f, 0.0f, 0.0f);
 glm::vec3 worldRotation(0.0f, 0.0f, 0.0f);
@@ -54,6 +48,7 @@ WaveManager* waveManager = nullptr;
 Map* crntMap = nullptr;
 Player* player[3] = { nullptr ,};
 
+///// [Thread] /////
 // 소켓 통신 스레드 함수
 DWORD WINAPI SleepCls(LPVOID arg);
 DWORD WINAPI ServerMain(LPVOID arg);
@@ -61,14 +56,12 @@ DWORD WINAPI ProcessClient(LPVOID arg);
 vector <string> Current(MAXUSER);
 vector <bool> ClientOn(MAXUSER);
 
-int users = 0;
-
-///// [Thread] /////
 struct  USER
 {
     SOCKET client_sock = NULL;
     int id;
 };
+int users = 0;
 
 
 
@@ -81,7 +74,6 @@ GLint main(GLint argc, GLchar** argv)
 	glutInitWindowPosition(DEFAULT_SCREEN_POS_X, DEFAULT_SCREEN_POS_Y);
 	glutInitWindowSize(DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
 	glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
-	glShadeModel(GL_SMOOTH);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glutCreateWindow("TestProject");
 	glewExperimental = GL_TRUE;
@@ -90,8 +82,6 @@ GLint main(GLint argc, GLchar** argv)
 
 	glutIdleFunc(Update);
 	glutDisplayFunc(DrawScene);
-	glutReshapeFunc(Reshape);
-
     timer::StartUpdate();
 
 	glutMainLoop();
@@ -128,10 +118,7 @@ GLvoid InitMeshes()
     turretManager->Create(glm::vec3(100,0,450));
 
 	crntMap = new Map();
-    for (size_t i = 0; i < 3; i++)
-    {
 
-    }
 }
 GLvoid Reset()
 {
@@ -159,37 +146,19 @@ GLvoid Reset()
         delete crntMap;
         crntMap = nullptr;
     }
-    if (player[0] != nullptr)
+    for (int i = 0; i < users; ++i)
     {
-        delete player[0];
-        player[0] = nullptr;
+        if (player[i] != nullptr)
+        {
+            delete player[i];
+            player[i] = nullptr;
+        }
     }
-
     Init();
 }
 
 
 ///// Draw /////
-GLvoid SetWindow(GLint index)
-{
-    const GLint halfWidth = screenWidth / 2;
-    const GLint halfHeight = screenHeight / 2;
-    switch (index)
-    {
-    case 0:
-        crntCamera = cameraMain;
-        glViewport(0, 0, screenWidth, screenHeight);
-        SetDepthTest(GL_TRUE);
-        return;
-    case 1:
-        crntCamera = cameraTop;
-        glViewport(halfWidth + halfWidth / 2, halfHeight, halfWidth / 2, halfHeight);
-        SetDepthTest(GL_FALSE);
-        return;
-    default:
-        assert(0);
-    }
-}
 GLvoid DrawScene()
 {
     glutSwapBuffers();
@@ -198,7 +167,6 @@ GLvoid DrawScene()
 ///// [ HANDLE EVENTS ] /////
 GLvoid Update()
 {
-    system("cls");
 
 	if (IsGameOver() == GL_TRUE)
 	{
@@ -210,15 +178,15 @@ GLvoid Update()
     timer::CalculateFPS();
     timer::Update();
 
-	//bulletManager->Update(client_sock);
+	//bulletManager->Update();
 	monsterManager->Update();
     for (size_t i = 0; i < users; i++)
     {
         if (player[i] != nullptr) player[i]->Update();
     }
-	//buildingManager->Update(client_sock);
-	//turretManager->Update(client_sock);
-	//waveManager->Update(client_sock);
+	//buildingManager->Update();
+	//turretManager->Update();
+	//waveManager->Update();
 
     glutPostRedisplay();
 
@@ -257,8 +225,6 @@ DWORD WINAPI ServerMain(LPVOID arg)
     struct sockaddr_in clientaddr;
     int addrlen;
     HANDLE hThread;
-    int user = 0;
-
 
 
     // 화면 초기화 쓰레드
@@ -266,8 +232,6 @@ DWORD WINAPI ServerMain(LPVOID arg)
         NULL, 0, NULL);
 
     while (1) {
-        system("cls");
-        printf("서버 접속자 수 %d / %d", users, MAXUSER);
         // accept()
         addrlen = sizeof(clientaddr);
         client_sock = accept(listen_sock, (struct sockaddr*)&clientaddr, &addrlen);
@@ -286,10 +250,10 @@ DWORD WINAPI ServerMain(LPVOID arg)
         client.client_sock = client_sock;
 
 
-        if (!ClientOn[user])// 자리가 남았을때
+        if (!ClientOn[users])// 자리가 남았을때
         {
-            ClientOn[user] = true;
-            client.id = user++;
+            ClientOn[users] = true;
+            client.id = users++;
         }
 
 
@@ -299,7 +263,6 @@ DWORD WINAPI ServerMain(LPVOID arg)
         if (hThread == NULL) { closesocket(client_sock); }
         else { CloseHandle(hThread); }
 
-        Sleep(1000 / 60);
     }
 
     // 소켓 닫기
@@ -317,15 +280,10 @@ DWORD WINAPI SleepCls(LPVOID arg)
     {
         Sleep(2000);
         system("cls");
+
+        printf("서버 접속자 수 %d / %d", users, MAXUSER);
     }
 }
-
-
-struct PlayersInfo
-{
-    int id;
-    glm::vec3 pos;
-};
 
 // 클라이언트와 데이터 통신
 DWORD WINAPI ProcessClient(LPVOID arg)
@@ -347,14 +305,26 @@ DWORD WINAPI ProcessClient(LPVOID arg)
     player[id] = new Player({ 0,0,0 });
     monsterManager->SetPlayer(player[id]);
     waveManager->SetPlayer(player[id]);
-    
+    string playerInfo;
+    int tempPos = 0;
+ 
 
-  //  if (player_sock != NULL) player[id]->InitPlayer(player_sock,id);
     while (1)
     {
+      //  player[id]->PlayerRecv(player_sock);
+     //   monsterManager->MonsterSend(player_sock);
+
+        string playerInfo = to_string(users) + ' ';
+        for (size_t i = 0; i < users; i++)
+        {
+            playerInfo += to_string(i) + ' ' +
+                to_string((int)player[i]->GetPosition().x + tempPos) + ' ' +
+                to_string((int)player[i]->GetPosition().y) + ' ' +
+                to_string((int)player[i]->GetPosition().z);
+        }
+        send(player_sock, playerInfo.c_str(), playerInfo.size(), 0);
+
         player[id]->PlayerRecv(player_sock);
-        monsterManager->MonsterSend(player_sock);
-        player[id]->PlayerSend(player_sock);
         Sleep(1000/60);
     }
     /*
