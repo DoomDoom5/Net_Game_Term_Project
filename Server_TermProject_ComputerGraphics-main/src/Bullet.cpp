@@ -268,6 +268,50 @@ GLvoid BulletManager::Update()
 		}
 	}
 
+	char numbuf[5]; // 총알 99999 를 max로
+
+	int num = 0;
+	if (!mBulletList.empty())
+		num = mBulletList.size();
+	else num = 0;
+
+	//snprintf(numbuf, sizeof(numbuf), "%d", num);
+	//send(sock, numbuf, (int)strlen(numbuf), 0);
+
+	std::ostringstream oss;
+	/*
+	for (int i = 0; i < num; ++i) {
+		Bullet* bullet = mBulletList[i];
+		oss << std::fixed << std::setprecision(2)
+			<< bullet->GetPosition().x << " "
+			<< bullet->GetPosition().y << " "
+			<< bullet->GetPosition().z << " ";
+		std::cout << i << ": (" << bullet->GetPosition().x << ", "
+			<< bullet->GetPosition().y << ", "
+			<< bullet->GetPosition().z << ")\n";
+	}
+	*/
+	num = 10;
+	float c = 0;
+	for (int i = 0; i < num; ++i) {
+		c++;
+		oss << std::fixed << std::setprecision(2)
+			<< c << " "
+			<< c << " "
+			<< c << " ";
+		std::cout << i << ": (" << c << ", "
+			<< c << ", "
+			<< c << ")\n";
+	}
+
+
+
+	std::string buf = oss.str();
+	const char* sendbuf = buf.c_str();
+
+	std::cout << buf; // 버퍼에 저장된 문자열 출력
+	send(sock, sendbuf, (int)strlen(sendbuf), 0);
+
 }
 //GLvoid ProcessCollision(Bullet* bullet, IBulletCollisionable* object, vector<PaintPlane*>& paints)
 //{
