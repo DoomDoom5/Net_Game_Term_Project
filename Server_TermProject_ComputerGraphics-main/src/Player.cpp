@@ -396,9 +396,17 @@ GLvoid Player::Update(SOCKET& client_sock)
 	int retval = 0;
 	retval = recv(client_sock, buffer, 100, 0);
 
+	cout << buffer << endl;
+
 	std::istringstream iss(buffer);
-	iss >> mPosition.x >> mPosition.y >> mPosition.z >> mlsFire >>mIsInstall;
+	iss >> mPosition.x >> mPosition.y >> mPosition.z >> mlsFire >> mIsInstall;
 	if (mIsInstall) Install_Turret();
+
+	string vec3AsString = to_string(mHP);
+	cout << mHP << endl;
+	const char* buf = vec3AsString.c_str();
+	retval = send(client_sock, buf, (int)strlen(buf), 0);
+
 	// ============================
 
 	mCrntState->Update();
