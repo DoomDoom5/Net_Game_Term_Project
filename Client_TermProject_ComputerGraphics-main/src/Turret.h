@@ -30,7 +30,6 @@ private:
 		Turret(const glm::vec3& position);
 		~Turret();
 		GLvoid SetLook(const glm::vec3& look);
-		GLvoid Update();
 		GLvoid Draw() const;
 		GLvoid Fire();
 		GLvoid SetPosition(float x, float y, float z) { mObject_Body->SetPosition(glm::vec3(x,y,z)); };

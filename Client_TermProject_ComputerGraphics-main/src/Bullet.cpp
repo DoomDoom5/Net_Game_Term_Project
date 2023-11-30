@@ -153,54 +153,8 @@ GLvoid BulletManager::Draw() const
 	}
 }
 
-
-GLboolean ProcessCollision(Bullet* bullet, IBulletCollisionable* object, vector<PaintPlane*>& paints, GLfloat& crntInkSoundDelay)
+GLvoid BulletManager::Update(SOCKET& sock)
 {
-	constexpr GLfloat inkSoundDelay = 0.5f;
-	constexpr GLfloat NO_NORMAL = 9;
-
-	glm::vec3 hitPoint;
-	glm::vec3 normal = { NO_NORMAL, NO_NORMAL, NO_NORMAL };
-
-	if (object->CheckCollisionBullet(bullet->GetAttribute(), hitPoint, normal) == GL_TRUE)
-	{
-		/* create paint */
-		if (normal.x != NO_NORMAL)
-		{
-			GLuint randPaint = rand() % NUM_PAINT;
-			Textures texture = static_cast<Textures>(static_cast<GLuint>(Textures::Paint) + randPaint);
-			const IdentityObject* object = GetIdentityTextureObject(texture);
-
-			if (bullet->GetType() != BulletType::Rocket)
-			{
-				if (crntInkSoundDelay >= inkSoundDelay)
-				{
-					crntInkSoundDelay = 0;
-					soundManager->PlayEffectSound(EffectSound::Drawing_ink, hitPoint, 0.2f);
-				}
-			}
-			else
-			{
-				soundManager->PlayEffectSound(EffectSound::Drawing_Bigink, hitPoint, 0.2f);
-			}
-			PaintPlane* plane = new PaintPlane(object, bullet->GetColor(), hitPoint, normal);
-			plane->SetScale(BULLET_RADIUS * bullet->GetScale());
-			paints.emplace_back(plane);
-		}
-
-		if (bullet->GetType() == BulletType::Rocket)
-		{
-			bulletManager->CreateExplosion(RED, bullet->GetCenterPos(), bullet->GetRadius());
-		}
-
-		bullet->Destroy();
-		return GL_TRUE;
-	}
-
-	return GL_FALSE;
-}
-
-GLvoid BulletManager::Update(SOCKET& sock){
 	int retval = 0;
 	const char* numbuf;
 	int num;
@@ -238,70 +192,6 @@ GLvoid BulletManager::Update(SOCKET& sock){
 		std::cout << "No bullets found." << std::endl;
 	}
 	/////////////////////////////////////////////////////////////////
-	
-	mCrntInkSoundDelay += timer::DeltaTime();
-
-	int cnt2 = 0;
-	for (auto iter = mBulletList.begin(); iter != mBulletList.end();)
-	{
-		Bullet* bullet = (*iter);
-
-		if (bullet->IsDestroyed())
-		{
-			iter = mBulletList.erase(iter);
-		}
-		else
-		{
-			glm::vec3 v = glm::vec3(bulletinfo[cnt2].x, bulletinfo[cnt2].y, bulletinfo[cnt2].z);
-			bullet->SetPosition(v);
-			std::cout << "Bullet " << cnt2 << " Position: "
-				<< bulletinfo[cnt2].x << ", " << bulletinfo[cnt2].y << ", " << bulletinfo[cnt2].z << std::endl;
-			//bullet->Update();
-			++iter;
-			++cnt2;
-			if (bulletCount <= cnt2) bullet->Destroy();
-		}
-	}
-
-	/*
-	for (auto iter = mParticles.begin(); iter != mParticles.end();)
-	{
-		Bullet* bullet = (*iter);
-
-		for (IBulletCollisionable* object : mParticleCollisions)
-		{
-			if (ProcessCollision(bullet, object, mPaints, mCrntInkSoundDelay) == GL_TRUE)
-			{
-				break;
-			}
-		}
-
-		if (bullet->IsDestroyed())
-		{
-			iter = mParticles.erase(iter);
-		}
-		else
-		{
-			bullet->Update();
-			++iter;
-		}
-	}
-
-	for (auto iter = mPaints.begin(); iter != mPaints.end();)
-	{
-		PaintPlane* paint = *iter;
-		if (paint->Update() == GL_FALSE)
-		{
-			delete paint;
-			iter = mPaints.erase(iter);
-		}
-		else
-		{
-			++iter;
-		}
-	}
-	*/
-
 }
 
 /*

@@ -38,31 +38,6 @@ GLvoid TurretManager::Turret::SetLook(const glm::vec3& look)
 	mObject_Head->SetLook(look);
 }
 
-GLvoid TurretManager::Turret::Update()
-{
-	mCrntFireDelay += timer::DeltaTime();
-
-	glm::vec3 targetPos;
-	if (monsterManager->GetShortestMonsterPos(mObject_Head->GetPosition(), mRadius, targetPos) == GL_TRUE)
-	{
-		if (!mTargetOn)
-		{
-			mTargetOn = true;
-			soundManager->PlayEffectSound(EffectSound::Turret_FindEnemy, mObject_Head->GetPosition(), 0.1f);
-		}
-		mObject_Head->Look(targetPos);
-
-		if (mCrntFireDelay >= mFireDelay)
-		{
-			Fire();
-		}
-	}
-	else
-	{
-		mTargetOn = false;
-		mObject_Head->SetLook(Vector3::Back());
-	}
-}
 GLvoid TurretManager::Turret::Fire()
 {
 	mCrntFireDelay = 0;

@@ -307,46 +307,6 @@ GLvoid Koromon::Update(const glm::vec3* target)
 	mObject->MoveY(mSpeed * mAngleY - (0.5f * GRAVITY * t * t * weight));
 }
 
-
-
-
-const glm::vec3* MonsterManager::FindTargetPos(const glm::vec3& monsterPos, const GLfloat& radius) const
-{
-	const glm::vec3* target = nullptr;
-	const glm::vec3* corePos = buildingManager->GetCorePos();
-
-	glm::vec2 playerCenter = ConvertVec2(mPlayer->GetPosition());
-	glm::vec2 monsterCenter = { monsterPos.x, monsterPos.z };
-	GLfloat distanceToPlayer = glm::length(playerCenter - monsterCenter);
-
-	GLfloat distanceToCore = FLOAT_MAX;
-	if (corePos != nullptr)
-	{
-		glm::vec2 coreCenter = ConvertVec2(*corePos);
-		distanceToCore = glm::length(coreCenter - monsterCenter);
-
-	}
-
-	if (distanceToPlayer < radius)
-	{
-		if (distanceToPlayer < distanceToCore)
-		{
-			target = mPlayer->GetRefPos();
-		}
-		else
-		{
-			target = buildingManager->GetCorePos();
-		}
-	}
-	else
-	{
-		target = buildingManager->GetCorePos();
-	}
-
-	return target;
-}
-
-
 MonsterManager::MonsterManager()
 {
 	mMonsterList.reserve(100);
@@ -454,60 +414,6 @@ GLvoid MonsterManager::SetPlayer(Player* player)
 {
 	mPlayer = player;
 }
-
-GLboolean MonsterManager::GetShortestMonsterPos(const glm::vec3& srcPos, const GLfloat& radius, glm::vec3& targetPos) const
-{
-	GLfloat min = radius;
-
-	for (const Monster* monster : mMonsterList)
-	{
-		glm::vec3 monsterPos = monster->GetPosition();
-		GLfloat length = glm::length(monsterPos - srcPos);
-		if (length < min)
-		{
-			min = length;
-			targetPos = monster->GetCenter();
-		}
-	}
-
-	if (min >= radius)
-	{
-		return GL_FALSE;
-	}
-
-	return GL_TRUE;
-}
-
-GLvoid MonsterManager::CheckCollision(Monster* monster)
-{
-	if (monster->CanAttack() == GL_FALSE)
-	{
-		return;
-	}
-
-	glm::vec2 playerCenter = ConvertVec2(mPlayer->GetPosition());
-	glm::vec2 monsterCenter = ConvertVec2(monster->GetPosition());
-	GLfloat playerRadius = mPlayer->GetRadius();
-	GLfloat monsterRadius = monster->GetRadius();
-
-	if (::CheckCollision(playerCenter, monsterCenter, playerRadius, monsterRadius) == GL_TRUE)
-	{
-		monster->Attack(mPlayer);
-		return;
-	}
-
-	Building* core = buildingManager->GetCore();
-	if (core != nullptr)
-	{
-		if (::CheckCollision(core->GetBuildingObject()->GetRect(), monsterCenter, monsterRadius) == GL_TRUE)
-		{
-			monster->Attack(core);
-			monster->Destroy();
-			return;
-		}
-	}
-}
-
 
 bool MonsterManager::CheckEnemyEmpty()
 {
