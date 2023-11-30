@@ -385,6 +385,37 @@ GLvoid Player::Update()
 	mCrntState->Update();
 	mPosition = mBody->GetPviotedPosition();
 	mCrntGun->Update();
+
+
+	// ===================클라이언트 위치 수신===============
+	// glm::vec3를 문자열로 변환
+	string vec3AsString =
+		to_string(mPosition.x) + " " +
+		to_string(mPosition.y) + " " +
+		to_string(mPosition.z) + " " +
+		to_string(mlsFire) + " " +
+		to_string(mIsInstall) + " ";
+
+	// 문자열을 C 스타일의 문자열로 변환
+	const char* buf = vec3AsString.c_str();
+
+
+	cout << buf << endl;
+
+	// 데이터 보내기
+	retval = send(sock, buf, (int)strlen(buf), 0);
+
+	char buffer[100]{};
+	retval = 0;
+	retval = recv(sock, buffer, 100, 0);
+	cout << buffer << endl;
+	std::istringstream iss(buffer);
+	iss >> mHP;
+
+	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
+	mIsInstall = false;
+	// ======================
+
 }
 GLvoid Player::Draw(const CameraMode& cameraMode) const
 {

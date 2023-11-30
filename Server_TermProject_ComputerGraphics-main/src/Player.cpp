@@ -379,9 +379,16 @@ GLvoid Player::InitPlayer(SOCKET& client_sock, int id)
 	 
 }
 
+	cout << buffer << endl;
 
-GLvoid Player::Update()
-{
+	std::istringstream iss(buffer);
+	iss >> mPosition.x >> mPosition.y >> mPosition.z >> mlsFire >> mIsInstall;
+	if (mIsInstall) Install_Turret();
+
+	string vec3AsString = to_string(mHP);
+	cout << mHP << endl;
+	const char* buf = vec3AsString.c_str();
+	retval = send(client_sock, buf, (int)strlen(buf), 0);
 
 	// ============================
 
