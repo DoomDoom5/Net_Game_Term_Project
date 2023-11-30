@@ -462,17 +462,6 @@ GLvoid Player::ProcessKeyUp(const GLint& key)
 }
 GLvoid Player::ProcessMouse(GLint button, GLint state, GLint x, GLint y)
 {
-	/*
-			sendtype = 1 move
-					 = 2 rotate
-					 = 3 shot
-			shot	 = 1 start
-					 = 2 stop
-			guntype  = 1 rifle
-					 = 2 shotgun
-					 = 3 luncher
-					 = 4 sniper
-	*/
 
 	switch (button)
 	{

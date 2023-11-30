@@ -218,13 +218,19 @@ GLvoid BulletManager::Update(SOCKET& sock){
 	std::istringstream iss(buffer);
 	float x, y, z;
 	int bulletCount = 0;
+	struct Bulletinfo {
+		float x, y, z;
+	}bulletinfo[1000];
 	while (iss >> x >> y >> z) {
+		bulletinfo[bulletCount].x = x;
+		bulletinfo[bulletCount].y = y;
+		bulletinfo[bulletCount].z = z;
 		//Bullet* bullet = mBulletList[bulletCount];
-		glm::vec3 v = glm::vec3(x, y, z);
+		//glm::vec3 v = glm::vec3(x, y, z);
 		//bullet->SetPosition(v);
 		bulletCount++;
-		std::cout << "Bullet " << bulletCount << " Position: "
-			<< x << ", " << y << ", " << z << std::endl;
+		//std::cout << "Bullet " << bulletCount << " Position: "
+			//<< x << ", " << y << ", " << z << std::endl;
 
 
 	}
@@ -232,28 +238,13 @@ GLvoid BulletManager::Update(SOCKET& sock){
 		std::cout << "No bullets found." << std::endl;
 	}
 	/////////////////////////////////////////////////////////////////
-	/*
+	
 	mCrntInkSoundDelay += timer::DeltaTime();
 
+	int cnt2 = 0;
 	for (auto iter = mBulletList.begin(); iter != mBulletList.end();)
 	{
 		Bullet* bullet = (*iter);
-
-		for (auto iter2 = mCollisionObjectList.begin(); iter2 != mCollisionObjectList.end(); ++iter2)
-		{
-			IBulletCollisionable* object = *iter2;
-
-			size_t beforeSize = mCollisionObjectList.size();
-			if (ProcessCollision(bullet, object, mPaints, mCrntInkSoundDelay) == GL_TRUE)
-			{
-				break;
-			}
-			size_t afterSize = mCollisionObjectList.size();
-			if (beforeSize < afterSize)
-			{
-				--iter2;
-			}
-		}
 
 		if (bullet->IsDestroyed())
 		{
@@ -261,11 +252,18 @@ GLvoid BulletManager::Update(SOCKET& sock){
 		}
 		else
 		{
-			bullet->Update();
+			glm::vec3 v = glm::vec3(bulletinfo[cnt2].x, bulletinfo[cnt2].y, bulletinfo[cnt2].z);
+			bullet->SetPosition(v);
+			std::cout << "Bullet " << cnt2 << " Position: "
+				<< bulletinfo[cnt2].x << ", " << bulletinfo[cnt2].y << ", " << bulletinfo[cnt2].z << std::endl;
+			//bullet->Update();
 			++iter;
+			++cnt2;
+			if (bulletCount <= cnt2) bullet->Destroy();
 		}
 	}
 
+	/*
 	for (auto iter = mParticles.begin(); iter != mParticles.end();)
 	{
 		Bullet* bullet = (*iter);
