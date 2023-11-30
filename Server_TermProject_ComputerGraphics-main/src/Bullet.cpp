@@ -278,18 +278,22 @@ GLvoid BulletManager::Update(SOCKET sock)
 	//send(sock, numbuf, (int)strlen(numbuf), 0);
 
 	std::ostringstream oss;
-	/*
+
+	
+
 	for (int i = 0; i < num; ++i) {
 		Bullet* bullet = mBulletList[i];
 		oss << std::fixed << std::setprecision(2)
 			<< bullet->GetPosition().x << " "
 			<< bullet->GetPosition().y << " "
 			<< bullet->GetPosition().z << " ";
-		std::cout << i << ": (" << bullet->GetPosition().x << ", "
-			<< bullet->GetPosition().y << ", "
-			<< bullet->GetPosition().z << ")\n";
+		//std::cout << i << ": (" << bullet->GetPosition().x << ", "
+			//<< bullet->GetPosition().y << ", "
+			//<< bullet->GetPosition().z << ")\n";
 	}
-	*/
+	
+	
+	/*
 	num = 10;
 	float c = 0;
 	for (int i = 0; i < num; ++i) {
@@ -302,7 +306,7 @@ GLvoid BulletManager::Update(SOCKET sock)
 			<< c << ", "
 			<< c << ")\n";
 	}
-
+	*/
 
 
 	std::string buf = oss.str();
