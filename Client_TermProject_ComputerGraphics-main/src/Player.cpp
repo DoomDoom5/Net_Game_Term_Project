@@ -489,12 +489,12 @@ GLvoid Player::Move()
 	if (mDirY != 0.0f) mBody->MoveY(mJumpSpeed * mDirY);
 	if (mDirZ != 0.0f) mBody->MoveZ(mSpeed * mDirZ * correction);
 
-	// xz collision
-	if (crntMap->CheckCollision(mBoundingCircle) == GL_TRUE || buildingManager->CheckCollision(mBoundingCircle) == GL_TRUE)
-	{
-		mBody->SetPosX(prevPos.x);
-		mBody->SetPosZ(prevPos.z);
-	}
+	//// xz collision
+	//if (crntMap->CheckCollision(mBoundingCircle) == GL_TRUE || buildingManager->CheckCollision(mBoundingCircle) == GL_TRUE)
+	//{
+	//	mBody->SetPosX(prevPos.x);
+	//	mBody->SetPosZ(prevPos.z);
+	//}
 
 
 	if (mFrameTime > RUN_SOUND_TERM)

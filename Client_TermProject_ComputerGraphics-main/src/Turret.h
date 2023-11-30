@@ -29,7 +29,6 @@ private:
 		Turret(const glm::vec3& position);
 		~Turret();
 		GLvoid SetLook(const glm::vec3& look);
-		GLvoid Update();
 		GLvoid Draw() const;
 		GLvoid Fire();
 	};
