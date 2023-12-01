@@ -259,7 +259,7 @@ GLvoid BulletManager::Update(SOCKET& sock){
 			//bullet->Update();
 			++iter;
 			++cnt2;
-			if (bulletCount <= cnt2) bullet->Destroy();
+			if (bulletCount < cnt2) bullet->Destroy();
 		}
 	}
 
