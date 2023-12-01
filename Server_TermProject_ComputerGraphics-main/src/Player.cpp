@@ -392,21 +392,25 @@ GLvoid Player::Update(SOCKET& client_sock)
 
 	bool mIsInstall = false;
 	bool mlsFire = false;
-	char buffer[100]{};
+	char buffer[512]{};
 	int retval = 0;
-	retval = recv(client_sock, buffer, 100, 0);
+	retval = recv(client_sock, buffer, 512, 0);
 
 	std::istringstream iss(buffer);
-	iss >> mPosition.x >> mPosition.y >> mPosition.z >> mlsFire >>mIsInstall;
+	iss >> mPosition.x >> mPosition.y >> mPosition.z >> mYaw >> mPitch >>
+		mlsFire >>mIsInstall;
 	if (mIsInstall) Install_Turret();
 	// ============================
 
 	mCrntState->Update();
 
 	// mPosition = mBody->GetPviotedPosition();
+	mCrntGun->SetYaw(mYaw);
+	mCrntGun->SetPitch(mPitch);
+	mCrntGun->SetPostion(mPosition);
+
 	if (mlsFire == true) mCrntGun->StartFire();
 	else if(mlsFire == false) mCrntGun->StopFire();
-
 	mCrntGun->Update();
 
 

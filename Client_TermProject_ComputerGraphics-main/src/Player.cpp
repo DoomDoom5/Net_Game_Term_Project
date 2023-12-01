@@ -403,6 +403,8 @@ GLvoid Player::Update(SOCKET& sock)
 		to_string(mPosition.x) + " " +
 		to_string(mPosition.y) + " " +
 		to_string(mPosition.z) + " " +
+		to_string(mYaw) + " " +
+		to_string(mPitch) + " " +
 		to_string(mlsFire) + " " + 
 		to_string(mIsInstall) + " ";
 
