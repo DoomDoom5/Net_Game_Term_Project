@@ -30,7 +30,6 @@ private:
 	GLint mID = 0;
 	GLboolean mIsDestroyed = GL_FALSE;
 public:
-	virtual GLboolean CheckCollisionBullet(const BulletAtt& bullet, glm::vec3& hitPoint, glm::vec3& normal) abstract;
 	GLvoid Destroy();
 	inline constexpr GLboolean IsDestroyed() const { return mIsDestroyed; };
 	inline constexpr GLvoid SetID(const GLint& id) { mID = id; }

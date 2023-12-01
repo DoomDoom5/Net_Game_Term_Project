@@ -106,7 +106,6 @@ private:
 	vector<Monster*> mMonsterList;
 	Player* mPlayer = nullptr;
 
-	const glm::vec3* FindTargetPos(const glm::vec3& monsterPos, const GLfloat& radius) const;
 public:
 	MonsterManager();
 	~MonsterManager();
@@ -114,7 +113,5 @@ public:
 	GLvoid Update(SOCKET& sock);
 	GLvoid Draw() const;
 	GLvoid SetPlayer(Player* player);
-	GLboolean GetShortestMonsterPos(const glm::vec3& srcPos, const GLfloat& radius, glm::vec3& targetPos) const;
-	GLvoid CheckCollision(Monster* monster);
 	bool CheckEnemyEmpty();
 };

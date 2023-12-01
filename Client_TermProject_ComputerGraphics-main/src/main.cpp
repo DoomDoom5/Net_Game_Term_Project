@@ -400,12 +400,13 @@ GLvoid Update()
 	timer::CalculateFPS();
 	timer::Update();
 
+	monsterManager->Update(sock);
 	if (player[myid] != nullptr) UpdateplayersPos(sock);
 	if (player[myid] != nullptr ) player[myid]->Update();
 	if (player[myid] != nullptr) player[myid]->PlayerSend(sock);
+	if (player[myid] != nullptr) player[myid]->PlayerRecv(sock);
 
 	//bulletManager->Update(sock);
-	//monsterManager->Update(sock);
 	//turretManager->Update(sock);
 	//waveManager->Update(sock);
 	

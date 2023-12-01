@@ -360,6 +360,7 @@ GLvoid MonsterManager::Create(const MonsterType& monsterType, const glm::vec3& p
 }
 
 #define MAX_MONSTERS 100
+
 GLvoid MonsterManager::Update()
 {
 #ifdef DEBUG
@@ -501,7 +502,6 @@ GLvoid MonsterManager::CheckCollision(Monster* monster)
 		}
 	}
 }
-
 
 bool MonsterManager::CheckEnemyEmpty()
 {

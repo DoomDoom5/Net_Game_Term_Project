@@ -366,25 +366,14 @@ GLvoid Player::ChangeState(const State& playerState, const Event& e, const GLint
 	mCrntState->Enter(e, value);
 }
 
-
-
-
+GLvoid Player::Update()
+{
+}
 
 GLvoid Player::InitPlayer(SOCKET& client_sock, int id)
 {
 	int retval;
-	// 초기 보낼 정보 HP, 시작 위치, id,....?
-	std::string stringValue = to_string((int)mHP);
-	retval = send(client_sock, stringValue.c_str(), sizeof(stringValue) , 0);
 	 
-}
-
-	cout << buffer << endl;
-
-	std::istringstream iss(buffer);
-	iss >> mPosition.x >> mPosition.y >> mPosition.z >> mlsFire >> mIsInstall;
-	if (mIsInstall) Install_Turret();
-
 	string vec3AsString = to_string(mHP);
 	cout << mHP << endl;
 	const char* buf = vec3AsString.c_str();
@@ -401,6 +390,7 @@ GLvoid Player::InitPlayer(SOCKET& client_sock, int id)
 	mCrntGun->Update();
 
 }
+
 GLvoid Player::Draw(const CameraMode& cameraMode) const
 {
 	if (cameraMode == CameraMode::FirstPerson)
@@ -682,8 +672,11 @@ GLvoid Player::PlayerSend(SOCKET& client_sock)
 	int retval = 0;
 	// ======= 사용자 정보 송신 ======
 	std::string stringValue = std::to_string(mHP);
-	retval = send(client_sock, stringValue.c_str(), 8, 0);
+	const char* buf = stringValue.c_str();
+	retval = send(client_sock, buf, 8, 0);
 	// ======= ========== ======
+	SetConsoleCursor(0, 12);
+	cout << "SEND HP : " << mHP << endl;
 }
 
 GLvoid Player::PlayerRecv(SOCKET& client_sock)
@@ -703,6 +696,8 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	mPosition.y = y;
 	mPosition.z = z;
 	mIsInstall = isInstall;
+
+	SetConsoleCursor(0, 10);
 	cout << "RECV POSTION : " << mPosition.x << ", " << mPosition.y << ", " << mPosition.z << endl;
 	cout << "RECV INFO : " << isFire << ", " << isInstall << endl;
 

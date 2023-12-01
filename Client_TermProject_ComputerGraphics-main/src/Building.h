@@ -23,8 +23,6 @@ public:
 
 	GLvoid Draw() const;
 
-	GLboolean CheckCollision(const Circle* boundingCircle) const;
-	GLboolean CheckCollisionBullet(const BulletAtt& bullet, glm::vec3& hitPoint, glm::vec3& normal);
 	SharedObject* GetBuildingObject() const { return mObject; }
 	GLvoid Damage(const GLfloat& damage);
 
@@ -50,7 +48,6 @@ public:
 	GLvoid Draw() const;
 
 	GLvoid Create(const BuildingType& type, const glm::vec3& position, const glm::vec3 look = Vector3::Front());
-	GLboolean CheckCollision(const Circle* boundingCircle) const;
 	const glm::vec3* GetCorePos() const;
 	inline Building* GetCore() const { return mCore; }
 };

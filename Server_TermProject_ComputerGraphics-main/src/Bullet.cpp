@@ -314,7 +314,7 @@ GLvoid BulletManager::Update()
 	const char* sendbuf = buf.c_str();
 
 	std::cout << buf; // 버퍼에 저장된 문자열 출력
-	send(sock, sendbuf, (int)strlen(sendbuf), 0);
+	//send(sock, sendbuf, (int)strlen(sendbuf), 0);
 
 }
 //GLvoid ProcessCollision(Bullet* bullet, IBulletCollisionable* object, vector<PaintPlane*>& paints)

@@ -153,54 +153,8 @@ GLvoid BulletManager::Draw() const
 	}
 }
 
-
-GLboolean ProcessCollision(Bullet* bullet, IBulletCollisionable* object, vector<PaintPlane*>& paints, GLfloat& crntInkSoundDelay)
+GLvoid BulletManager::Update(SOCKET& sock)
 {
-	constexpr GLfloat inkSoundDelay = 0.5f;
-	constexpr GLfloat NO_NORMAL = 9;
-
-	glm::vec3 hitPoint;
-	glm::vec3 normal = { NO_NORMAL, NO_NORMAL, NO_NORMAL };
-
-	if (object->CheckCollisionBullet(bullet->GetAttribute(), hitPoint, normal) == GL_TRUE)
-	{
-		/* create paint */
-		if (normal.x != NO_NORMAL)
-		{
-			GLuint randPaint = rand() % NUM_PAINT;
-			Textures texture = static_cast<Textures>(static_cast<GLuint>(Textures::Paint) + randPaint);
-			const IdentityObject* object = GetIdentityTextureObject(texture);
-
-			if (bullet->GetType() != BulletType::Rocket)
-			{
-				if (crntInkSoundDelay >= inkSoundDelay)
-				{
-					crntInkSoundDelay = 0;
-					soundManager->PlayEffectSound(EffectSound::Drawing_ink, hitPoint, 0.2f);
-				}
-			}
-			else
-			{
-				soundManager->PlayEffectSound(EffectSound::Drawing_Bigink, hitPoint, 0.2f);
-			}
-			PaintPlane* plane = new PaintPlane(object, bullet->GetColor(), hitPoint, normal);
-			plane->SetScale(BULLET_RADIUS * bullet->GetScale());
-			paints.emplace_back(plane);
-		}
-
-		if (bullet->GetType() == BulletType::Rocket)
-		{
-			bulletManager->CreateExplosion(RED, bullet->GetCenterPos(), bullet->GetRadius());
-		}
-
-		bullet->Destroy();
-		return GL_TRUE;
-	}
-
-	return GL_FALSE;
-}
-
-GLvoid BulletManager::Update(SOCKET& sock){
 	int retval = 0;
 	const char* numbuf;
 	int num;

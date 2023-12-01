@@ -178,6 +178,8 @@ GLvoid Update()
     timer::CalculateFPS();
     timer::Update();
 
+    SetConsoleCursor(0, 1);
+    printf("서버 접속자 수 %d / %d\n", users, MAXUSER);
 	//bulletManager->Update();
 	monsterManager->Update();
     for (size_t i = 0; i < users; i++)
@@ -279,9 +281,8 @@ DWORD WINAPI SleepCls(LPVOID arg)
     while (true)
     {
         Sleep(2000);
-        system("cls");
-
-        printf("서버 접속자 수 %d / %d", users, MAXUSER);
+        SetConsoleCursor(0, 1);
+        printf("서버 접속자 수 %d / %d\n", users, MAXUSER);
     }
 }
 
@@ -313,6 +314,8 @@ DWORD WINAPI ProcessClient(LPVOID arg)
     {
       //  player[id]->PlayerRecv(player_sock);
      //   monsterManager->MonsterSend(player_sock);
+        
+        monsterManager->SendBuf(player_sock);
 
         string playerInfo = to_string(users) + ' ';
         for (size_t i = 0; i < users; i++)
@@ -323,8 +326,8 @@ DWORD WINAPI ProcessClient(LPVOID arg)
                 to_string((int)player[i]->GetPosition().z);
         }
         send(player_sock, playerInfo.c_str(), playerInfo.size(), 0);
-
         player[id]->PlayerRecv(player_sock);
+        player[id]->PlayerSend(player_sock);
         Sleep(1000/60);
     }
     /*
@@ -339,5 +342,4 @@ DWORD WINAPI ProcessClient(LPVOID arg)
     7. player[0]->recv(client_sock(); -> 플레이어 변화된 부분 클라에게 전달
 
     */
-
 } 
