@@ -44,7 +44,7 @@ public:
 	TurretManager();
 	~TurretManager();
 
-	GLvoid Update(SOCKET& client_sock);
+	GLvoid Update();
 	GLvoid Draw() const;
 
 	GLvoid Create(const glm::vec3& position);
