@@ -96,7 +96,7 @@ TurretManager::~TurretManager()
 	}
 }
 
-GLvoid TurretManager::Update(SOCKET& client_sock)
+GLvoid TurretManager::Update()
 {
 #ifdef DEBUG
 	printf("Turret:");

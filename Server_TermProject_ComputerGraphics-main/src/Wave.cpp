@@ -48,7 +48,7 @@ GLvoid WaveManager::Start()
 	}
 }
 
-GLvoid WaveManager::Update(SOCKET& sock)
+GLvoid WaveManager::Update()
 {
 	if (monsterManager->CheckEnemyEmpty())
 	{
@@ -59,7 +59,7 @@ GLvoid WaveManager::Update(SOCKET& sock)
 	}
 	char buf[sizeof(GLint)];
 	memcpy(&buf, &mCrntWave, sizeof(GLint));
-	send(sock, buf, sizeof(GLint), 0);
+//	send(sock, buf, sizeof(GLint), 0);
 
 #ifdef DEBUG
 	cout << "mCrntWave: " << mCrntWave << endl;

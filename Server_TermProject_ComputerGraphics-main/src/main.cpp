@@ -182,13 +182,10 @@ GLvoid Update()
     printf("서버 접속자 수 %d / %d\n", users, MAXUSER);
 	//bulletManager->Update();
 	monsterManager->Update();
-    for (size_t i = 0; i < users; i++)
-    {
-        if (player[i] != nullptr) player[i]->Update();
-    }
-	//buildingManager->Update();
-	//turretManager->Update();
-	//waveManager->Update();
+    for (size_t i = 0; i < users; i++)  if (player[i] != nullptr) player[i]->Update();
+	buildingManager->Update();
+	turretManager->Update();
+	waveManager->Update();
 
     glutPostRedisplay();
 
@@ -317,6 +314,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
         
         monsterManager->SendBuf(player_sock);
 
+        // ====================================
         string playerInfo = to_string(users) + ' ';
         for (size_t i = 0; i < users; i++)
         {
@@ -326,6 +324,8 @@ DWORD WINAPI ProcessClient(LPVOID arg)
                 to_string((int)player[i]->GetPosition().z);
         }
         send(player_sock, playerInfo.c_str(), playerInfo.size(), 0);
+        // ====================================
+
         player[id]->PlayerRecv(player_sock);
         player[id]->PlayerSend(player_sock);
         Sleep(1000/60);

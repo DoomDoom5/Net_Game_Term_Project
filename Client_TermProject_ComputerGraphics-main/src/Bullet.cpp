@@ -192,6 +192,70 @@ GLvoid BulletManager::Update(SOCKET& sock)
 		std::cout << "No bullets found." << std::endl;
 	}
 	/////////////////////////////////////////////////////////////////
+	
+	mCrntInkSoundDelay += timer::DeltaTime();
+
+	int cnt2 = 0;
+	for (auto iter = mBulletList.begin(); iter != mBulletList.end();)
+	{
+		Bullet* bullet = (*iter);
+
+		if (bullet->IsDestroyed())
+		{
+			iter = mBulletList.erase(iter);
+		}
+		else
+		{
+			glm::vec3 v = glm::vec3(bulletinfo[cnt2].x, bulletinfo[cnt2].y, bulletinfo[cnt2].z);
+			bullet->SetPosition(v);
+			std::cout << "Bullet " << cnt2 << " Position: "
+				<< bulletinfo[cnt2].x << ", " << bulletinfo[cnt2].y << ", " << bulletinfo[cnt2].z << std::endl;
+			//bullet->Update();
+			++iter;
+			++cnt2;
+			if (bulletCount < cnt2) bullet->Destroy();
+		}
+	}
+
+	/*
+	for (auto iter = mParticles.begin(); iter != mParticles.end();)
+	{
+		Bullet* bullet = (*iter);
+
+		for (IBulletCollisionable* object : mParticleCollisions)
+		{
+			if (ProcessCollision(bullet, object, mPaints, mCrntInkSoundDelay) == GL_TRUE)
+			{
+				break;
+			}
+		}
+
+		if (bullet->IsDestroyed())
+		{
+			iter = mParticles.erase(iter);
+		}
+		else
+		{
+			bullet->Update();
+			++iter;
+		}
+	}
+
+	for (auto iter = mPaints.begin(); iter != mPaints.end();)
+	{
+		PaintPlane* paint = *iter;
+		if (paint->Update() == GL_FALSE)
+		{
+			delete paint;
+			iter = mPaints.erase(iter);
+		}
+		else
+		{
+			++iter;
+		}
+	}
+	*/
+
 }
 
 /*

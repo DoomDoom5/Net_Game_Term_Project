@@ -15,9 +15,11 @@ public:
 	WaveManager();
 
 	GLvoid Start();
-	GLvoid Update(SOCKET& sock);
+	GLvoid Update();
 
 	inline constexpr GLvoid SetPlayer(Player* player) { mPlayer = player; }
 
 	inline constexpr GLint GetWave() const { return mCrntWave; }
+
+	GLvoid SendWace(SOCKET& client_sock);
 };
