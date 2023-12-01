@@ -170,8 +170,18 @@ GLvoid Init()
 	soundManager->PlayBGMSound(BGMSound::Normal, 0.2f, GL_TRUE);
 
 	//************ [Server]************
-	if (sock == NULL)Initsock(sock);
-
+	cout << "접속 IP를 입력해 주세요, 그냥 SpaceBar는 127.0.0.1로 연결됩니다. : ";
+	char ip[22];
+	cin >> ip;
+	if (ip == " ")
+	{
+		if (sock == NULL)Initsock(sock);
+	}
+	else
+	{
+		SERVERIP = (char*)ip;
+		if (sock == NULL)Initsock(sock);
+	}
 
 	system("cls");
 }
