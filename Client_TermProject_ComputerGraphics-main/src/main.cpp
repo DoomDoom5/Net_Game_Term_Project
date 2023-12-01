@@ -238,7 +238,7 @@ GLvoid InitMeshes()
 	light = new Light();
 	light->SetPosition({ 0, 400, 0 });
 
-	for (int i = 0; i < 1; ++i)	player[i] = new Player({ 0,0,0 }, &cameraMode);
+	for (int i = 0; i < 3; ++i)	player[i] = new Player({ 0,0,0 }, &cameraMode);
 
 	crntMap = new Map();
 	uiManager->SetPlayer(player[myid]);
@@ -351,7 +351,13 @@ GLvoid DrawScene()
 	buildingManager->Draw();
 
 	for (int i = 0; i < users; ++i)
-		if (player[i] != nullptr) player[i]->Draw(cameraMode);
+	{
+		if (player[i] != nullptr)
+		{
+			player[i]->Draw(cameraMode);
+
+		}
+	}
 
 	glCullFace(GL_FRONT);
 	cubeMap->Draw();
@@ -728,13 +734,16 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 	int x = 0, y = 0, z = 0;
 	for (size_t i = 0; i < users; i++)
 	{
-		cout << "변환 전 id : " << id << ", x : " << x << ", y : " << y << ", z : " << z << endl;
 		if (player[i] == nullptr) return;
 		iss >> id >> x >> y >> z;
+
+		cout << "Player" << i << ": ( " << x << ", " << y << ", " << z << " )" << endl;
+		
 		if (id == myid) continue;
 
 		glm::vec3 newPos(x, y, z);
 		player[i]->SetPosition(newPos);
-		cout << "변환 후 id : " << id << ", x : " << x << ", y : " << y << ", z : " << z << endl;
 	}
+	users += 1;
+	player[users - 1]->SetPosition(glm::vec3(2.0f, 20.0f, 2.0f));
 }

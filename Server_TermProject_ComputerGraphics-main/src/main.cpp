@@ -304,8 +304,6 @@ DWORD WINAPI ProcessClient(LPVOID arg)
     monsterManager->SetPlayer(player[id]);
     waveManager->SetPlayer(player[id]);
     string playerInfo;
-    int tempPos = 0;
- 
 
     while (1)
     {
@@ -319,9 +317,9 @@ DWORD WINAPI ProcessClient(LPVOID arg)
         for (size_t i = 0; i < users; i++)
         {
             playerInfo += to_string(i) + ' ' +
-                to_string((int)player[i]->GetPosition().x + tempPos) + ' ' +
+                to_string((int)player[i]->GetPosition().x) + ' ' +
                 to_string((int)player[i]->GetPosition().y) + ' ' +
-                to_string((int)player[i]->GetPosition().z);
+                to_string((int)player[i]->GetPosition().z) + ' ';
         }
         send(player_sock, playerInfo.c_str(), playerInfo.size(), 0);
         // ====================================
