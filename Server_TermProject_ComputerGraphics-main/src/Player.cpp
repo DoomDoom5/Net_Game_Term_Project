@@ -384,9 +384,12 @@ GLvoid Player::InitPlayer(SOCKET& client_sock, int id)
 	mCrntState->Update();
 
 	// mPosition = mBody->GetPviotedPosition();
+	mCrntGun->SetYaw(mYaw);
+	mCrntGun->SetPitch(mPitch);
+	mCrntGun->SetPostion(mPosition);
+
 	if (mlsFire == true) mCrntGun->StartFire();
 	else if(mlsFire == false) mCrntGun->StopFire();
-
 	mCrntGun->Update();
 
 }
