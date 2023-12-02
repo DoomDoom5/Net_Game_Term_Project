@@ -46,7 +46,7 @@ WaveManager* waveManager = nullptr;
 
 // objects
 Map* crntMap = nullptr;
-Player* player[3] = { nullptr ,};
+Player* player[3] = { nullptr ,nullptr ,nullptr };
 
 ///// [Thread] /////
 // 소켓 통신 스레드 함수
@@ -180,9 +180,15 @@ GLvoid Update()
 
     SetConsoleCursor(0, 1);
     printf("서버 접속자 수 %d / %d\n", users, MAXUSER);
-	//bulletManager->Update();
 	monsterManager->Update();
+
     for (size_t i = 0; i < users; i++)  if (player[i] != nullptr) player[i]->Update();
+    
+    player[0]->Update();
+    player[1]->Update();
+    player[2]->Update();
+
+    bulletManager->Update();
 	buildingManager->Update();
 	turretManager->Update();
 	waveManager->Update();
