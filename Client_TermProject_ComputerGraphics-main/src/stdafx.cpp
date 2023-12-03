@@ -132,7 +132,8 @@ GLvoid GetYawPitch(const glm::vec3& look, GLfloat& yaw, GLfloat& pitch)
 	GLfloat distance = sqrtf(look.z * look.z + look.x * look.x);
 
 	yaw = RADIAN_TO_DEGREE(atan2(look.y, distance));
-	pitch = RADIAN_TO_DEGREE(atan2(look.x, look.z));}
+	pitch = RADIAN_TO_DEGREE(atan2(look.x, look.z));
+}
 
 /* https://stackoverflow.com/questions/1073336/circle-line-segment-collision-detection-algorithm */
 GLboolean CheckCollision(const glm::vec2& start, const glm::vec2& end, const glm::vec2& center, const GLfloat& radius)

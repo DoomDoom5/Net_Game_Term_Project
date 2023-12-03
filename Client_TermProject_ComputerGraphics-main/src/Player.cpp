@@ -211,6 +211,72 @@ GLvoid Jump::HandleEvent(const Event& e, const GLint& key)
 
 
 ////////////////////////////// [ Player ] //////////////////////////////
+Player::Player(const glm::vec3& position)
+{
+	mPosition = position;
+	mTpCameraPosition = position;
+	mHead = new SharedObject(GetIdentityTextureObject(Textures::Player_Head));
+	mBody = new SharedObject(GetIdentityTextureObject(Textures::Player_Body));
+	mArms = new SharedObject(GetIdentityTextureObject(Textures::Player_Arms));
+	mLegL = new SharedObject(GetIdentityTextureObject(Textures::Player_Leg_L));
+	mLegR = new SharedObject(GetIdentityTextureObject(Textures::Player_Leg_R));
+
+	mHead->SetPivot(mBody->GetRefPos());
+	mArms->SetPivot(mBody->GetRefPos());
+	mLegL->SetPivot(mBody->GetRefPos());
+	mLegR->SetPivot(mBody->GetRefPos());
+
+	mHead->MoveY(31, GL_FALSE);
+	mArms->MoveY(28, GL_FALSE);
+	mLegL->MoveY(16, GL_FALSE);
+	mLegR->MoveY(16, GL_FALSE);
+
+	mFpCamera = new Camera();
+	mFpCamera->SetPivot(&mPosition);
+	mFpCamera->SetPosY(38);
+	mFpCamera->SetFovY(110.0f);
+	mFpCamera->SetLook(mBody->GetLook());
+
+	mTpCamera = new Camera();
+	mTpCamera->SetPivot(&mPosition);
+	mTpCamera->SetPosY(100);
+	mTpCamera->SetPosZ(-75);
+	mTpCamera->SetFovY(110.0f);
+	mTpCamera->Look(mBody->GetPosition());
+
+
+	mZoomFPCamera = new Camera();
+	mZoomFPCamera->SetPivot(&mPosition);
+	mZoomFPCamera->SetPosY(38);
+	mZoomFPCamera->SetPosZ(100);
+	mZoomFPCamera->SetFovY(110.0f);
+	mZoomFPCamera->SetLook(mBody->GetLook());
+
+	mHead->SetRotationPivot(mFpCamera->GetRefPos());
+	mArms->SetRotationPivot(mFpCamera->GetRefPos());
+
+	glm::vec3 gunPosition = glm::vec3(-PLAYER_RADIUS + 1.0f, mFpCamera->GetPviotedPosition().y - 18, 0);
+
+	mRifle = new Rifle(gunPosition, &mPosition);
+
+
+	// Gun* mPlayGun = nullptr
+	mCrntGun = mRifle;
+	// 총 교체에 따라 
+	// mPlayGun =  mShotgun
+	// mPlayGun =  mPistol
+	// mplayGun  = mSniper 해서
+	// 
+	// mPlayGun->StartFire();
+	// 으로 되도록
+
+	mBoundingCircle = new Circle(mBody->GetRefPos(), PLAYER_RADIUS, GL_TRUE);
+	mBoundingCircle->SetColor(BLUE);
+
+	Rotate(0, 180, 0);
+	ChangeState(State::Idle);
+}
+
 Player::Player(const glm::vec3& position, const CameraMode* cameraMode)
 {
 	mPosition = position;
@@ -263,17 +329,7 @@ Player::Player(const glm::vec3& position, const CameraMode* cameraMode)
 	mShotGun = new ShotGun(gunPosition, &mPosition);
 	mLauncher = new Launcher(gunPosition, &mPosition);
 
-
-	// Gun* mPlayGun = nullptr
 	mCrntGun = mRifle;
-	// 총 교체에 따라 
-	// mPlayGun =  mShotgun
-	// mPlayGun =  mPistol
-	// mplayGun  = mSniper 해서
-	// 
-	// mPlayGun->StartFire();
-	// 으로 되도록
-
 
 	mBoundingCircle = new Circle(mBody->GetRefPos(), PLAYER_RADIUS, GL_TRUE);
 	mBoundingCircle->SetColor(BLUE);
@@ -529,14 +585,15 @@ GLvoid Player::Rotate(const GLfloat& yaw, const GLfloat& pitch, const GLfloat& r
 	}
 	mTpCamera->RotatePosition(mHead->GetPosition(), mTpCamera->GetRight(), tpCameraYaw);
 	mTpCamera->RotateLocal(tpCameraYaw - tpCameraAngle, 0, 0);
-
-	if (*mCameraMode == CameraMode::FirstPerson)
-	{
-		mCrntGun->Rotate(mYaw, mPitch);
-	}
-	else
-	{
-		mCrntGun->RotateLocal(mYaw, mPitch);
+	if (mCameraMode != nullptr) {
+		if (*mCameraMode == CameraMode::FirstPerson)
+		{
+			mCrntGun->Rotate(mYaw, mPitch);
+		}
+		else
+		{
+			mCrntGun->RotateLocal(mYaw, mPitch);
+		}
 	}
 }
 GLvoid Player::RotateLeg()
@@ -643,7 +700,7 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 
 GLvoid Player::PlayerRecv(SOCKET& sock)
 {
-	int retval;
+	int retval = 0;
 	// ==============클라이언트 정보 송신====================
 	char HPbuf[8];
 	retval = recv(sock, HPbuf, 8, 0);

@@ -47,6 +47,10 @@ public:
 	inline constexpr GLfloat GetYaw() const { return mYaw; }
 	inline constexpr GLfloat GetPitch() const { return mPitch; }
 
+	GLvoid SetYaw(GLfloat newYaw)  {  mYaw = newYaw; }
+	GLvoid SetPitch(GLfloat newPitch)  {  mPitch = newPitch; }
+	GLvoid SetPostion(glm::vec3 newPos)  {  mGunPosition = newPos; }
+
 	GLvoid Reload();
 	inline constexpr GLboolean IsReloading() const { return mCrntReloadTime > 0; }
 };

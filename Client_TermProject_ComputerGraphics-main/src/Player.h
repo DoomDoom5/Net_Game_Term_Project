@@ -132,6 +132,7 @@ private:
 	GLfloat mPitch = 0.0f;
 
 public:
+	Player(const glm::vec3& position);
 	Player(const glm::vec3& position, const CameraMode* cameraMode);
 	~Player();
 

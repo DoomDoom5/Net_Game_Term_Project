@@ -384,9 +384,12 @@ GLvoid Player::InitPlayer(SOCKET& client_sock, int id)
 	mCrntState->Update();
 
 	// mPosition = mBody->GetPviotedPosition();
+	//mCrntGun->SetYaw(mYaw);
+	//mCrntGun->SetPitch(mPitch);
+	//mCrntGun->SetPostion(mPosition);
+
 	if (mlsFire == true) mCrntGun->StartFire();
 	else if(mlsFire == false) mCrntGun->StopFire();
-
 	mCrntGun->Update();
 
 }
@@ -676,7 +679,10 @@ GLvoid Player::PlayerSend(SOCKET& client_sock)
 	retval = send(client_sock, buf, 8, 0);
 	// ======= ========== ======
 	SetConsoleCursor(0, 12);
+#ifdef  DEBUG
 	cout << "SEND HP : " << mHP << endl;
+#endif //  DEBUG
+
 }
 
 struct PlayerInfo {
@@ -706,10 +712,10 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	mPosition.z = *reinterpret_cast<float*>(&pos[2]);
 	mIsInstall = isInstall;
 
-	SetConsoleCursor(0, 10);
+#ifdef DEBUG
 	cout << "RECV POSTION : " << mPosition.x << ", " << mPosition.y << ", " << mPosition.z << endl;
 	cout << "RECV INFO : " << isFire << ", " << isInstall << endl;
-
+#endif
 	if (mIsInstall) Install_Turret();
 	mIsInstall = false;
 }

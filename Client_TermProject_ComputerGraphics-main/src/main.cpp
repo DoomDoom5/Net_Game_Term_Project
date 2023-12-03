@@ -29,6 +29,7 @@ CameraMode cameraMode = CameraMode::Free;
 
 GLvoid Init();
 GLvoid InitMeshes();
+GLvoid InitPlayer();
 GLvoid DrawScene();
 
 GLvoid Update();
@@ -71,6 +72,7 @@ Map* crntMap = nullptr;
 
 GLvoid UpdateplayersPos(SOCKET& sock);
 Player* player[3] = { nullptr ,nullptr, nullptr};
+int retval = 0;
 int users = 0;
 int myid = 0;
 
@@ -170,19 +172,13 @@ GLvoid Init()
 	soundManager->PlayBGMSound(BGMSound::Normal, 0.2f, GL_TRUE);
 
 	//************ [Server]************
-	cout << "접속 IP를 입력해 주세요, 그냥 SpaceBar는 127.0.0.1로 연결됩니다. : ";
+	cout << "접속 IP를 입력해 주세요, 그냥 00는 127.0.0.1로 연결됩니다. : ";
 	char ip[22];
 	cin >> ip;
-	if (ip == " ")
-	{
-		if (sock == NULL)Initsock(sock);
-	}
-	else
-	{
-		SERVERIP = (char*)ip;
-		if (sock == NULL)Initsock(sock);
-	}
+	if (strlen(ip) > 3) SERVERIP = (char*)ip;
 
+	if (sock == NULL)Initsock(sock);
+	InitPlayer();
 	system("cls");
 }
 
@@ -200,33 +196,6 @@ GLvoid InitMeshes()
 
 	buildingManager->Create(BuildingType::Core, { 0, 0, 550 });
 
-	//********** [ Coordinate system lines ] **********//
-	//constexpr GLfloat lineLength = (20.0f / 2.0f);	// radius = 10
-	//LineObject* line = nullptr;
-	//Vector3 vectorLine_1, vectorLine_2;
-
-	//vectorLine_1 = { -lineLength, 0.0f, 0.0f };
-	//vectorLine_2 = { lineLength, 0.0f, 0.0f };
-	//line = new LineObject(vectorLine_1, vectorLine_2);
-	//line->SetColor(RED);
-	//line->MoveGlobal({ lineLength, 0, 0 }, GL_FALSE);
-	//AddObject(Shader::Color, line);
-
-	//vectorLine_1 = { 0.0f, -lineLength, 0.0f };
-	//vectorLine_2 = { 0.0f, lineLength, 0.0f };
-	//line = new LineObject(vectorLine_1, vectorLine_2);
-	//line->SetColor(GREEN);
-	//line->MoveGlobal({ 0, lineLength, 0 }, GL_FALSE);
-	//AddObject(Shader::Color, line);
-
-	//vectorLine_1 = { 0.0f, 0.0f, -lineLength };
-	//vectorLine_2 = { 0.0f, 0.0f, lineLength };
-	//line = new LineObject(vectorLine_1, vectorLine_2);
-	//line->SetColor(BLUE);
-	//line->MoveGlobal({ 0, 0, lineLength }, GL_FALSE);
-	//AddObject(Shader::Color, line);
-	//**************************************************//
-	
 	// test object
 	const Model* cubeMapModel = GetTextureModel(Textures::CubeMap);
 	cubeMap = new ModelObject(cubeMapModel, Shader::Texture);
@@ -238,16 +207,28 @@ GLvoid InitMeshes()
 	light = new Light();
 	light->SetPosition({ 0, 400, 0 });
 
-	for (int i = 0; i < 3; ++i)	player[i] = new Player({ 0,0,0 }, &cameraMode);
-
 	crntMap = new Map();
+}
+
+GLvoid InitPlayer()
+{
+	char buf[100];
+	glm::vec3 initPosition;
+	retval = recv(sock, buf, 100, 0);
+
+	std::istringstream iss(buf);
+	iss >> myid;
+	iss >> initPosition.x >> initPosition.y >> initPosition.z;
+	for (int i = 0; i < 3; ++i)
+	{
+		if(i != myid)player[i] = new Player({ 10*i,0,10 * i });
+		else player[i] = new Player(initPosition , &cameraMode);
+	}
 	uiManager->SetPlayer(player[myid]);
 	monsterManager->SetPlayer(player[myid]);
 	waveManager->SetPlayer(player[myid]);
-
-
-	
 }
+
 GLvoid Reset()
 {
 	DeleteObjects();
@@ -350,7 +331,7 @@ GLvoid DrawScene()
 	monsterManager->Draw();
 	buildingManager->Draw();
 
-	for (int i = 0; i < users; ++i)
+	for (int i = 0; i < 3; ++i)
 	{
 		if (player[i] != nullptr)
 		{
@@ -375,7 +356,6 @@ GLvoid DrawScene()
 /// Network
 GLvoid Initsock(SOCKET& sock)
 {
-	int retval;
 	WSADATA wsa;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
 		return;
@@ -746,7 +726,7 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 		z = *reinterpret_cast<float*>(&pos[3 * i + 2]);
 
 		cout << i << ": ( " << x << ", " << y << ", " << z << " )" << endl;
-		 
+
 		if (id == myid) continue;
 
 		glm::vec3 newPos(x, y, z);
