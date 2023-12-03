@@ -278,6 +278,12 @@ DWORD WINAPI SleepCls(LPVOID arg)
         Sleep(2000);
         SetConsoleCursor(0, 1);
         printf("서버 접속자 수 %d / %d\n", users, MAXUSER);
+
+        if(users > 0)
+        for (size_t i = 0; i < 3; i++)
+        {
+            if(player[i] != nullptr) cout << "[i :  " << i << "] " << player[i]->GetPosition().x << ", " << player[i]->GetPosition().y << " , " << player[i]->GetPosition().z << endl;
+        }
     }
 }
 
@@ -309,35 +315,36 @@ DWORD WINAPI ProcessClient(LPVOID arg)
     monsterManager->SetPlayer(player[id]);
     waveManager->SetPlayer(player[id]);
     string playerInfo;
-
+    /*
+send/recv 순서  [꼭 지킬것!]
+*/
     while (1)
     {
+   
         player[id]->PlayerRecv(player_sock);
+       
         monsterManager->SendBuf(player_sock);
         buildingManager->SendBuf(player_sock);
         turretManager->SendBuf(player_sock);
         waveManager->SendBuf(player_sock);
+   
         player[id]->PlayerSend(player_sock);
+        /*
         sendPlayersInfo(player_sock);
-        Sleep(1000/60);
+        */
+        Sleep(1000 / 60);
     }
-    /*
-    send/recv 순서  [꼭 지킬것!]
 
-    1. player[0]->Update(client_sock()); -> 클라에서 변환된 부분 받음
-    7. player[0]->recv(client_sock(); -> 플레이어 변화된 부분 클라에게 전달
-
-    */
 }
 string sendPlayersInfo(SOCKET& player_sock)
 {
     string playerInfo = to_string(users) + ' ';
-    for (size_t i = 0; i < users; i++)
+    for (size_t i = 0; i < 3; i++)
     {
         playerInfo += to_string(i) + ' ' +
-            to_string((int)player[i]->GetPosition().x + i * 5) + ' ' +
+            to_string((int)player[i]->GetPosition().x  ) + ' ' +
             to_string((int)player[i]->GetPosition().y) + ' ' +
-            to_string((int)player[i]->GetPosition().z + i * 4) + ' ';
+            to_string((int)player[i]->GetPosition().z) + ' ';
     }
     send(player_sock, playerInfo.c_str(), playerInfo.size(), 0);
 }

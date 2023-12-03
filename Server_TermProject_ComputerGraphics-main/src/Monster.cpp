@@ -405,7 +405,9 @@ GLvoid MonsterManager::Update()
 		nPos[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&pos.z);
 		types[i] = monster->GetType();
 		const glm::vec3* target = FindTargetPos(monster->GetPosition(), monster->GetDetectRadius());
+
 		monster->Update(target);
+
 		float xyz[3]; xyz[0] = target->x; xyz[1] = target->y; xyz[2] = target->z;
 		nTarget[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&xyz[0]);
 		nTarget[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&xyz[1]);

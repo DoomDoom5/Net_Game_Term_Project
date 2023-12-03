@@ -406,13 +406,17 @@ GLvoid Update()
 	if (player[myid] != nullptr) player[myid]->Update();
 
 	if (player[myid] != nullptr) player[myid]->PlayerSend(sock);
+	
 	monsterManager->Update(sock);
-	bulletManager->Update(sock);
+	buildingManager->Update(sock);
+	// bulletManager->Update(sock);
 	turretManager->Update(sock);
 	waveManager->Update(sock);
-	if (player[myid] != nullptr) UpdateplayersPos(sock);
-	if (player[myid] != nullptr) player[myid]->PlayerRecv(sock);
 
+	if (player[myid] != nullptr) player[myid]->PlayerRecv(sock);
+	/*
+	if (player[myid] != nullptr) UpdateplayersPos(sock);
+	*/
 
 	constexpr GLfloat cameraMovement = 100.0f;
 	GLfloat cameraSpeed = cameraMovement;

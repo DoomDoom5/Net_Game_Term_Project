@@ -339,6 +339,7 @@ GLvoid MonsterManager::Create(const MonsterType& monsterType, const glm::vec3& p
 
 	mMonsterList.emplace_back(monster);
 }
+
 #define MAX_MONSTERS 100
 GLvoid MonsterManager::Update(SOCKET& sock)
 {
@@ -346,8 +347,10 @@ GLvoid MonsterManager::Update(SOCKET& sock)
 	printf("Monster:\n");
 #endif
 	MonsterInfo monsterInfo{};
+
 	char buf[sizeof(MonsterInfo)];
 	int retval = recv(sock, buf, sizeof(MonsterInfo), 0);
+
 	if (retval == SOCKET_ERROR) {
 		printf("SOCKET_ERROR\n");
 		return;
@@ -418,4 +421,31 @@ GLvoid MonsterManager::SetPlayer(Player* player)
 bool MonsterManager::CheckEnemyEmpty()
 {
 	return mMonsterList.empty();
+}
+
+GLvoid MonsterManager::OutLog()
+{
+	MonsterType types[MAX_MONSTERS];
+	glm::vec3 logVec;
+	for (int i = 0; i < mMonsterList.size(); ++i) {
+#ifdef DEBUG
+		logVec = mMonsterList[i]->GetPosition();
+		printf("%d Position: %.1f, %.1f, %.1f / ", i, logVec.x, logVec.y, logVec.z);
+		switch (types[i]) {
+		case MonsterType::Blooper:
+			printf("Type: Blooper / ");
+			break;
+		case MonsterType::Egg:
+			printf("Type: Egg / ");
+			break;
+		case MonsterType::Koromon:
+			printf("Type: Koromon / ");
+			break;
+		case MonsterType::None:
+			printf("Type: None / ");
+			break;
+		};
+		// printf("Target: %.1f, %.1f, %.1f\n", i, fTarget[i].x, fTarget[i].y, fTarget[i].z);
+#endif
+	}
 }

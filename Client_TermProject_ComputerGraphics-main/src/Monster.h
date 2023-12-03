@@ -31,7 +31,6 @@ protected:
 	const glm::vec3* target = nullptr;
 
 	GLboolean isSpawning = GL_TRUE;
-	string Log;
 
 public:
 	Monster(const MonsterType& monsterType, const glm::vec3& position);
@@ -39,6 +38,11 @@ public:
 	virtual GLvoid Update(const glm::vec3* target);
 	virtual GLvoid Look(const glm::vec3* target);
 	GLvoid Draw() const;
+
+	virtual glm::vec3 GetTargetVec() {
+		if (target != nullptr) return *target;
+		else glm::vec3(0, 0, 0);
+	};
 
 	GLboolean CheckCollisionBullet(const BulletAtt& bullet, glm::vec3& hitPoint, glm::vec3& normal);
 	glm::vec3 GetPosition() const;
@@ -115,4 +119,6 @@ public:
 	GLvoid Draw() const;
 	GLvoid SetPlayer(Player* player);
 	bool CheckEnemyEmpty();
+
+	GLvoid OutLog();
 };

@@ -689,12 +689,12 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 {
 	// ======= 사용자 정보수신 ======
 
-	char buffer[512];
+	char buffer[100];
 	int retval = 0;
 	int x, y, z = 0;
 	bool isFire , isInstall = false;
 
-	retval = recv(client_sock, buffer, 512, 0);
+	retval = recv(client_sock, buffer, 100, 0);
 
 	std::istringstream iss(buffer);
 	iss >> x >> y >> z >> isFire >> isInstall;
