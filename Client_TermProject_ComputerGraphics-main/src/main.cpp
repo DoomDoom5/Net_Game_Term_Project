@@ -331,7 +331,7 @@ GLvoid DrawScene()
 	monsterManager->Draw();
 	buildingManager->Draw();
 
-	for (int i = 0; i < 3; ++i)
+	for (int i = 0; i < users; ++i)
 	{
 		if (player[i] != nullptr)
 		{
@@ -713,23 +713,22 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 	retval = recv(sock, buf, sizeof(uint32_t) * 3 * MAXUSER, 0);
 	cout << "RecvFromServer: " << endl;
 
-	uint32_t pos[MAXUSER * 3];
-	memcpy(pos, buf, sizeof(uint32_t) * 3 * users);
+	uint32_t nPos[MAXUSER * 3];
+	memcpy(nPos, buf, sizeof(uint32_t) * 3 * users);
 
 	int id = 0;
-	float x = 0, y = 0, z = 0;
+	glm::vec3 fPos;
 	for (size_t i = 0; i < users; i++)
 	{
 		if (player[i] == nullptr) return;
-		x = *reinterpret_cast<float*>(&pos[3 * i + 0]);
-		y = *reinterpret_cast<float*>(&pos[3 * i + 1]);
-		z = *reinterpret_cast<float*>(&pos[3 * i + 2]);
+		fPos.x = *reinterpret_cast<float*>(&nPos[3 * i + 0]);
+		fPos.y = *reinterpret_cast<float*>(&nPos[3 * i + 1]);
+		fPos.z = *reinterpret_cast<float*>(&nPos[3 * i + 2]);
 
-		cout << i << ": ( " << x << ", " << y << ", " << z << " )" << endl;
+		cout << i << ": ( " << fPos.x << ", " << fPos.y << ", " << fPos.z << " )" << endl;
 
 		if (id == myid) continue;
 
-		glm::vec3 newPos(x, y, z);
-		player[i]->SetRefPosition(newPos);
+		player[i]->SetPosition(fPos);
 	}
 }

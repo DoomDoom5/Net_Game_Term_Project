@@ -679,9 +679,10 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	char buf[sizeof(PlayerInfo)];
 	memset(buf, 0, sizeof(buf));
 
-	nPos[0] = *reinterpret_cast<uint32_t*>(&mPosition.x);
-	nPos[1] = *reinterpret_cast<uint32_t*>(&mPosition.y);
-	nPos[2] = *reinterpret_cast<uint32_t*>(&mPosition.z);
+	glm::vec3 pos = GetPosition();
+	nPos[0] = *reinterpret_cast<uint32_t*>(&pos.x);
+	nPos[1] = *reinterpret_cast<uint32_t*>(&pos.y);
+	nPos[2] = *reinterpret_cast<uint32_t*>(&pos.z);
 
 	memcpy(playerInfo.pos, nPos, sizeof(uint32_t) * 3);
 	memcpy(playerInfo.isFired, &mlsFire, sizeof(bool));

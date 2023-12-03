@@ -334,13 +334,11 @@ DWORD WINAPI ProcessClient(LPVOID arg)
         cout << "SendToClient: " << endl;
         for (size_t i = 0; i < users; i++)
         {
-            const glm::vec3* playerPos = player[i]->GetRefPos();
-            glm::vec3 pos;
-            memcpy(&pos, playerPos, sizeof(glm::vec3));
-            nPos[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&pos.x);
-            nPos[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&pos.y);
-            nPos[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&pos.z);
-            cout << i << " : (" << pos.x << ", " << pos.y << ", " << pos.z << ")" << endl;
+            glm::vec3 playerPos = player[i]->GetPosition();
+            nPos[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&playerPos.x);
+            nPos[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&playerPos.y);
+            nPos[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&playerPos.z);
+            cout << i << " : (" << playerPos.x << ", " << playerPos.y << ", " << playerPos.z << ")" << endl;
         }
         memcpy(buf, nPos, sizeof(buf));
         send(player_sock, buf, sizeof(buf), 0);

@@ -194,7 +194,6 @@ public:
 
 	// ======= Set ======
 	GLvoid SetPosition(glm::vec3);
-	GLvoid SetRefPosition(glm::vec3 pos) { mPosition = pos; }
 
 	// Add
 	GLvoid AddHoldturret(const GLint& value);
