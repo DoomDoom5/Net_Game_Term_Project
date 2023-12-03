@@ -584,9 +584,14 @@ glm::vec3 Player::GetPosition() const
 	return mBody->GetPosition();
 }
 
-glm::vec3 Player::GetLook() const
+glm::vec3 Player::GetBodyLook() const
 {
 	return mBody->GetLook();
+}
+
+glm::vec3 Player::GetHeadLook() const
+{
+	return mHead->GetLook();
 }
 
 GLint Player::GetAmmo() const
@@ -692,7 +697,8 @@ GLvoid Player::PlayerSend(SOCKET& client_sock)
 
 struct PlayerInfo {
 	char pos[sizeof(uint32_t) * 3];
-	char look[sizeof(uint32_t) * 3];
+	char bodylook[sizeof(uint32_t) * 3];
+	char headlook[sizeof(uint32_t) * 3];
 	char isFired[sizeof(bool)];
 	char isInstall[sizeof(bool)];
 };
@@ -705,26 +711,33 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	char buf[sizeof(PlayerInfo)];
 	int retval = 0;
 	uint32_t pos[3];
-	uint32_t look[3];
+	uint32_t bodylook[3];
+	uint32_t headlook[3];
 	bool isFire , isInstall = false;
 
 	retval = recv(client_sock, buf, sizeof(PlayerInfo), 0);
 	memcpy(&playerInfo, buf, sizeof(PlayerInfo));
 	memcpy(&pos, playerInfo.pos, sizeof(uint32_t) * 3);
-	memcpy(&look, playerInfo.look, sizeof(uint32_t) * 3);
+	memcpy(&bodylook, playerInfo.bodylook, sizeof(uint32_t) * 3);
+	memcpy(&headlook, playerInfo.headlook, sizeof(uint32_t) * 3);
 	memcpy(&isFire, playerInfo.isFired, sizeof(bool));
 	memcpy(&isInstall, playerInfo.isInstall, sizeof(bool));
 	
 	glm::vec3 playerPos;
-	glm::vec3 playerLook;
+	glm::vec3 playerBodyLook;
+	glm::vec3 playerHeadLook;
 	playerPos.x = *reinterpret_cast<float*>(&pos[0]);
 	playerPos.y = *reinterpret_cast<float*>(&pos[1]);
 	playerPos.z = *reinterpret_cast<float*>(&pos[2]);
-	playerLook.x = *reinterpret_cast<float*>(&look[0]);
-	playerLook.y = *reinterpret_cast<float*>(&look[1]);
-	playerLook.z = *reinterpret_cast<float*>(&look[2]);
+	playerBodyLook.x = *reinterpret_cast<float*>(&bodylook[0]);
+	playerBodyLook.y = *reinterpret_cast<float*>(&bodylook[1]);
+	playerBodyLook.z = *reinterpret_cast<float*>(&bodylook[2]);
+	playerHeadLook.x = *reinterpret_cast<float*>(&headlook[0]);
+	playerHeadLook.y = *reinterpret_cast<float*>(&headlook[1]);
+	playerHeadLook.z = *reinterpret_cast<float*>(&headlook[2]);
 	SetPosition(playerPos);
-	SetLook(playerLook);
+	SetBodyLook(playerBodyLook);
+	SetHeadLook(playerHeadLook);
 	mIsInstall = isInstall;
 
 	if (mIsInstall) Install_Turret();
@@ -736,9 +749,14 @@ GLvoid Player::SetPosition(glm::vec3 newPos)
 	mBody->SetPosition(newPos);
 }
 
-GLvoid Player::SetLook(glm::vec3 newPos)
+GLvoid Player::SetBodyLook(glm::vec3 newPos)
 {
 	mBody->SetLook(newPos);
+}
+
+GLvoid Player::SetHeadLook(glm::vec3 newPos)
+{
+	mHead->SetLook(newPos);
 }
 
 GLvoid Player::AddHoldturret(const GLint& value)

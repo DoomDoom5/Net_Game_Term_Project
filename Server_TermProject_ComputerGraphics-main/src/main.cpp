@@ -343,7 +343,8 @@ struct PlayersInfo
 {
     char num[sizeof(int)];
     char pos[sizeof(uint32_t) * 3 * MAXUSER];
-    char look[sizeof(uint32_t) * 3 * MAXUSER];
+    char bodylook[sizeof(uint32_t) * 3 * MAXUSER];
+    char headlook[sizeof(uint32_t) * 3 * MAXUSER];
 };
 
 GLvoid SendAllPlayersInfo(SOCKET& sock)
@@ -354,24 +355,31 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
     memcpy(playersInfo.num, &users, sizeof(int));
     
     uint32_t nPos[MAXUSER * 3]; // 최대 3명 플레이어 xyz(3) 전달
-    uint32_t nLook[MAXUSER * 3]; // 최대 3명 플레이어 xyz(3) 전달
+    uint32_t nBodyLook[MAXUSER * 3]; // 최대 3명 플레이어 xyz(3) 전달
+    uint32_t nHeadLook[MAXUSER * 3]; // 최대 3명 플레이어 xyz(3) 전달
 
     cout << "SendToClient: " << endl;
     for (size_t i = 0; i < users; i++)
     {
         glm::vec3 playerPos = player[i]->GetPosition();
-        glm::vec3 playerLook = player[i]->GetLook();
+        glm::vec3 playerBodyLook = player[i]->GetBodyLook();
+        glm::vec3 playerHeadLook = player[i]->GetHeadLook();
         nPos[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&playerPos.x);
         nPos[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&playerPos.y);
         nPos[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&playerPos.z);
-        nLook[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&playerLook.x);
-        nLook[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&playerLook.y);
-        nLook[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&playerLook.z);
+        nBodyLook[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&playerBodyLook.x);
+        nBodyLook[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&playerBodyLook.y);
+        nBodyLook[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&playerBodyLook.z);
+        nHeadLook[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&playerHeadLook.x);
+        nHeadLook[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&playerHeadLook.y);
+        nHeadLook[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&playerHeadLook.z);
         cout << i << " Pos: (" << playerPos.x << ", " << playerPos.y << ", " << playerPos.z << ")" << endl;
-        cout << i << " Look: (" << playerPos.x << ", " << playerPos.y << ", " << playerPos.z << ")" << endl;
+        cout << i << " BodyLook: (" << playerBodyLook.x << ", " << playerBodyLook.y << ", " << playerBodyLook.z << ")" << endl;
+        cout << i << " HeadLook: (" << playerHeadLook.x << ", " << playerHeadLook.y << ", " << playerHeadLook.z << ")" << endl;
     }
     memcpy(playersInfo.pos, nPos, sizeof(uint32_t) * 3 * users);
-    memcpy(playersInfo.look, nLook, sizeof(uint32_t) * 3 * users);
+    memcpy(playersInfo.bodylook, nBodyLook, sizeof(uint32_t) * 3 * users);
+    memcpy(playersInfo.headlook, nHeadLook, sizeof(uint32_t) * 3 * users);
     memcpy(buf, &playersInfo, sizeof(PlayersInfo));
     send(sock, buf, sizeof(PlayersInfo), 0);
 }

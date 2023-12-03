@@ -644,9 +644,14 @@ glm::vec3 Player::GetPosition() const
 	return mBody->GetPosition();
 }
 
-glm::vec3 Player::GetLook() const
+glm::vec3 Player::GetBodyLook() const
 {
 	return mBody->GetLook();
+}
+
+glm::vec3 Player::GetHeadLook() const
+{
+	return mHead->GetLook();
 }
 
 GLint Player::GetAmmo() const
@@ -667,7 +672,8 @@ GunType Player::GetGunType() const
 
 struct PlayerInfo {
 	char pos[sizeof(uint32_t) * 3];
-	char look[sizeof(uint32_t) * 3];
+	char bodylook[sizeof(uint32_t) * 3];
+	char headlook[sizeof(uint32_t) * 3];
 	char isFired[sizeof(bool)];
 	char isInstall[sizeof(bool)];
 };
@@ -682,21 +688,27 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	memset(&playerInfo, 0, sizeof(playerInfo));
 
 	uint32_t nPos[3]; 
-	uint32_t nLook[3]; 
+	uint32_t nBodyLook[3];
+	uint32_t nHeadLook[3];
 	char buf[sizeof(PlayerInfo)];
 	memset(buf, 0, sizeof(buf));
 
 	glm::vec3 pos = GetPosition();
-	glm::vec3 look = GetLook();
+	glm::vec3 bodylook = GetBodyLook();
+	glm::vec3 headlook = GetHeadLook();
 	nPos[0] = *reinterpret_cast<uint32_t*>(&pos.x);
 	nPos[1] = *reinterpret_cast<uint32_t*>(&pos.y);
 	nPos[2] = *reinterpret_cast<uint32_t*>(&pos.z);
-	nLook[0] = *reinterpret_cast<uint32_t*>(&look.x);
-	nLook[1] = *reinterpret_cast<uint32_t*>(&look.y);
-	nLook[2] = *reinterpret_cast<uint32_t*>(&look.z);
+	nBodyLook[0] = *reinterpret_cast<uint32_t*>(&bodylook.x);
+	nBodyLook[1] = *reinterpret_cast<uint32_t*>(&bodylook.y);
+	nBodyLook[2] = *reinterpret_cast<uint32_t*>(&bodylook.z);
+	nHeadLook[0] = *reinterpret_cast<uint32_t*>(&headlook.x);
+	nHeadLook[1] = *reinterpret_cast<uint32_t*>(&headlook.y);
+	nHeadLook[2] = *reinterpret_cast<uint32_t*>(&headlook.z);
 
 	memcpy(playerInfo.pos, nPos, sizeof(uint32_t) * 3);
-	memcpy(playerInfo.look, nLook, sizeof(uint32_t) * 3);
+	memcpy(playerInfo.bodylook, nBodyLook, sizeof(uint32_t) * 3);
+	memcpy(playerInfo.headlook, nHeadLook, sizeof(uint32_t) * 3);
 	memcpy(playerInfo.isFired, &mlsFire, sizeof(bool));
 	memcpy(playerInfo.isInstall, &mIsInstall, sizeof(bool));
 
@@ -727,9 +739,14 @@ GLvoid Player::SetPosition(glm::vec3 newPos)
 	mBody->SetPosition(newPos);
 }
 
-GLvoid Player::SetLook(glm::vec3 newPos)
+GLvoid Player::SetBodyLook(glm::vec3 newPos)
 {
 	mBody->SetLook(newPos);
+}
+
+GLvoid Player::SetHeadLook(glm::vec3 newPos)
+{
+	mHead->SetLook(newPos);
 }
 
 GLint Player::GetHoldTullet() const

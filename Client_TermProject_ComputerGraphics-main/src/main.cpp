@@ -699,7 +699,8 @@ struct PlayersInfo
 {
 	char num[sizeof(int)];
 	char pos[sizeof(uint32_t) * 3 * MAXUSER];
-	char look[sizeof(uint32_t) * 3 * MAXUSER];
+	char bodylook[sizeof(uint32_t) * 3 * MAXUSER];
+	char headlook[sizeof(uint32_t) * 3 * MAXUSER];
 };
 
 GLvoid UpdateplayersPos(SOCKET& sock)
@@ -714,29 +715,37 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 	cout << "RecvFromServer: " << endl;
 
 	uint32_t nPos[MAXUSER * 3];
-	uint32_t nLook[MAXUSER * 3];
+	uint32_t nBodyLook[MAXUSER * 3];
+	uint32_t nHeadLook[MAXUSER * 3];
 	memcpy(nPos, playerInfo.pos, sizeof(uint32_t) * 3 * users);
-	memcpy(nLook, playerInfo.look, sizeof(uint32_t) * 3 * users);
+	memcpy(nBodyLook, playerInfo.bodylook, sizeof(uint32_t) * 3 * users);
+	memcpy(nHeadLook, playerInfo.headlook, sizeof(uint32_t) * 3 * users);
 
 	int id = 0;
 	for (size_t i = 0; i < users; i++)
 	{
 		glm::vec3 fPos;
-		glm::vec3 fLook;
+		glm::vec3 fBodyLook;
+		glm::vec3 fHeadLook;
 		if (player[i] == nullptr) return;
 		fPos.x = *reinterpret_cast<float*>(&nPos[3 * i + 0]);
 		fPos.y = *reinterpret_cast<float*>(&nPos[3 * i + 1]);
 		fPos.z = *reinterpret_cast<float*>(&nPos[3 * i + 2]);
-		fLook.x = *reinterpret_cast<float*>(&nLook[3 * i + 0]);
-		fLook.y = *reinterpret_cast<float*>(&nLook[3 * i + 1]);
-		fLook.z = *reinterpret_cast<float*>(&nLook[3 * i + 2]);
+		fBodyLook.x = *reinterpret_cast<float*>(&nBodyLook[3 * i + 0]);
+		fBodyLook.y = *reinterpret_cast<float*>(&nBodyLook[3 * i + 1]);
+		fBodyLook.z = *reinterpret_cast<float*>(&nBodyLook[3 * i + 2]);
+		fHeadLook.x = *reinterpret_cast<float*>(&nHeadLook[3 * i + 0]);
+		fHeadLook.y = *reinterpret_cast<float*>(&nHeadLook[3 * i + 1]);
+		fHeadLook.z = *reinterpret_cast<float*>(&nHeadLook[3 * i + 2]);
 
 		cout << i << " Pos: ( " << fPos.x << ", " << fPos.y << ", " << fPos.z << " )" << endl;
-		cout << i << " Look: ( " << fLook.x << ", " << fLook.y << ", " << fLook.z << " )" << endl;
+		cout << i << " BodyLook: ( " << fBodyLook.x << ", " << fBodyLook.y << ", " << fBodyLook.z << " )" << endl;
+		cout << i << " HeadLook: ( " << fHeadLook.x << ", " << fHeadLook.y << ", " << fHeadLook.z << " )" << endl;
 
 		//if (id == myid) continue;
 
 		player[i]->SetPosition(fPos);
-		player[i]->SetLook(fLook);
+		player[i]->SetBodyLook(fBodyLook);
+		player[i]->SetHeadLook(fHeadLook);
 	}
 }
