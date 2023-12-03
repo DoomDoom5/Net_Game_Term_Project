@@ -730,6 +730,6 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 		if (id == myid) continue;
 
 		glm::vec3 newPos(x, y, z);
-		player[i]->SetPosition(newPos);
+		player[i]->SetRefPosition(newPos);
 	}
 }
