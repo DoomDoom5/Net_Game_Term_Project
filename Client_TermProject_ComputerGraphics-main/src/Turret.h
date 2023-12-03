@@ -37,6 +37,7 @@ private:
 	};
 
 	vector<Turret*> turrets;
+	string Log;
 public:
 	TurretManager();
 	~TurretManager();

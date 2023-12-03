@@ -31,6 +31,7 @@ protected:
 	const glm::vec3* target = nullptr;
 
 	GLboolean isSpawning = GL_TRUE;
+	string Log;
 
 public:
 	Monster(const MonsterType& monsterType, const glm::vec3& position);

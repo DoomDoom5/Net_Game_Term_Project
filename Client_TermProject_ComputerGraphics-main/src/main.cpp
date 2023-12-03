@@ -87,6 +87,9 @@ GLpoint crntPos = { 0,0 };
 GLboolean isLeftDown = GL_FALSE;
 GLboolean isRightDown = GL_FALSE;
 
+// Thread
+DWORD WINAPI OutLog(LPVOID arg);
+
 // temp
 ModelObject* cubeMap = nullptr;
 
@@ -227,6 +230,11 @@ GLvoid InitPlayer()
 	uiManager->SetPlayer(player[myid]);
 	monsterManager->SetPlayer(player[myid]);
 	waveManager->SetPlayer(player[myid]);
+
+
+	// 화면 초기화 쓰레드
+	HANDLE h_cThread = CreateThread(NULL, 0, OutLog,
+		NULL, 0, NULL);
 }
 
 GLvoid Reset()
@@ -395,17 +403,17 @@ GLvoid Update()
 
 	timer::CalculateFPS();
 	timer::Update();
+	if (player[myid] != nullptr) player[myid]->Update();
 
-	monsterManager->Update(sock);
-	if (player[myid] != nullptr) UpdateplayersPos(sock);
-	if (player[myid] != nullptr ) player[myid]->Update();
 	if (player[myid] != nullptr) player[myid]->PlayerSend(sock);
+	monsterManager->Update(sock);
+	bulletManager->Update(sock);
+	turretManager->Update(sock);
+	waveManager->Update(sock);
+	if (player[myid] != nullptr) UpdateplayersPos(sock);
 	if (player[myid] != nullptr) player[myid]->PlayerRecv(sock);
 
-	//bulletManager->Update(sock);
-	//turretManager->Update(sock);
-	//waveManager->Update(sock);
-	
+
 	constexpr GLfloat cameraMovement = 100.0f;
 	GLfloat cameraSpeed = cameraMovement;
 	// movement
@@ -727,4 +735,13 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 	}
 	users += 1;
 	player[users - 1]->SetPosition(glm::vec3(2.0f, 20.0f, 2.0f));
+}
+
+DWORD WINAPI OutLog(LPVOID arg)
+{
+	while (1)
+	{
+		system("cls");
+	}
+	return 0;
 }

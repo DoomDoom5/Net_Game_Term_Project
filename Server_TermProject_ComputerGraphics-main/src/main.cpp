@@ -11,7 +11,6 @@
 #include "Wave.h"
 #include "Common.h"
 
-char* SERVERIP = (char*)"127.0.0.1";
 #define SERVERPORT 9000
 #define BUFSIZE 50
 
@@ -53,6 +52,7 @@ Player* player[3] = { nullptr ,nullptr ,nullptr };
 DWORD WINAPI SleepCls(LPVOID arg);
 DWORD WINAPI ServerMain(LPVOID arg);
 DWORD WINAPI ProcessClient(LPVOID arg); 
+string sendPlayersInfo(SOCKET& player_sock);
 vector <string> Current(MAXUSER);
 vector <bool> ClientOn(MAXUSER);
 
@@ -184,10 +184,6 @@ GLvoid Update()
 
     for (size_t i = 0; i < users; i++)  if (player[i] != nullptr) player[i]->Update();
     
-    player[0]->Update();
-    player[1]->Update();
-    player[2]->Update();
-
     bulletManager->Update();
 	buildingManager->Update();
 	turretManager->Update();
@@ -253,14 +249,7 @@ DWORD WINAPI ServerMain(LPVOID arg)
 
         USER client;
         client.client_sock = client_sock;
-
-
-        if (!ClientOn[users])// 자리가 남았을때
-        {
-            ClientOn[users] = true;
-            client.id = users++;
-        }
-
+        client.id = users++;
 
         // 스레드 생성
         hThread = CreateThread(NULL, 0, ProcessClient,
@@ -323,37 +312,32 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 
     while (1)
     {
-      //  player[id]->PlayerRecv(player_sock);
-     //   monsterManager->MonsterSend(player_sock);
-        
-        monsterManager->SendBuf(player_sock);
-
-        // ====================================
-        string playerInfo = to_string(users) + ' ';
-        for (size_t i = 0; i < users; i++)
-        {
-            playerInfo += to_string(i) + ' ' +
-                to_string((int)player[i]->GetPosition().x + i *5) + ' ' +
-                to_string((int)player[i]->GetPosition().y) + ' ' +
-                to_string((int)player[i]->GetPosition().z + i * 4) + ' ';
-        }
-        send(player_sock, playerInfo.c_str(), playerInfo.size(), 0);
-        // ====================================
-
         player[id]->PlayerRecv(player_sock);
+        monsterManager->SendBuf(player_sock);
+        buildingManager->SendBuf(player_sock);
+        turretManager->SendBuf(player_sock);
+        waveManager->SendBuf(player_sock);
         player[id]->PlayerSend(player_sock);
+        sendPlayersInfo(player_sock);
         Sleep(1000/60);
     }
     /*
     send/recv 순서  [꼭 지킬것!]
 
     1. player[0]->Update(client_sock()); -> 클라에서 변환된 부분 받음
-    2.	bulletManager->send(client_sock);
-    3.
-    4.	buildingManager->send(client_sock);
-    5.	turretManager->send(client_sock);
-    6.	waveManager->send(client_sock);
     7. player[0]->recv(client_sock(); -> 플레이어 변화된 부분 클라에게 전달
 
     */
-} 
+}
+string sendPlayersInfo(SOCKET& player_sock)
+{
+    string playerInfo = to_string(users) + ' ';
+    for (size_t i = 0; i < users; i++)
+    {
+        playerInfo += to_string(i) + ' ' +
+            to_string((int)player[i]->GetPosition().x + i * 5) + ' ' +
+            to_string((int)player[i]->GetPosition().y) + ' ' +
+            to_string((int)player[i]->GetPosition().z + i * 4) + ' ';
+    }
+    send(player_sock, playerInfo.c_str(), playerInfo.size(), 0);
+}

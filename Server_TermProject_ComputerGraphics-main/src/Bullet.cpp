@@ -268,15 +268,12 @@ GLvoid BulletManager::Update()
 		}
 	}
 
-	char numbuf[5]; // ÃÑ¾Ë 99999 ¸¦ max·Î
+	char numbuf[5]; 
 
 	int num = 0;
 	if (!mBulletList.empty())
 		num = mBulletList.size();
 	else num = 0;
-
-	//snprintf(numbuf, sizeof(numbuf), "%d", num);
-	//send(sock, numbuf, (int)strlen(numbuf), 0);
 
 	std::ostringstream oss;
 
@@ -288,26 +285,8 @@ GLvoid BulletManager::Update()
 			<< bullet->GetPosition().x << " "
 			<< bullet->GetPosition().y << " "
 			<< bullet->GetPosition().z << " ";
-		//std::cout << i << ": (" << bullet->GetPosition().x << ", "
-			//<< bullet->GetPosition().y << ", "
-			//<< bullet->GetPosition().z << ")\n";
 	}
 	
-	
-	/*
-	num = 10;
-	float c = 0;
-	for (int i = 0; i < num; ++i) {
-		c++;
-		oss << std::fixed << std::setprecision(2)
-			<< c << " "
-			<< c << " "
-			<< c << " ";
-		std::cout << i << ": (" << c << ", "
-			<< c << ", "
-			<< c << ")\n";
-	}
-	*/
 
 
 	std::string buf = oss.str();

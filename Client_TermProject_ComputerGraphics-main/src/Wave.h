@@ -11,6 +11,7 @@ private:
 	Player* mPlayer = nullptr;
 
 	glm::vec2 GetRandomMonsterPos(const GLint& mapWidth, const GLfloat& mapTop);
+	string Log;
 public:
 	WaveManager();
 
