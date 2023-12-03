@@ -25,6 +25,7 @@ GLvoid InitMeshes();
 GLvoid DrawScene();
 
 GLvoid Update();
+GLvoid SendAllPlayersInfo(SOCKET&);
 
 GLvoid ToggleDepthTest();
 
@@ -285,6 +286,8 @@ DWORD WINAPI SleepCls(LPVOID arg)
     }
 }
 
+
+
 // 클라이언트와 데이터 통신
 DWORD WINAPI ProcessClient(LPVOID arg)
 {
@@ -302,20 +305,11 @@ DWORD WINAPI ProcessClient(LPVOID arg)
     getpeername(player_sock, (struct sockaddr*)&Tclientaddr, &Taddrlen);
     inet_ntop(AF_INET, &Tclientaddr.sin_addr, addr, sizeof(addr));
 
-    glm::vec3 initPosition(0,0,0);
-    string Id_to_InitPos = to_string(id) + ' ' +
-                                        to_string(initPosition.x) + ' ' +
-                                        to_string(initPosition.y) + ' ' +
-                                        to_string(initPosition.z);
-
-    send(player_sock, Id_to_InitPos.c_str(), Id_to_InitPos.size(), 0);
     player[id] = new Player({ 0,0,0 });
     monsterManager->SetPlayer(player[id]);
     waveManager->SetPlayer(player[id]);
 
 
-    uint32_t nPos[MAXUSER * 3]; // 최대 3명 플레이어 xyz(3) 전달
-    char buf[sizeof(uint32_t) * 3 * MAXUSER];
 
     while (1)
     {
@@ -326,22 +320,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
         player[id]->PlayerSend(player_sock);
 
         // ====================================
-
-        char numbuf[sizeof(int)];
-        memcpy(numbuf, &users, sizeof(int));
-        send(player_sock, numbuf, sizeof(int), 0);
-
-        cout << "SendToClient: " << endl;
-        for (size_t i = 0; i < users; i++)
-        {
-            glm::vec3 playerPos = player[i]->GetPosition();
-            nPos[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&playerPos.x);
-            nPos[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&playerPos.y);
-            nPos[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&playerPos.z);
-            cout << i << " : (" << playerPos.x << ", " << playerPos.y << ", " << playerPos.z << ")" << endl;
-        }
-        memcpy(buf, nPos, sizeof(buf));
-        send(player_sock, buf, sizeof(buf), 0);
+        SendAllPlayersInfo(player_sock);
         // ====================================
 
         //Sleep(1000/60);
@@ -359,3 +338,40 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 
     */
 } 
+
+struct PlayersInfo
+{
+    char num[sizeof(int)];
+    char pos[sizeof(uint32_t) * 3 * MAXUSER];
+    char look[sizeof(uint32_t) * 3 * MAXUSER];
+};
+
+GLvoid SendAllPlayersInfo(SOCKET& sock)
+{
+    PlayersInfo playersInfo;
+    char buf[sizeof(PlayersInfo)];
+
+    memcpy(playersInfo.num, &users, sizeof(int));
+    
+    uint32_t nPos[MAXUSER * 3]; // 최대 3명 플레이어 xyz(3) 전달
+    uint32_t nLook[MAXUSER * 3]; // 최대 3명 플레이어 xyz(3) 전달
+
+    cout << "SendToClient: " << endl;
+    for (size_t i = 0; i < users; i++)
+    {
+        glm::vec3 playerPos = player[i]->GetPosition();
+        glm::vec3 playerLook = player[i]->GetLook();
+        nPos[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&playerPos.x);
+        nPos[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&playerPos.y);
+        nPos[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&playerPos.z);
+        nLook[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&playerLook.x);
+        nLook[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&playerLook.y);
+        nLook[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&playerLook.z);
+        cout << i << " Pos: (" << playerPos.x << ", " << playerPos.y << ", " << playerPos.z << ")" << endl;
+        cout << i << " Look: (" << playerPos.x << ", " << playerPos.y << ", " << playerPos.z << ")" << endl;
+    }
+    memcpy(playersInfo.pos, nPos, sizeof(uint32_t) * 3 * users);
+    memcpy(playersInfo.look, nLook, sizeof(uint32_t) * 3 * users);
+    memcpy(buf, &playersInfo, sizeof(PlayersInfo));
+    send(sock, buf, sizeof(PlayersInfo), 0);
+}

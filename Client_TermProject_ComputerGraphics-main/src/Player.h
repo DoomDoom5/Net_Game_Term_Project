@@ -173,6 +173,7 @@ public:
 	// ======= Get ======
 	const glm::vec3* GetRefPos() const { return &mPosition; }
 	glm::vec3 GetPosition() const;
+	glm::vec3 GetLook() const;
 	inline constexpr Camera* GetFirstPersonCamera() { return mFpCamera; }
 	inline constexpr Camera* GetThirdPersonCamera() { return mTpCamera; }
 	inline constexpr Camera* GetZoomFirstPersonCamera() { return mZoomFPCamera; }
@@ -194,6 +195,7 @@ public:
 
 	// ======= Set ======
 	GLvoid SetPosition(glm::vec3);
+	GLvoid SetLook(glm::vec3 newPos);
 
 	// Add
 	GLvoid AddHoldturret(const GLint& value);

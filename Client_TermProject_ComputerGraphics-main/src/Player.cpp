@@ -644,6 +644,11 @@ glm::vec3 Player::GetPosition() const
 	return mBody->GetPosition();
 }
 
+glm::vec3 Player::GetLook() const
+{
+	return mBody->GetLook();
+}
+
 GLint Player::GetAmmo() const
 {
 	return mCrntGun->GetAmmo();
@@ -662,6 +667,7 @@ GunType Player::GetGunType() const
 
 struct PlayerInfo {
 	char pos[sizeof(uint32_t) * 3];
+	char look[sizeof(uint32_t) * 3];
 	char isFired[sizeof(bool)];
 	char isInstall[sizeof(bool)];
 };
@@ -675,27 +681,29 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	PlayerInfo playerInfo;
 	memset(&playerInfo, 0, sizeof(playerInfo));
 
-	uint32_t nPos[3]; // 최대 3명 플레이어 xyz(3) 전달
+	uint32_t nPos[3]; 
+	uint32_t nLook[3]; 
 	char buf[sizeof(PlayerInfo)];
 	memset(buf, 0, sizeof(buf));
 
 	glm::vec3 pos = GetPosition();
+	glm::vec3 look = GetLook();
 	nPos[0] = *reinterpret_cast<uint32_t*>(&pos.x);
 	nPos[1] = *reinterpret_cast<uint32_t*>(&pos.y);
 	nPos[2] = *reinterpret_cast<uint32_t*>(&pos.z);
+	nLook[0] = *reinterpret_cast<uint32_t*>(&look.x);
+	nLook[1] = *reinterpret_cast<uint32_t*>(&look.y);
+	nLook[2] = *reinterpret_cast<uint32_t*>(&look.z);
 
 	memcpy(playerInfo.pos, nPos, sizeof(uint32_t) * 3);
+	memcpy(playerInfo.look, nLook, sizeof(uint32_t) * 3);
 	memcpy(playerInfo.isFired, &mlsFire, sizeof(bool));
 	memcpy(playerInfo.isInstall, &mIsInstall, sizeof(bool));
 
 	// 데이터 보내기
 	memcpy(buf, &playerInfo, sizeof(PlayerInfo));
 	retval = send(sock, buf, sizeof(PlayerInfo), 0);
-	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
 	mIsInstall = false;
-	// ======================
-	cout << "SEND POSTION : " << mPosition.x << ", " << mPosition.y << ", " << mPosition.z << endl;
-	cout << "SEND INFO : " << mlsFire << ", " << mIsInstall << endl;
 
 }
 
@@ -719,6 +727,10 @@ GLvoid Player::SetPosition(glm::vec3 newPos)
 	mBody->SetPosition(newPos);
 }
 
+GLvoid Player::SetLook(glm::vec3 newPos)
+{
+	mBody->SetLook(newPos);
+}
 
 GLint Player::GetHoldTullet() const
 {

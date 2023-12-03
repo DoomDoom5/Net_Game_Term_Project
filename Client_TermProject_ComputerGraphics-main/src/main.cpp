@@ -697,38 +697,46 @@ GLvoid SetCameraMode(const CameraMode& mode)
 
 struct PlayersInfo
 {
-	int id = 0;
-	int x, y, z = 0;
+	char num[sizeof(int)];
+	char pos[sizeof(uint32_t) * 3 * MAXUSER];
+	char look[sizeof(uint32_t) * 3 * MAXUSER];
 };
 
 GLvoid UpdateplayersPos(SOCKET& sock)
 {
+	PlayersInfo playerInfo;
 	int retval = 0;
-	char numbuf[sizeof(int)];
-	retval = recv(sock, numbuf, sizeof(int), 0);
-	memcpy(&users, numbuf, sizeof(int));
+	char buf[sizeof(PlayersInfo)];
+	retval = recv(sock, buf, sizeof(PlayersInfo), 0);
+	memcpy(&playerInfo, buf, sizeof(PlayersInfo));
 
-	retval = 0;
-	char buf[sizeof(uint32_t) * 3 * MAXUSER];
-	retval = recv(sock, buf, sizeof(uint32_t) * 3 * MAXUSER, 0);
+	memcpy(&users, playerInfo.num, sizeof(int));
 	cout << "RecvFromServer: " << endl;
 
 	uint32_t nPos[MAXUSER * 3];
-	memcpy(nPos, buf, sizeof(uint32_t) * 3 * users);
+	uint32_t nLook[MAXUSER * 3];
+	memcpy(nPos, playerInfo.pos, sizeof(uint32_t) * 3 * users);
+	memcpy(nLook, playerInfo.look, sizeof(uint32_t) * 3 * users);
 
 	int id = 0;
-	glm::vec3 fPos;
 	for (size_t i = 0; i < users; i++)
 	{
+		glm::vec3 fPos;
+		glm::vec3 fLook;
 		if (player[i] == nullptr) return;
 		fPos.x = *reinterpret_cast<float*>(&nPos[3 * i + 0]);
 		fPos.y = *reinterpret_cast<float*>(&nPos[3 * i + 1]);
 		fPos.z = *reinterpret_cast<float*>(&nPos[3 * i + 2]);
+		fLook.x = *reinterpret_cast<float*>(&nLook[3 * i + 0]);
+		fLook.y = *reinterpret_cast<float*>(&nLook[3 * i + 1]);
+		fLook.z = *reinterpret_cast<float*>(&nLook[3 * i + 2]);
 
-		cout << i << ": ( " << fPos.x << ", " << fPos.y << ", " << fPos.z << " )" << endl;
+		cout << i << " Pos: ( " << fPos.x << ", " << fPos.y << ", " << fPos.z << " )" << endl;
+		cout << i << " Look: ( " << fLook.x << ", " << fLook.y << ", " << fLook.z << " )" << endl;
 
-		if (id == myid) continue;
+		//if (id == myid) continue;
 
 		player[i]->SetPosition(fPos);
+		player[i]->SetLook(fLook);
 	}
 }

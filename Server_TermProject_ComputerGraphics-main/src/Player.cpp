@@ -584,6 +584,11 @@ glm::vec3 Player::GetPosition() const
 	return mBody->GetPosition();
 }
 
+glm::vec3 Player::GetLook() const
+{
+	return mBody->GetLook();
+}
+
 GLint Player::GetAmmo() const
 {
 	return mCrntGun->GetAmmo();
@@ -687,6 +692,7 @@ GLvoid Player::PlayerSend(SOCKET& client_sock)
 
 struct PlayerInfo {
 	char pos[sizeof(uint32_t) * 3];
+	char look[sizeof(uint32_t) * 3];
 	char isFired[sizeof(bool)];
 	char isInstall[sizeof(bool)];
 };
@@ -699,25 +705,40 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	char buf[sizeof(PlayerInfo)];
 	int retval = 0;
 	uint32_t pos[3];
+	uint32_t look[3];
 	bool isFire , isInstall = false;
 
 	retval = recv(client_sock, buf, sizeof(PlayerInfo), 0);
 	memcpy(&playerInfo, buf, sizeof(PlayerInfo));
 	memcpy(&pos, playerInfo.pos, sizeof(uint32_t) * 3);
+	memcpy(&look, playerInfo.look, sizeof(uint32_t) * 3);
 	memcpy(&isFire, playerInfo.isFired, sizeof(bool));
 	memcpy(&isInstall, playerInfo.isInstall, sizeof(bool));
 	
-	mPosition.x = *reinterpret_cast<float*>(&pos[0]);
-	mPosition.y = *reinterpret_cast<float*>(&pos[1]);
-	mPosition.z = *reinterpret_cast<float*>(&pos[2]);
+	glm::vec3 playerPos;
+	glm::vec3 playerLook;
+	playerPos.x = *reinterpret_cast<float*>(&pos[0]);
+	playerPos.y = *reinterpret_cast<float*>(&pos[1]);
+	playerPos.z = *reinterpret_cast<float*>(&pos[2]);
+	playerLook.x = *reinterpret_cast<float*>(&look[0]);
+	playerLook.y = *reinterpret_cast<float*>(&look[1]);
+	playerLook.z = *reinterpret_cast<float*>(&look[2]);
+	SetPosition(playerPos);
+	SetLook(playerLook);
 	mIsInstall = isInstall;
 
-#ifdef DEBUG
-	cout << "RECV POSTION : " << mPosition.x << ", " << mPosition.y << ", " << mPosition.z << endl;
-	cout << "RECV INFO : " << isFire << ", " << isInstall << endl;
-#endif
 	if (mIsInstall) Install_Turret();
 	mIsInstall = false;
+}
+
+GLvoid Player::SetPosition(glm::vec3 newPos)
+{
+	mBody->SetPosition(newPos);
+}
+
+GLvoid Player::SetLook(glm::vec3 newPos)
+{
+	mBody->SetLook(newPos);
 }
 
 GLvoid Player::AddHoldturret(const GLint& value)
