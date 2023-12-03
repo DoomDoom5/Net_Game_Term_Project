@@ -603,23 +603,36 @@ GunType Player::GetGunType() const
 	else return GunType::None;
 }
 
+struct PlayerInfo {
+	char pos[sizeof(uint32_t) * 3];
+	char isFired[sizeof(bool)];
+	char isInstall[sizeof(bool)];
+};
+
 GLvoid Player::PlayerSend(SOCKET& sock)
 {
 	int retval = 0;
 	// ===================클라이언트 정보 수신===============
 	// glm::vec3를 문자열로 변환
-	string vec3AsString =
-		to_string((int)mPosition.x) + ' ' +
-		to_string((int)mPosition.y) + ' ' +
-		to_string((int)mPosition.z) + ' ' +
-		to_string(mlsFire) + ' ' +
-		to_string(mIsInstall);
 
-	// 문자열을 C 스타일의 문자열로 변환
-	const char* buf = vec3AsString.c_str();
-	cout << vec3AsString << endl;
+	PlayerInfo playerInfo;
+	memset(&playerInfo, 0, sizeof(playerInfo));
+
+	uint32_t nPos[3]; // 최대 3명 플레이어 xyz(3) 전달
+	char buf[sizeof(PlayerInfo)];
+	memset(buf, 0, sizeof(buf));
+
+	nPos[0] = *reinterpret_cast<uint32_t*>(&mPosition.x);
+	nPos[1] = *reinterpret_cast<uint32_t*>(&mPosition.y);
+	nPos[2] = *reinterpret_cast<uint32_t*>(&mPosition.z);
+
+	memcpy(playerInfo.pos, nPos, sizeof(uint32_t) * 3);
+	memcpy(playerInfo.isFired, &mlsFire, sizeof(bool));
+	memcpy(playerInfo.isInstall, &mIsInstall, sizeof(bool));
+
 	// 데이터 보내기
-	retval = send(sock, buf, vec3AsString.size(), 0);
+	memcpy(buf, &playerInfo, sizeof(PlayerInfo));
+	retval = send(sock, buf, sizeof(PlayerInfo), 0);
 	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
 	mIsInstall = false;
 	// ======================

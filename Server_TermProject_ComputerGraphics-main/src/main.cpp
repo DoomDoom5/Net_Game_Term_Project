@@ -183,12 +183,11 @@ GLvoid Update()
 	//bulletManager->Update();
 	monsterManager->Update();
     for (size_t i = 0; i < users; i++)  if (player[i] != nullptr) player[i]->Update();
-	buildingManager->Update();
-	turretManager->Update();
-	waveManager->Update();
+	//buildingManager->Update();
+	//turretManager->Update();
+	//waveManager->Update();
 
     glutPostRedisplay();
-
 }
 
 // TCP 서버 시작 부분
@@ -303,30 +302,41 @@ DWORD WINAPI ProcessClient(LPVOID arg)
     player[id] = new Player({ 0,0,0 });
     monsterManager->SetPlayer(player[id]);
     waveManager->SetPlayer(player[id]);
-    string playerInfo;
+
+
+    uint32_t nPos[MAXUSER * 3]; // 최대 3명 플레이어 xyz(3) 전달
+    char buf[sizeof(uint32_t) * 3 * MAXUSER];
 
     while (1)
     {
-      //  player[id]->PlayerRecv(player_sock);
-     //   monsterManager->MonsterSend(player_sock);
         
         monsterManager->SendBuf(player_sock);
 
-        // ====================================
-        string playerInfo = to_string(users) + ' ';
-        for (size_t i = 0; i < users; i++)
-        {
-            playerInfo += to_string(i) + ' ' +
-                to_string((int)player[i]->GetPosition().x) + ' ' +
-                to_string((int)player[i]->GetPosition().y) + ' ' +
-                to_string((int)player[i]->GetPosition().z) + ' ';
-        }
-        send(player_sock, playerInfo.c_str(), playerInfo.size(), 0);
-        // ====================================
-
         player[id]->PlayerRecv(player_sock);
         player[id]->PlayerSend(player_sock);
-        Sleep(1000/60);
+
+        // ====================================
+
+        char numbuf[sizeof(int)];
+        memcpy(numbuf, &users, sizeof(int));
+        send(player_sock, numbuf, sizeof(int), 0);
+
+        cout << "SendToClient: " << endl;
+        for (size_t i = 0; i < users; i++)
+        {
+            const glm::vec3* playerPos = player[i]->GetRefPos();
+            glm::vec3 pos;
+            memcpy(&pos, playerPos, sizeof(glm::vec3));
+            nPos[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&pos.x);
+            nPos[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&pos.y);
+            nPos[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&pos.z);
+            cout << i << " : (" << pos.x << ", " << pos.y << ", " << pos.z << ")" << endl;
+        }
+        memcpy(buf, nPos, sizeof(buf));
+        send(player_sock, buf, sizeof(buf), 0);
+        // ====================================
+
+        //Sleep(1000/60);
     }
     /*
     send/recv 순서  [꼭 지킬것!]

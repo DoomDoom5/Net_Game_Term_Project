@@ -679,22 +679,31 @@ GLvoid Player::PlayerSend(SOCKET& client_sock)
 	cout << "SEND HP : " << mHP << endl;
 }
 
+struct PlayerInfo {
+	char pos[sizeof(uint32_t) * 3];
+	char isFired[sizeof(bool)];
+	char isInstall[sizeof(bool)];
+};
+
 GLvoid Player::PlayerRecv(SOCKET& client_sock)
 {
 	// ======= 사용자 정보수신 ======
+	PlayerInfo playerInfo;
 
-	char buffer[512];
+	char buf[sizeof(PlayerInfo)];
 	int retval = 0;
-	int x, y, z = 0;
+	uint32_t pos[3];
 	bool isFire , isInstall = false;
 
-	retval = recv(client_sock, buffer, 512, 0);
-
-	std::istringstream iss(buffer);
-	iss >> x >> y >> z >> isFire >> isInstall;
-	mPosition.x = x;
-	mPosition.y = y;
-	mPosition.z = z;
+	retval = recv(client_sock, buf, sizeof(PlayerInfo), 0);
+	memcpy(&playerInfo, buf, sizeof(PlayerInfo));
+	memcpy(&pos, playerInfo.pos, sizeof(uint32_t) * 3);
+	memcpy(&isFire, playerInfo.isFired, sizeof(bool));
+	memcpy(&isInstall, playerInfo.isInstall, sizeof(bool));
+	
+	mPosition.x = *reinterpret_cast<float*>(&pos[0]);
+	mPosition.y = *reinterpret_cast<float*>(&pos[1]);
+	mPosition.z = *reinterpret_cast<float*>(&pos[2]);
 	mIsInstall = isInstall;
 
 	SetConsoleCursor(0, 10);

@@ -417,10 +417,10 @@ GLvoid Update()
 	timer::Update();
 
 	monsterManager->Update(sock);
-	if (player[myid] != nullptr) UpdateplayersPos(sock);
 	if (player[myid] != nullptr ) player[myid]->Update();
 	if (player[myid] != nullptr) player[myid]->PlayerSend(sock);
 	if (player[myid] != nullptr) player[myid]->PlayerRecv(sock);
+	if (player[myid] != nullptr) UpdateplayersPos(sock);
 
 	//bulletManager->Update(sock);
 	//turretManager->Update(sock);
@@ -724,26 +724,32 @@ struct PlayersInfo
 GLvoid UpdateplayersPos(SOCKET& sock)
 {
 	int retval = 0;
-	char buf[BUFSIZE];
-	recv(sock, buf, BUFSIZE, 0);
+	char numbuf[sizeof(int)];
+	retval = recv(sock, numbuf, sizeof(int), 0);
+	memcpy(&users, numbuf, sizeof(int));
 
-	std::istringstream iss(buf);
-	iss >> users;
+	retval = 0;
+	char buf[sizeof(uint32_t) * 3 * MAXUSER];
+	retval = recv(sock, buf, sizeof(uint32_t) * 3 * MAXUSER, 0);
+	cout << "RecvFromServer: " << endl;
+
+	uint32_t pos[MAXUSER * 3];
+	memcpy(pos, buf, sizeof(uint32_t) * 3 * users);
 
 	int id = 0;
-	int x = 0, y = 0, z = 0;
+	float x = 0, y = 0, z = 0;
 	for (size_t i = 0; i < users; i++)
 	{
 		if (player[i] == nullptr) return;
-		iss >> id >> x >> y >> z;
+		x = *reinterpret_cast<float*>(&pos[3 * i + 0]);
+		y = *reinterpret_cast<float*>(&pos[3 * i + 1]);
+		z = *reinterpret_cast<float*>(&pos[3 * i + 2]);
 
-		cout << "Player" << i << ": ( " << x << ", " << y << ", " << z << " )" << endl;
-		
+		cout << i << ": ( " << x << ", " << y << ", " << z << " )" << endl;
+		 
 		if (id == myid) continue;
 
 		glm::vec3 newPos(x, y, z);
 		player[i]->SetPosition(newPos);
 	}
-	users += 1;
-	player[users - 1]->SetPosition(glm::vec3(2.0f, 20.0f, 2.0f));
 }
