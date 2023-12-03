@@ -212,17 +212,14 @@ GLvoid InitMeshes()
 
 GLvoid InitPlayer()
 {
-	char buf[100];
-	glm::vec3 initPosition;
-	retval = recv(sock, buf, 100, 0);
+	char buf[sizeof(int)];
+	retval = recv(sock, buf, sizeof(int), 0);
+	memcpy(&myid, buf, sizeof(int));
 
-	std::istringstream iss(buf);
-	iss >> myid;
-	iss >> initPosition.x >> initPosition.y >> initPosition.z;
 	for (int i = 0; i < 3; ++i)
 	{
-		if(i != myid)player[i] = new Player({ 10*i,0,10 * i });
-		else player[i] = new Player(initPosition , &cameraMode);
+		if (i != myid)player[i] = new Player({ 10 * i,0,10 * i });
+		else player[i] = new Player({ 0,0,0 }, &cameraMode);
 	}
 	uiManager->SetPlayer(player[myid]);
 	monsterManager->SetPlayer(player[myid]);
@@ -712,6 +709,7 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 	memcpy(&playerInfo, buf, sizeof(PlayersInfo));
 
 	memcpy(&users, playerInfo.num, sizeof(int));
+	cout << "myID: " << myid << endl;
 	cout << "RecvFromServer: " << endl;
 
 	uint32_t nPos[MAXUSER * 3];
@@ -742,7 +740,7 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 		cout << i << " BodyLook: ( " << fBodyLook.x << ", " << fBodyLook.y << ", " << fBodyLook.z << " )" << endl;
 		cout << i << " HeadLook: ( " << fHeadLook.x << ", " << fHeadLook.y << ", " << fHeadLook.z << " )" << endl;
 
-		//if (id == myid) continue;
+		if (i == myid) continue;
 
 		player[i]->SetPosition(fPos);
 		player[i]->SetBodyLook(fBodyLook);

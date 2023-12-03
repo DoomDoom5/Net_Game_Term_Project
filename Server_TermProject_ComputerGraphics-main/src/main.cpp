@@ -305,15 +305,16 @@ DWORD WINAPI ProcessClient(LPVOID arg)
     getpeername(player_sock, (struct sockaddr*)&Tclientaddr, &Taddrlen);
     inet_ntop(AF_INET, &Tclientaddr.sin_addr, addr, sizeof(addr));
 
+    char idbuf[sizeof(int)];
+    memcpy(idbuf, &id, sizeof(int));
+    send(player_sock, idbuf, sizeof(int), 0);
+
     player[id] = new Player({ 0,0,0 });
     monsterManager->SetPlayer(player[id]);
     waveManager->SetPlayer(player[id]);
 
-
-
     while (1)
     {
-        
         monsterManager->SendBuf(player_sock);
 
         player[id]->PlayerRecv(player_sock);

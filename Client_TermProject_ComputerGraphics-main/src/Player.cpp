@@ -716,7 +716,6 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	memcpy(buf, &playerInfo, sizeof(PlayerInfo));
 	retval = send(sock, buf, sizeof(PlayerInfo), 0);
 	mIsInstall = false;
-
 }
 
 GLvoid Player::PlayerRecv(SOCKET& sock)
@@ -742,6 +741,9 @@ GLvoid Player::SetPosition(glm::vec3 newPos)
 GLvoid Player::SetBodyLook(glm::vec3 newPos)
 {
 	mBody->SetLook(newPos);
+	mArms->SetLook(newPos);
+	mLegL->SetLook(newPos);
+	mLegR->SetLook(newPos);
 }
 
 GLvoid Player::SetHeadLook(glm::vec3 newPos)

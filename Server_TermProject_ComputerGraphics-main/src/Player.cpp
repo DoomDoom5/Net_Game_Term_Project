@@ -368,6 +368,9 @@ GLvoid Player::ChangeState(const State& playerState, const Event& e, const GLint
 
 GLvoid Player::Update()
 {
+	mCrntState->Update();
+	mPosition = mBody->GetPviotedPosition();
+	mCrntGun->Update();
 }
 
 GLvoid Player::InitPlayer(SOCKET& client_sock, int id)
