@@ -711,9 +711,9 @@ GLvoid Player::PlayerRecv(SOCKET& sock)
 {
 	int retval = 0;
 	// ==============클라이언트 정보 송신====================
-	char HPbuf[8];
-	retval = recv(sock, HPbuf, 8, 0);
-	mHP = stoi(HPbuf);
+	char HPbuf[sizeof(GLfloat)];
+	retval = recv(sock, HPbuf, sizeof(HPbuf), 0);
+	memcpy(&mHP, &HPbuf, sizeof(HPbuf));
 	cout << "RECV HP : " << mHP << '\n'; 
 
 	if (mHP <= 0)

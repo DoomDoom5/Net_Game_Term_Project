@@ -679,9 +679,9 @@ GLvoid Player::PlayerSend(SOCKET& client_sock)
 {
 	int retval = 0;
 	// ======= 사용자 정보 송신 ======
-	std::string stringValue = std::to_string(mHP);
-	const char* buf = stringValue.c_str();
-	retval = send(client_sock, buf, 8, 0);
+	char HPbuf[sizeof(GLfloat)];
+	memcpy(HPbuf, &mHP, sizeof(HPbuf));
+	retval = send(client_sock, HPbuf, sizeof(HPbuf), 0);
 	// ======= ========== ======
 	SetConsoleCursor(0, 12);
 #ifdef  DEBUG
