@@ -265,7 +265,10 @@ DWORD WINAPI ServerMain(LPVOID arg)
         // 스레드 생성
         hThread = CreateThread(NULL, 0, ProcessClient,
             (LPVOID)&client, 0, NULL);
-        if (hThread == NULL) { closesocket(client_sock); }
+        if (hThread == NULL) {
+            closesocket(client_sock);
+            users--;
+        }
         else { CloseHandle(hThread); }
 
     }
@@ -306,6 +309,13 @@ DWORD WINAPI ProcessClient(LPVOID arg)
     getpeername(player_sock, (struct sockaddr*)&Tclientaddr, &Taddrlen);
     inet_ntop(AF_INET, &Tclientaddr.sin_addr, addr, sizeof(addr));
 
+    glm::vec3 initPosition(0,0,0);
+    string Id_to_InitPos = to_string(id) + ' ' +
+                                        to_string(initPosition.x) + ' ' +
+                                        to_string(initPosition.y) + ' ' +
+                                        to_string(initPosition.z);
+
+    send(player_sock, Id_to_InitPos.c_str(), Id_to_InitPos.size(), 0);
     player[id] = new Player({ 0,0,0 });
     monsterManager->SetPlayer(player[id]);
     waveManager->SetPlayer(player[id]);

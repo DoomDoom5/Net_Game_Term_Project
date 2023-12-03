@@ -172,18 +172,12 @@ GLvoid Init()
 	soundManager->PlayBGMSound(BGMSound::Normal, 0.2f, GL_TRUE);
 
 	//************ [Server]************
-	cout << "접속 IP를 입력해 주세요, 그냥 0는 127.0.0.1로 연결됩니다. : ";
+	cout << "접속 IP를 입력해 주세요, 그냥 00는 127.0.0.1로 연결됩니다. : ";
 	char ip[22];
 	cin >> ip;
-	if (ip == "0")
-	{
-		if (sock == NULL)Initsock(sock);
-	}
-	else
-	{
-		SERVERIP = (char*)ip;
-		if (sock == NULL)Initsock(sock);
-	}
+	if (strlen(ip) > 3) SERVERIP = (char*)ip;
+
+	if (sock == NULL)Initsock(sock);
 	InitPlayer();
 	system("cls");
 }
@@ -212,13 +206,24 @@ GLvoid InitMeshes()
 	// light object
 	light = new Light();
 	light->SetPosition({ 0, 400, 0 });
+
+	crntMap = new Map();
 }
 
 GLvoid InitPlayer()
 {
-	for (int i = 0; i < 1; ++i)	player[i] = new Player({ 0,0,0 }, &cameraMode);
+	char buf[100];
+	glm::vec3 initPosition;
+	retval = recv(sock, buf, 100, 0);
 
-	crntMap = new Map();
+	std::istringstream iss(buf);
+	iss >> myid;
+	iss >> initPosition.x >> initPosition.y >> initPosition.z;
+	for (int i = 0; i < 3; ++i)
+	{
+		if(i != myid)player[i] = new Player({ 10*i,0,10 * i });
+		else player[i] = new Player(initPosition , &cameraMode);
+	}
 	uiManager->SetPlayer(player[myid]);
 	monsterManager->SetPlayer(player[myid]);
 	waveManager->SetPlayer(player[myid]);
@@ -711,8 +716,10 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 		if (player[i] == nullptr) return;
 		iss >> id >> x >> y >> z;
 
+		#ifdef DEBUG
 		cout << "Player" << i << ": ( " << x << ", " << y << ", " << z << " )" << endl;
-		
+		#endif
+
 		if (id == myid) continue;
 
 		glm::vec3 newPos(x, y, z);

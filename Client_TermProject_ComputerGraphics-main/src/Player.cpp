@@ -585,14 +585,15 @@ GLvoid Player::Rotate(const GLfloat& yaw, const GLfloat& pitch, const GLfloat& r
 	}
 	mTpCamera->RotatePosition(mHead->GetPosition(), mTpCamera->GetRight(), tpCameraYaw);
 	mTpCamera->RotateLocal(tpCameraYaw - tpCameraAngle, 0, 0);
-
-	if (*mCameraMode == CameraMode::FirstPerson)
-	{
-		mCrntGun->Rotate(mYaw, mPitch);
-	}
-	else
-	{
-		mCrntGun->RotateLocal(mYaw, mPitch);
+	if (mCameraMode != nullptr) {
+		if (*mCameraMode == CameraMode::FirstPerson)
+		{
+			mCrntGun->Rotate(mYaw, mPitch);
+		}
+		else
+		{
+			mCrntGun->RotateLocal(mYaw, mPitch);
+		}
 	}
 }
 GLvoid Player::RotateLeg()

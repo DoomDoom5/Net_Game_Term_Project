@@ -679,7 +679,10 @@ GLvoid Player::PlayerSend(SOCKET& client_sock)
 	retval = send(client_sock, buf, 8, 0);
 	// ======= ========== ======
 	SetConsoleCursor(0, 12);
+#ifdef  DEBUG
 	cout << "SEND HP : " << mHP << endl;
+#endif //  DEBUG
+
 }
 
 GLvoid Player::PlayerRecv(SOCKET& client_sock)
@@ -700,10 +703,10 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	mPosition.z = z;
 	mIsInstall = isInstall;
 
-	SetConsoleCursor(0, 10);
+#ifdef DEBUG
 	cout << "RECV POSTION : " << mPosition.x << ", " << mPosition.y << ", " << mPosition.z << endl;
 	cout << "RECV INFO : " << isFire << ", " << isInstall << endl;
-
+#endif
 	if (mIsInstall) Install_Turret();
 	mIsInstall = false;
 }
