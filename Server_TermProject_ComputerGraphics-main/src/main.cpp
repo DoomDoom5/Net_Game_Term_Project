@@ -333,9 +333,9 @@ DWORD WINAPI ProcessClient(LPVOID arg)
         for (size_t i = 0; i < users; i++)
         {
             playerInfo += to_string(i) + ' ' +
-                to_string((int)player[i]->GetPosition().x) + ' ' +
+                to_string((int)player[i]->GetPosition().x + i *5) + ' ' +
                 to_string((int)player[i]->GetPosition().y) + ' ' +
-                to_string((int)player[i]->GetPosition().z) + ' ';
+                to_string((int)player[i]->GetPosition().z + i * 4) + ' ';
         }
         send(player_sock, playerInfo.c_str(), playerInfo.size(), 0);
         // ====================================

@@ -331,7 +331,7 @@ GLvoid DrawScene()
 	monsterManager->Draw();
 	buildingManager->Draw();
 
-	for (int i = 0; i < users; ++i)
+	for (int i = 0; i < 3; ++i)
 	{
 		if (player[i] != nullptr)
 		{
