@@ -105,7 +105,8 @@ struct MonsterInfo {
 class MonsterManager {
 private:
 	vector<Monster*> mMonsterList;
-	Player* mPlayer = nullptr;
+	Player* mPlayer[MAXUSER];
+	int nPlayer = 0;
 	const glm::vec3* FindTargetPos(const glm::vec3& monsterPos, const GLfloat& radius) const;
 
 	char m_cBuf[sizeof(MonsterInfo)];
@@ -115,7 +116,7 @@ public:
 	GLvoid Create(const MonsterType& monsterType, const glm::vec3& position);
 	GLvoid Update();
 	GLvoid Draw() const;
-	GLvoid SetPlayer(Player* player);
+	GLvoid AddPlayer(Player* player);
 	GLboolean GetShortestMonsterPos(const glm::vec3& srcPos, const GLfloat& radius, glm::vec3& targetPos) const;
 	GLvoid CheckCollision(Monster* monster);
 	bool CheckEnemyEmpty();

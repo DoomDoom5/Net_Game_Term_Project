@@ -88,7 +88,7 @@ GLboolean isLeftDown = GL_FALSE;
 GLboolean isRightDown = GL_FALSE;
 
 // Thread
-DWORD WINAPI OutLog(LPVOID arg);
+// DWORD WINAPI OutLog(LPVOID arg);
 
 // temp
 ModelObject* cubeMap = nullptr;
@@ -172,7 +172,6 @@ GLvoid Init()
 	mouseCenter = { screenWidth / 2 + screenPosX, screenHeight / 2 + screenPosY };
 
 	waveManager->Start();
-	soundManager->PlayBGMSound(BGMSound::Normal, 0.2f, GL_TRUE);
 
 	//************ [Server]************
 	cout << "접속 IP를 입력해 주세요, 그냥 00는 127.0.0.1로 연결됩니다. : ";
@@ -182,6 +181,7 @@ GLvoid Init()
 
 	if (sock == NULL)Initsock(sock);
 	InitPlayer();
+	soundManager->PlayBGMSound(BGMSound::Normal, 0.2f, GL_TRUE);
 	system("cls");
 }
 
@@ -215,17 +215,14 @@ GLvoid InitMeshes()
 
 GLvoid InitPlayer()
 {
-	char buf[100];
-	glm::vec3 initPosition;
-	retval = recv(sock, buf, 100, 0);
+	char buf[sizeof(int)];
+	retval = recv(sock, buf, sizeof(int), 0);
+	memcpy(&myid, buf, sizeof(int));
 
-	std::istringstream iss(buf);
-	iss >> myid;
-	iss >> initPosition.x >> initPosition.y >> initPosition.z;
 	for (int i = 0; i < 3; ++i)
 	{
-		if(i != myid)player[i] = new Player({ 10*i,0,10 * i });
-		else player[i] = new Player(initPosition , &cameraMode);
+		if (i != myid)player[i] = new Player({ 10 * i,0,10 * i });
+		else player[i] = new Player({ 0,0,0 }, &cameraMode);
 	}
 	uiManager->SetPlayer(player[myid]);
 	monsterManager->SetPlayer(player[myid]);
@@ -233,8 +230,7 @@ GLvoid InitPlayer()
 
 
 	// 화면 초기화 쓰레드
-	HANDLE h_cThread = CreateThread(NULL, 0, OutLog,
-		NULL, 0, NULL);
+	//	HANDLE h_cThread = CreateThread(NULL, 0, OutLog, NULL, 0, NULL);
 }
 
 GLvoid Reset()
@@ -339,13 +335,13 @@ GLvoid DrawScene()
 	monsterManager->Draw();
 	buildingManager->Draw();
 
-	for (int i = 0; i < 3; ++i)
+	for (int i = 0; i < users; ++i)
 	{
-		if (player[i] != nullptr)
-		{
+		if (player[i] == nullptr) continue;
+		if (myid == i)
 			player[i]->Draw(cameraMode);
-
-		}
+		else
+			player[i]->Draw(CameraMode::Free);
 	}
 
 	glCullFace(GL_FRONT);
@@ -408,16 +404,18 @@ GLvoid Update()
 	if (player[myid] != nullptr) player[myid]->PlayerSend(sock);
 	
 	monsterManager->Update(sock);
-	buildingManager->Update(sock);
-	// bulletManager->Update(sock);
-	turretManager->Update(sock);
-	waveManager->Update(sock);
-
+	for (int i = 0; i < users; ++i) player[i]->Update();
+	if (player[myid] != nullptr) player[myid]->PlayerSend(sock);
 	if (player[myid] != nullptr) player[myid]->PlayerRecv(sock);
-	/*
-	if (player[myid] != nullptr) UpdateplayersPos(sock);
-	*/
+	turretManager->Update(sock);
+	// waveManager->Update(sock);
 
+
+	// ====================================
+	if (player[myid] != nullptr) UpdateplayersPos(sock);
+	// ====================================
+
+	//bulletManager->Update(sock);
 	constexpr GLfloat cameraMovement = 100.0f;
 	GLfloat cameraSpeed = cameraMovement;
 	// movement
@@ -709,43 +707,60 @@ GLvoid SetCameraMode(const CameraMode& mode)
 
 struct PlayersInfo
 {
-	int id = 0;
-	int x, y, z = 0;
+	char gameover[sizeof(bool)];
+	char num[sizeof(int)];
+	char pos[sizeof(uint32_t) * 3 * MAXUSER];
+	char bodylook[sizeof(uint32_t) * 3 * MAXUSER];
+	char headlook[sizeof(uint32_t) * 3 * MAXUSER];
 };
 
 GLvoid UpdateplayersPos(SOCKET& sock)
 {
-	char buf[BUFSIZE];
-	recv(sock, buf, BUFSIZE, 0);
+	PlayersInfo playerInfo;
+	int retval = 0;
+	char buf[sizeof(PlayersInfo)];
+	retval = recv(sock, buf, sizeof(PlayersInfo), 0);
+	memcpy(&playerInfo, buf, sizeof(PlayersInfo));
 
-	std::istringstream iss(buf);
-	iss >> users;
+	bool isover;
+	memcpy(&isover, playerInfo.gameover, sizeof(bool));
+	if (isover) GameOver();
+	memcpy(&users, playerInfo.num, sizeof(int));
+	cout << "myID: " << myid << endl;
+	cout << "RecvFromServer: " << endl;
+
+	uint32_t nPos[MAXUSER * 3];
+	uint32_t nBodyLook[MAXUSER * 3];
+	uint32_t nHeadLook[MAXUSER * 3];
+	memcpy(nPos, playerInfo.pos, sizeof(uint32_t) * 3 * users);
+	memcpy(nBodyLook, playerInfo.bodylook, sizeof(uint32_t) * 3 * users);
+	memcpy(nHeadLook, playerInfo.headlook, sizeof(uint32_t) * 3 * users);
 
 	int id = 0;
-	int x = 0, y = 0, z = 0;
 	for (size_t i = 0; i < users; i++)
 	{
+		glm::vec3 fPos;
+		glm::vec3 fBodyLook;
+		glm::vec3 fHeadLook;
 		if (player[i] == nullptr) return;
-		iss >> id >> x >> y >> z;
+		fPos.x = *reinterpret_cast<float*>(&nPos[3 * i + 0]);
+		fPos.y = *reinterpret_cast<float*>(&nPos[3 * i + 1]);
+		fPos.z = *reinterpret_cast<float*>(&nPos[3 * i + 2]);
+		fBodyLook.x = *reinterpret_cast<float*>(&nBodyLook[3 * i + 0]);
+		fBodyLook.y = *reinterpret_cast<float*>(&nBodyLook[3 * i + 1]);
+		fBodyLook.z = *reinterpret_cast<float*>(&nBodyLook[3 * i + 2]);
+		fHeadLook.x = *reinterpret_cast<float*>(&nHeadLook[3 * i + 0]);
+		fHeadLook.y = *reinterpret_cast<float*>(&nHeadLook[3 * i + 1]);
+		fHeadLook.z = *reinterpret_cast<float*>(&nHeadLook[3 * i + 2]);
 
-		#ifdef DEBUG
-		cout << "Player" << i << ": ( " << x << ", " << y << ", " << z << " )" << endl;
-		#endif
+		cout << i << " Pos: ( " << fPos.x << ", " << fPos.y << ", " << fPos.z << " )" << endl;
+		cout << i << " BodyLook: ( " << fBodyLook.x << ", " << fBodyLook.y << ", " << fBodyLook.z << " )" << endl;
+		cout << i << " HeadLook: ( " << fHeadLook.x << ", " << fHeadLook.y << ", " << fHeadLook.z << " )" << endl;
 
-		if (id == myid) continue;
+		if (i == myid) continue;
 
-		glm::vec3 newPos(x, y, z);
-		player[i]->SetPosition(newPos);
+		player[i]->SetPosition(fPos);
+		player[i]->SetBodyLook(fBodyLook);
+		player[i]->SetHeadLook(fHeadLook);
 	}
-	users += 1;
-	player[users - 1]->SetPosition(glm::vec3(2.0f, 20.0f, 2.0f));
-}
-
-DWORD WINAPI OutLog(LPVOID arg)
-{
-	while (1)
-	{
-		system("cls");
-	}
-	return 0;
 }

@@ -24,6 +24,7 @@ GLvoid InitMeshes();
 GLvoid DrawScene();
 
 GLvoid Update();
+GLvoid SendAllPlayersInfo(SOCKET&);
 
 GLvoid ToggleDepthTest();
 
@@ -167,6 +168,7 @@ GLvoid DrawScene()
 ///// [ HANDLE EVENTS ] /////
 GLvoid Update()
 {
+    if (users < 1) return;
 
 	if (IsGameOver() == GL_TRUE)
 	{
@@ -183,14 +185,11 @@ GLvoid Update()
 	monsterManager->Update();
 
     for (size_t i = 0; i < users; i++)  if (player[i] != nullptr) player[i]->Update();
-    
-    bulletManager->Update();
 	buildingManager->Update();
 	turretManager->Update();
 	waveManager->Update();
 
     glutPostRedisplay();
-
 }
 
 // TCP 서버 시작 부분
@@ -287,6 +286,8 @@ DWORD WINAPI SleepCls(LPVOID arg)
     }
 }
 
+
+
 // 클라이언트와 데이터 통신
 DWORD WINAPI ProcessClient(LPVOID arg)
 {
@@ -304,47 +305,76 @@ DWORD WINAPI ProcessClient(LPVOID arg)
     getpeername(player_sock, (struct sockaddr*)&Tclientaddr, &Taddrlen);
     inet_ntop(AF_INET, &Tclientaddr.sin_addr, addr, sizeof(addr));
 
-    glm::vec3 initPosition(0,0,0);
-    string Id_to_InitPos = to_string(id) + ' ' +
-                                        to_string(initPosition.x) + ' ' +
-                                        to_string(initPosition.y) + ' ' +
-                                        to_string(initPosition.z);
+    char idbuf[sizeof(int)];
+    memcpy(idbuf, &id, sizeof(int));
+    send(player_sock, idbuf, sizeof(int), 0);
 
-    send(player_sock, Id_to_InitPos.c_str(), Id_to_InitPos.size(), 0);
     player[id] = new Player({ 0,0,0 });
-    monsterManager->SetPlayer(player[id]);
+    monsterManager->AddPlayer(player[id]);
     waveManager->SetPlayer(player[id]);
-    string playerInfo;
-    /*
-send/recv 순서  [꼭 지킬것!]
-*/
+
     while (1)
     {
-   
-        player[id]->PlayerRecv(player_sock);
-       
         monsterManager->SendBuf(player_sock);
-        buildingManager->SendBuf(player_sock);
-        turretManager->SendBuf(player_sock);
-        waveManager->SendBuf(player_sock);
-   
-        player[id]->PlayerSend(player_sock);
-        /*
-        sendPlayersInfo(player_sock);
-        */
-        Sleep(1000 / 60);
-    }
 
-}
-string sendPlayersInfo(SOCKET& player_sock)
-{
-    string playerInfo = to_string(users) + ' ';
-    for (size_t i = 0; i < 3; i++)
-    {
-        playerInfo += to_string(i) + ' ' +
-            to_string((int)player[i]->GetPosition().x  ) + ' ' +
-            to_string((int)player[i]->GetPosition().y) + ' ' +
-            to_string((int)player[i]->GetPosition().z) + ' ';
+        player[id]->PlayerRecv(player_sock);
+        player[id]->PlayerSend(player_sock);
+        turretManager->SendBuf(player_sock);
+      //   waveManager->SendBuf(player_sock);
+
+
+        // ====================================
+        SendAllPlayersInfo(player_sock);
+        // ====================================
+
+        Sleep(1000/120);
     }
-    send(player_sock, playerInfo.c_str(), playerInfo.size(), 0);
+} 
+
+struct PlayersInfo
+{
+    char gameover[sizeof(bool)];
+    char num[sizeof(int)];
+    char pos[sizeof(uint32_t) * 3 * MAXUSER];
+    char bodylook[sizeof(uint32_t) * 3 * MAXUSER];
+    char headlook[sizeof(uint32_t) * 3 * MAXUSER];
+};
+
+GLvoid SendAllPlayersInfo(SOCKET& sock)
+{
+    PlayersInfo playersInfo;
+    char buf[sizeof(PlayersInfo)];
+
+    memcpy(playersInfo.num, &users, sizeof(int));
+    bool isover = IsGameOver();
+    memcpy(playersInfo.gameover, &isover, sizeof(bool));
+    
+    uint32_t nPos[MAXUSER * 3]; // 최대 3명 플레이어 xyz(3) 전달
+    uint32_t nBodyLook[MAXUSER * 3]; // 최대 3명 플레이어 xyz(3) 전달
+    uint32_t nHeadLook[MAXUSER * 3]; // 최대 3명 플레이어 xyz(3) 전달
+
+    cout << "SendToClient: " << endl;
+    for (size_t i = 0; i < users; i++)
+    {
+        glm::vec3 playerPos = player[i]->GetPosition();
+        glm::vec3 playerBodyLook = player[i]->GetBodyLook();
+        glm::vec3 playerHeadLook = player[i]->GetHeadLook();
+        nPos[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&playerPos.x);
+        nPos[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&playerPos.y);
+        nPos[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&playerPos.z);
+        nBodyLook[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&playerBodyLook.x);
+        nBodyLook[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&playerBodyLook.y);
+        nBodyLook[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&playerBodyLook.z);
+        nHeadLook[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&playerHeadLook.x);
+        nHeadLook[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&playerHeadLook.y);
+        nHeadLook[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&playerHeadLook.z);
+        cout << i << " Pos: (" << playerPos.x << ", " << playerPos.y << ", " << playerPos.z << ")" << endl;
+        cout << i << " BodyLook: (" << playerBodyLook.x << ", " << playerBodyLook.y << ", " << playerBodyLook.z << ")" << endl;
+        cout << i << " HeadLook: (" << playerHeadLook.x << ", " << playerHeadLook.y << ", " << playerHeadLook.z << ")" << endl;
+    }
+    memcpy(playersInfo.pos, nPos, sizeof(uint32_t) * 3 * users);
+    memcpy(playersInfo.bodylook, nBodyLook, sizeof(uint32_t) * 3 * users);
+    memcpy(playersInfo.headlook, nHeadLook, sizeof(uint32_t) * 3 * users);
+    memcpy(buf, &playersInfo, sizeof(PlayersInfo));
+    send(sock, buf, sizeof(PlayersInfo), 0);
 }

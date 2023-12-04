@@ -51,19 +51,15 @@ GLvoid WaveManager::Start()
 GLvoid WaveManager::Update(SOCKET& sock)
 {
 	int newWave = 0;
-	char buf[sizeof(GLint)];
-	int retval = recv(sock, buf, sizeof(GLint), 0);
-	if (retval == SOCKET_ERROR) {
-		printf("SOCKET_ERROR\n");
-		return;
-	}
-	memcpy(&newWave, &buf, sizeof(GLint));
-	if (newWave != mCrntWave)
+	char buf[10];
+	int retval = recv(sock, buf, 10, 0);
+
+	std::istringstream iss(buf);
+	iss >> newWave;
+	if (newWave != mCrntWave && newWave != 0)
 	{
 		mCrntWave = newWave;
 		mPlayer->AddHoldturret(1);
-
-		WaveManager::Start();
 	}
 
 #ifdef DEBUG

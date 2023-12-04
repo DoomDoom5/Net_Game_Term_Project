@@ -172,6 +172,8 @@ public:
 	// Variables
 	const glm::vec3* GetRefPos() const { return &mPosition; }
 	glm::vec3 GetPosition() const;
+	glm::vec3 GetBodyLook() const;
+	glm::vec3 GetHeadLook() const;
 	inline constexpr Camera* GetFirstPersonCamera() { return mFpCamera; }
 	inline constexpr Camera* GetThirdPersonCamera() { return mTpCamera; }
 	inline constexpr Camera* GetZoomFirstPersonCamera() { return mZoomFPCamera; }
@@ -193,4 +195,9 @@ public:
 	// send / recv
 	GLvoid PlayerSend(SOCKET& client_sock);
 	GLvoid PlayerRecv(SOCKET& client_sock);
+
+	// ======= Set ======
+	GLvoid SetPosition(glm::vec3);
+	GLvoid SetBodyLook(glm::vec3);
+	GLvoid SetHeadLook(glm::vec3);
 };

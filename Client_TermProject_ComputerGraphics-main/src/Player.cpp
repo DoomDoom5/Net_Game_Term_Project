@@ -444,11 +444,11 @@ GLvoid Player::Update()
 }
 GLvoid Player::Draw(const CameraMode& cameraMode) const
 {
-	/*if (cameraMode == CameraMode::FirstPerson)
+	if (cameraMode == CameraMode::FirstPerson)
 	{
 		mCrntGun->Draw();
 		return;
-	}*/
+	}
 
 	mHead->Draw();
 	mBody->Draw();
@@ -644,6 +644,16 @@ glm::vec3 Player::GetPosition() const
 	return mBody->GetPosition();
 }
 
+glm::vec3 Player::GetBodyLook() const
+{
+	return mBody->GetLook();
+}
+
+glm::vec3 Player::GetHeadLook() const
+{
+	return mHead->GetLook();
+}
+
 GLint Player::GetAmmo() const
 {
 	return mCrntGun->GetAmmo();
@@ -660,38 +670,61 @@ GunType Player::GetGunType() const
 	else return GunType::None;
 }
 
+struct PlayerInfo {
+	char pos[sizeof(uint32_t) * 3];
+	char bodylook[sizeof(uint32_t) * 3];
+	char headlook[sizeof(uint32_t) * 3];
+	char isFired[sizeof(bool)];
+	char isInstall[sizeof(bool)];
+};
+
 GLvoid Player::PlayerSend(SOCKET& sock)
 {
 	int retval = 0;
 	// ===================클라이언트 정보 수신===============
 	// glm::vec3를 문자열로 변환
-	string vec3AsString =
-		to_string((int)mPosition.x) + ' ' +
-		to_string((int)mPosition.y) + ' ' +
-		to_string((int)mPosition.z) + ' ' +
-		to_string(mlsFire) + ' ' +
-		to_string(mIsInstall);
 
-	// 문자열을 C 스타일의 문자열로 변환
-	const char* buf = vec3AsString.c_str();
-	cout << vec3AsString << endl;
+	PlayerInfo playerInfo;
+	memset(&playerInfo, 0, sizeof(playerInfo));
+
+	uint32_t nPos[3]; 
+	uint32_t nBodyLook[3];
+	uint32_t nHeadLook[3];
+	char buf[sizeof(PlayerInfo)];
+	memset(buf, 0, sizeof(buf));
+
+	glm::vec3 pos = GetPosition();
+	glm::vec3 bodylook = GetBodyLook();
+	glm::vec3 headlook = GetHeadLook();
+	nPos[0] = *reinterpret_cast<uint32_t*>(&pos.x);
+	nPos[1] = *reinterpret_cast<uint32_t*>(&pos.y);
+	nPos[2] = *reinterpret_cast<uint32_t*>(&pos.z);
+	nBodyLook[0] = *reinterpret_cast<uint32_t*>(&bodylook.x);
+	nBodyLook[1] = *reinterpret_cast<uint32_t*>(&bodylook.y);
+	nBodyLook[2] = *reinterpret_cast<uint32_t*>(&bodylook.z);
+	nHeadLook[0] = *reinterpret_cast<uint32_t*>(&headlook.x);
+	nHeadLook[1] = *reinterpret_cast<uint32_t*>(&headlook.y);
+	nHeadLook[2] = *reinterpret_cast<uint32_t*>(&headlook.z);
+
+	memcpy(playerInfo.pos, nPos, sizeof(uint32_t) * 3);
+	memcpy(playerInfo.bodylook, nBodyLook, sizeof(uint32_t) * 3);
+	memcpy(playerInfo.headlook, nHeadLook, sizeof(uint32_t) * 3);
+	memcpy(playerInfo.isFired, &mlsFire, sizeof(bool));
+	memcpy(playerInfo.isInstall, &mIsInstall, sizeof(bool));
+
 	// 데이터 보내기
-	retval = send(sock, buf, vec3AsString.size(), 0);
-	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
+	memcpy(buf, &playerInfo, sizeof(PlayerInfo));
+	retval = send(sock, buf, sizeof(PlayerInfo), 0);
 	mIsInstall = false;
-	// ======================
-	cout << "SEND POSTION : " << mPosition.x << ", " << mPosition.y << ", " << mPosition.z << endl;
-	cout << "SEND INFO : " << mlsFire << ", " << mIsInstall << endl;
-
 }
 
 GLvoid Player::PlayerRecv(SOCKET& sock)
 {
 	int retval = 0;
 	// ==============클라이언트 정보 송신====================
-	char HPbuf[8];
-	retval = recv(sock, HPbuf, 8, 0);
-	mHP = stoi(HPbuf);
+	char HPbuf[sizeof(GLfloat)];
+	retval = recv(sock, HPbuf, sizeof(HPbuf), 0);
+	memcpy(&mHP, &HPbuf, sizeof(HPbuf));
 	cout << "RECV HP : " << mHP << '\n'; 
 
 	if (mHP <= 0)
@@ -705,6 +738,18 @@ GLvoid Player::SetPosition(glm::vec3 newPos)
 	mBody->SetPosition(newPos);
 }
 
+GLvoid Player::SetBodyLook(glm::vec3 newPos)
+{
+	mBody->SetLook(newPos);
+	mLegL->SetLook(newPos);
+	mLegR->SetLook(newPos);
+}
+
+GLvoid Player::SetHeadLook(glm::vec3 newPos)
+{
+	mHead->SetLook(newPos);
+	mArms->SetLook(newPos);
+}
 
 GLint Player::GetHoldTullet() const
 {

@@ -77,6 +77,9 @@
 #define PI 3.14159265f
 #define GRAVITY 9.8f
 
+#define MAXUSER 3
+#define MAXBULLETS 200
+
 // key values for window
 #define KEY_CTRL 0x11
 #define KEY_SPACE 0x20

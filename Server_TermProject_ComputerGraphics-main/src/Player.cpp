@@ -368,6 +368,9 @@ GLvoid Player::ChangeState(const State& playerState, const Event& e, const GLint
 
 GLvoid Player::Update()
 {
+	mCrntState->Update();
+	mPosition = mBody->GetPviotedPosition();
+	mCrntGun->Update();
 }
 
 GLvoid Player::InitPlayer(SOCKET& client_sock, int id)
@@ -384,9 +387,9 @@ GLvoid Player::InitPlayer(SOCKET& client_sock, int id)
 	mCrntState->Update();
 
 	// mPosition = mBody->GetPviotedPosition();
-	mCrntGun->SetYaw(mYaw);
-	mCrntGun->SetPitch(mPitch);
-	mCrntGun->SetPostion(mPosition);
+	//mCrntGun->SetYaw(mYaw);
+	//mCrntGun->SetPitch(mPitch);
+	//mCrntGun->SetPostion(mPosition);
 
 	if (mlsFire == true) mCrntGun->StartFire();
 	else if(mlsFire == false) mCrntGun->StopFire();
@@ -584,6 +587,16 @@ glm::vec3 Player::GetPosition() const
 	return mBody->GetPosition();
 }
 
+glm::vec3 Player::GetBodyLook() const
+{
+	return mBody->GetLook();
+}
+
+glm::vec3 Player::GetHeadLook() const
+{
+	return mHead->GetLook();
+}
+
 GLint Player::GetAmmo() const
 {
 	return mCrntGun->GetAmmo();
@@ -674,9 +687,9 @@ GLvoid Player::PlayerSend(SOCKET& client_sock)
 {
 	int retval = 0;
 	// ======= 사용자 정보 송신 ======
-	std::string stringValue = std::to_string(mHP);
-	const char* buf = stringValue.c_str();
-	retval = send(client_sock, buf, 8, 0);
+	char HPbuf[sizeof(GLfloat)];
+	memcpy(HPbuf, &mHP, sizeof(HPbuf));
+	retval = send(client_sock, HPbuf, sizeof(HPbuf), 0);
 	// ======= ========== ======
 	SetConsoleCursor(0, 12);
 #ifdef  DEBUG
@@ -685,30 +698,68 @@ GLvoid Player::PlayerSend(SOCKET& client_sock)
 
 }
 
+struct PlayerInfo {
+	char pos[sizeof(uint32_t) * 3];
+	char bodylook[sizeof(uint32_t) * 3];
+	char headlook[sizeof(uint32_t) * 3];
+	char isFired[sizeof(bool)];
+	char isInstall[sizeof(bool)];
+};
+
 GLvoid Player::PlayerRecv(SOCKET& client_sock)
 {
 	// ======= 사용자 정보수신 ======
+	PlayerInfo playerInfo;
 
-	char buffer[100];
+	char buf[sizeof(PlayerInfo)];
 	int retval = 0;
-	int x, y, z = 0;
+	uint32_t pos[3];
+	uint32_t bodylook[3];
+	uint32_t headlook[3];
 	bool isFire , isInstall = false;
 
-	retval = recv(client_sock, buffer, 100, 0);
-
-	std::istringstream iss(buffer);
-	iss >> x >> y >> z >> isFire >> isInstall;
-	mPosition.x = x;
-	mPosition.y = y;
-	mPosition.z = z;
+	retval = recv(client_sock, buf, sizeof(PlayerInfo), 0);
+	memcpy(&playerInfo, buf, sizeof(PlayerInfo));
+	memcpy(&pos, playerInfo.pos, sizeof(uint32_t) * 3);
+	memcpy(&bodylook, playerInfo.bodylook, sizeof(uint32_t) * 3);
+	memcpy(&headlook, playerInfo.headlook, sizeof(uint32_t) * 3);
+	memcpy(&isFire, playerInfo.isFired, sizeof(bool));
+	memcpy(&isInstall, playerInfo.isInstall, sizeof(bool));
+	
+	glm::vec3 playerPos;
+	glm::vec3 playerBodyLook;
+	glm::vec3 playerHeadLook;
+	playerPos.x = *reinterpret_cast<float*>(&pos[0]);
+	playerPos.y = *reinterpret_cast<float*>(&pos[1]);
+	playerPos.z = *reinterpret_cast<float*>(&pos[2]);
+	playerBodyLook.x = *reinterpret_cast<float*>(&bodylook[0]);
+	playerBodyLook.y = *reinterpret_cast<float*>(&bodylook[1]);
+	playerBodyLook.z = *reinterpret_cast<float*>(&bodylook[2]);
+	playerHeadLook.x = *reinterpret_cast<float*>(&headlook[0]);
+	playerHeadLook.y = *reinterpret_cast<float*>(&headlook[1]);
+	playerHeadLook.z = *reinterpret_cast<float*>(&headlook[2]);
+	SetPosition(playerPos);
+	SetBodyLook(playerBodyLook);
+	SetHeadLook(playerHeadLook);
 	mIsInstall = isInstall;
 
-#ifdef DEBUG
-	cout << "RECV POSTION : " << mPosition.x << ", " << mPosition.y << ", " << mPosition.z << endl;
-	cout << "RECV INFO : " << isFire << ", " << isInstall << endl;
-#endif
 	if (mIsInstall) Install_Turret();
 	mIsInstall = false;
+}
+
+GLvoid Player::SetPosition(glm::vec3 newPos)
+{
+	mBody->SetPosition(newPos);
+}
+
+GLvoid Player::SetBodyLook(glm::vec3 newPos)
+{
+	mBody->SetLook(newPos);
+}
+
+GLvoid Player::SetHeadLook(glm::vec3 newPos)
+{
+	mHead->SetLook(newPos);
 }
 
 GLvoid Player::AddHoldturret(const GLint& value)
