@@ -169,7 +169,6 @@ GLvoid Init()
 	mouseCenter = { screenWidth / 2 + screenPosX, screenHeight / 2 + screenPosY };
 
 	waveManager->Start();
-	soundManager->PlayBGMSound(BGMSound::Normal, 0.2f, GL_TRUE);
 
 	//************ [Server]************
 	cout << "접속 IP를 입력해 주세요, 그냥 00는 127.0.0.1로 연결됩니다. : ";
@@ -224,6 +223,7 @@ GLvoid InitPlayer()
 	uiManager->SetPlayer(player[myid]);
 	monsterManager->SetPlayer(player[myid]);
 	waveManager->SetPlayer(player[myid]);
+	soundManager->PlayBGMSound(BGMSound::Normal, 0.2f, GL_TRUE);
 }
 
 GLvoid Reset()

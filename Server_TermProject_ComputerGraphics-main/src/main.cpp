@@ -51,6 +51,7 @@ Player* player[3] = { nullptr ,nullptr ,nullptr };
 
 ///// [Thread] /////
 // 소켓 통신 스레드 함수
+CRITICAL_SECTION cs; // 임계 영역
 DWORD WINAPI SleepCls(LPVOID arg);
 DWORD WINAPI ServerMain(LPVOID arg);
 DWORD WINAPI ProcessClient(LPVOID arg); 
@@ -93,6 +94,7 @@ GLint main(GLint argc, GLchar** argv)
 MyColor backColor;
 GLvoid Init()
 {
+
     glewInit();
     InitMeshes();
     timer::Init();
@@ -100,6 +102,7 @@ GLvoid Init()
     waveManager->Start();
 
 	//************ [Server]************
+    InitializeCriticalSection(&cs);
 
     // 소켓 통신 스레드 생성
     CreateThread(NULL, 0, ServerMain, NULL, 0, NULL);
@@ -168,14 +171,16 @@ GLvoid DrawScene()
 ///// [ HANDLE EVENTS ] /////
 GLvoid Update()
 {
-
+    EnterCriticalSection(&cs);
 	if (IsGameOver() == GL_TRUE)
 	{
 	//	glutPostRedisplay();
+        DeleteCriticalSection(&cs);
         return;
 	}
     if (player[0] == nullptr) return;
 
+    
     timer::CalculateFPS();
     timer::Update();
 
@@ -188,6 +193,7 @@ GLvoid Update()
 	//turretManager->Update();
 	//waveManager->Update();
 
+    LeaveCriticalSection(&cs);
     glutPostRedisplay();
 }
 
