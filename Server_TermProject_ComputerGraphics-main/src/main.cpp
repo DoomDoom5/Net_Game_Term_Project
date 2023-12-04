@@ -184,7 +184,7 @@ GLvoid Update()
 	monsterManager->Update();
 
     for (size_t i = 0; i < users; i++)  if (player[i] != nullptr) player[i]->Update();
-	//buildingManager->Update();
+	buildingManager->Update();
 	//turretManager->Update();
 	//waveManager->Update();
 
@@ -310,7 +310,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
     send(player_sock, idbuf, sizeof(int), 0);
 
     player[id] = new Player({ 0,0,0 });
-    monsterManager->SetPlayer(player[id]);
+    monsterManager->AddPlayer(player[id]);
     waveManager->SetPlayer(player[id]);
 
     while (1)
@@ -342,6 +342,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 
 struct PlayersInfo
 {
+    char gameover[sizeof(bool)];
     char num[sizeof(int)];
     char pos[sizeof(uint32_t) * 3 * MAXUSER];
     char bodylook[sizeof(uint32_t) * 3 * MAXUSER];
@@ -354,6 +355,8 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
     char buf[sizeof(PlayersInfo)];
 
     memcpy(playersInfo.num, &users, sizeof(int));
+    bool isover = IsGameOver();
+    memcpy(playersInfo.gameover, &isover, sizeof(bool));
     
     uint32_t nPos[MAXUSER * 3]; // 최대 3명 플레이어 xyz(3) 전달
     uint32_t nBodyLook[MAXUSER * 3]; // 최대 3명 플레이어 xyz(3) 전달

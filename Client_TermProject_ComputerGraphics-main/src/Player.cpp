@@ -444,11 +444,11 @@ GLvoid Player::Update()
 }
 GLvoid Player::Draw(const CameraMode& cameraMode) const
 {
-	/*if (cameraMode == CameraMode::FirstPerson)
+	if (cameraMode == CameraMode::FirstPerson)
 	{
 		mCrntGun->Draw();
 		return;
-	}*/
+	}
 
 	mHead->Draw();
 	mBody->Draw();

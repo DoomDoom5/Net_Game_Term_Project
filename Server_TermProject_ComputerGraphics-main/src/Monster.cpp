@@ -294,9 +294,19 @@ const glm::vec3* MonsterManager::FindTargetPos(const glm::vec3& monsterPos, cons
 	const glm::vec3* target = nullptr;
 	const glm::vec3* corePos = buildingManager->GetCorePos();
 
-	glm::vec2 playerCenter = ConvertVec2(mPlayer->GetPosition());
+	GLfloat minDistanceToPlayer = FLOAT_MAX;
+	int minDistancePlayerIdx = 0;
+
 	glm::vec2 monsterCenter = { monsterPos.x, monsterPos.z };
-	GLfloat distanceToPlayer = glm::length(playerCenter - monsterCenter);
+	for (int i = 0; i < nPlayer; ++i) {
+		glm::vec2 playerCenter = ConvertVec2(mPlayer[i]->GetPosition());
+		GLfloat distanceToPlayer = glm::length(playerCenter - monsterCenter);
+		if (distanceToPlayer < minDistanceToPlayer)
+		{
+			minDistanceToPlayer = distanceToPlayer;
+			minDistancePlayerIdx = i;
+		}
+	}
 
 	GLfloat distanceToCore = FLOAT_MAX;
 	if (corePos != nullptr)
@@ -306,11 +316,11 @@ const glm::vec3* MonsterManager::FindTargetPos(const glm::vec3& monsterPos, cons
 
 	}
 
-	if (distanceToPlayer < radius)
+	if (minDistanceToPlayer < radius)
 	{
-		if (distanceToPlayer < distanceToCore)
+		if (minDistanceToPlayer < distanceToCore)
 		{
-			target = mPlayer->GetRefPos();
+			target = mPlayer[minDistancePlayerIdx]->GetRefPos();
 		}
 		else
 		{
@@ -329,6 +339,8 @@ const glm::vec3* MonsterManager::FindTargetPos(const glm::vec3& monsterPos, cons
 MonsterManager::MonsterManager()
 {
 	mMonsterList.reserve(100);
+	for (int i = 0; i < MAXUSER; ++i)
+		mPlayer[i] = NULL;
 }
 MonsterManager::~MonsterManager()
 {
@@ -336,7 +348,10 @@ MonsterManager::~MonsterManager()
 	{
 		delete monster;
 	}
+	for (int i = 0; i < MAXUSER; ++i)
+		delete mPlayer[i];
 }
+
 GLvoid MonsterManager::Create(const MonsterType& monsterType, const glm::vec3& position)
 {
 	Monster* monster = nullptr;
@@ -445,11 +460,6 @@ GLvoid MonsterManager::Draw() const
 	}
 }
 
-GLvoid MonsterManager::SetPlayer(Player* player)
-{
-	mPlayer = player;
-}
-
 GLboolean MonsterManager::GetShortestMonsterPos(const glm::vec3& srcPos, const GLfloat& radius, glm::vec3& targetPos) const
 {
 	GLfloat min = radius;
@@ -480,15 +490,18 @@ GLvoid MonsterManager::CheckCollision(Monster* monster)
 		return;
 	}
 
-	glm::vec2 playerCenter = ConvertVec2(mPlayer->GetPosition());
 	glm::vec2 monsterCenter = ConvertVec2(monster->GetPosition());
-	GLfloat playerRadius = mPlayer->GetRadius();
 	GLfloat monsterRadius = monster->GetRadius();
-
-	if (::CheckCollision(playerCenter, monsterCenter, playerRadius, monsterRadius) == GL_TRUE)
+	for (int i = 0; i < nPlayer; ++i)
 	{
-		monster->Attack(mPlayer);
-		return;
+		glm::vec2 playerCenter = ConvertVec2(mPlayer[i]->GetPosition());
+		GLfloat playerRadius = mPlayer[i]->GetRadius();
+
+		if (::CheckCollision(playerCenter, monsterCenter, playerRadius, monsterRadius) == GL_TRUE)
+		{
+			monster->Attack(mPlayer[i]);
+			return;
+		}
 	}
 
 	Building* core = buildingManager->GetCore();
@@ -501,6 +514,13 @@ GLvoid MonsterManager::CheckCollision(Monster* monster)
 			return;
 		}
 	}
+}
+
+GLvoid MonsterManager::AddPlayer(Player* player)
+{
+	if (nPlayer >= MAXUSER) return;
+	mPlayer[nPlayer] = player;
+	nPlayer += 1;
 }
 
 bool MonsterManager::CheckEnemyEmpty()

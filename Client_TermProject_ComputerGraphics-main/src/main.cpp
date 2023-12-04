@@ -330,11 +330,11 @@ GLvoid DrawScene()
 
 	for (int i = 0; i < users; ++i)
 	{
-		if (player[i] != nullptr)
-		{
+		if (player[i] == nullptr) continue;
+		if (myid == i)
 			player[i]->Draw(cameraMode);
-
-		}
+		else
+			player[i]->Draw(CameraMode::Free);
 	}
 
 	glCullFace(GL_FRONT);
@@ -394,7 +394,7 @@ GLvoid Update()
 	timer::Update();
 
 	monsterManager->Update(sock);
-	if (player[myid] != nullptr ) player[myid]->Update();
+	for (int i = 0; i < users; ++i) player[i]->Update();
 	if (player[myid] != nullptr) player[myid]->PlayerSend(sock);
 	if (player[myid] != nullptr) player[myid]->PlayerRecv(sock);
 	if (player[myid] != nullptr) UpdateplayersPos(sock);
@@ -694,6 +694,7 @@ GLvoid SetCameraMode(const CameraMode& mode)
 
 struct PlayersInfo
 {
+	char gameover[sizeof(bool)];
 	char num[sizeof(int)];
 	char pos[sizeof(uint32_t) * 3 * MAXUSER];
 	char bodylook[sizeof(uint32_t) * 3 * MAXUSER];
@@ -708,6 +709,9 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 	retval = recv(sock, buf, sizeof(PlayersInfo), 0);
 	memcpy(&playerInfo, buf, sizeof(PlayersInfo));
 
+	bool isover;
+	memcpy(&isover, playerInfo.gameover, sizeof(bool));
+	if (isover) GameOver();
 	memcpy(&users, playerInfo.num, sizeof(int));
 	cout << "myID: " << myid << endl;
 	cout << "RecvFromServer: " << endl;
