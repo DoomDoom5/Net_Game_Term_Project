@@ -267,19 +267,14 @@ GLvoid BulletManager::Update(SOCKET sock)
 		}
 	}
 
-	char numbuf[5]; // 총알 99999 를 max로
-
+	//////////////////////// BULLET ///////////////////////
 	int num = 0;
 	if (!mBulletList.empty())
 		num = mBulletList.size();
 	else num = 0;
 
-	//snprintf(numbuf, sizeof(numbuf), "%d", num);
-	//send(sock, numbuf, (int)strlen(numbuf), 0);
-
 	std::ostringstream oss;
 
-	
 
 	for (int i = 0; i < num; ++i) {
 		Bullet* bullet = mBulletList[i];
@@ -287,26 +282,7 @@ GLvoid BulletManager::Update(SOCKET sock)
 			<< bullet->GetPosition().x << " "
 			<< bullet->GetPosition().y << " "
 			<< bullet->GetPosition().z << " ";
-		//std::cout << i << ": (" << bullet->GetPosition().x << ", "
-			//<< bullet->GetPosition().y << ", "
-			//<< bullet->GetPosition().z << ")\n";
 	}
-	
-	
-	/*
-	num = 10;
-	float c = 0;
-	for (int i = 0; i < num; ++i) {
-		c++;
-		oss << std::fixed << std::setprecision(2)
-			<< c << " "
-			<< c << " "
-			<< c << " ";
-		std::cout << i << ": (" << c << ", "
-			<< c << ", "
-			<< c << ")\n";
-	}
-	*/
 
 
 	std::string buf = oss.str();
@@ -314,7 +290,53 @@ GLvoid BulletManager::Update(SOCKET sock)
 
 	std::cout << buf; // 버퍼에 저장된 문자열 출력
 	send(sock, sendbuf, (int)strlen(sendbuf), 0);
+	/*
+	//////////////////////// PARTICLE ///////////////////////
 
+	if (!mParticles.empty())
+		num = mParticles.size();
+	else num = 0;
+
+	std::ostringstream oss2;
+
+
+	for (int i = 0; i < num; ++i) {
+		Bullet* particle = mParticles[i];
+		oss2 << std::fixed << std::setprecision(2)
+			<< particle->GetPosition().x << " "
+			<< particle->GetPosition().y << " "
+			<< particle->GetPosition().z << " ";
+	}
+
+
+	std::string buf2 = oss2.str();
+	const char* sendbuf2 = buf2.c_str();
+
+	std::cout << buf2; // 버퍼에 저장된 문자열 출력
+	send(sock, sendbuf2, (int)strlen(sendbuf2), 0);
+
+	//////////////////////// PAINT ///////////////////////
+
+	if (!mPaints.empty())
+		num = mPaints.size();
+	else num = 0;
+
+	std::ostringstream oss3;
+
+	for (int i = 0; i < num; ++i) {
+		PaintPlane* paint = mPaints[i];
+		oss3 << std::fixed << std::setprecision(2)
+			<< paint->GetPosition().x << " "
+			<< paint->GetPosition().y << " "
+			<< paint->GetPosition().z << " ";
+	}
+
+	std::string buf3 = oss3.str();
+	const char* sendbuf3 = buf3.c_str();
+
+	std::cout << buf3; // 버퍼에 저장된 문자열 출력
+	send(sock, sendbuf3, (int)strlen(sendbuf3), 0);
+	*/
 }
 //GLvoid ProcessCollision(Bullet* bullet, IBulletCollisionable* object, vector<PaintPlane*>& paints)
 //{
