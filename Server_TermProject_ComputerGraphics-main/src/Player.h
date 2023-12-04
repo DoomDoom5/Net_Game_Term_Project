@@ -142,7 +142,6 @@ public:
 	GLvoid ChangeState(const State& playerState, const Event& e = Event::None, const GLint& value = 0);
 
 	// Frame
-	GLvoid InitPlayer(SOCKET& client_sock, int id);
 	GLvoid Update();
 	GLvoid Draw(const CameraMode& cameraMode) const;
 	GLvoid DrawIcon() const;
@@ -174,11 +173,15 @@ public:
 	glm::vec3 GetPosition() const;
 	glm::vec3 GetBodyLook() const;
 	glm::vec3 GetHeadLook() const;
+	glm::vec3 GetGunPos() const;
+	glm::vec3 GetGunLook() const;
+	glm::quat GetGunRotation() const;
 	inline constexpr Camera* GetFirstPersonCamera() { return mFpCamera; }
 	inline constexpr Camera* GetThirdPersonCamera() { return mTpCamera; }
 	inline constexpr Camera* GetZoomFirstPersonCamera() { return mZoomFPCamera; }
 	GLint GetAmmo() const;
 	GLint GetMaxAmmo() const;
+	Gun* GetGun();
 	GLint GetHoldTullet() const;
 	GLfloat GetRadius() const;
 	GLvoid Damage(const GLfloat& damage);
@@ -196,8 +199,13 @@ public:
 	GLvoid PlayerSend(SOCKET& client_sock);
 	GLvoid PlayerRecv(SOCKET& client_sock);
 
+
 	// ======= Set ======
 	GLvoid SetPosition(glm::vec3);
 	GLvoid SetBodyLook(glm::vec3);
 	GLvoid SetHeadLook(glm::vec3);
+	GLvoid SetGunPos(glm::vec3 newPos);
+	GLvoid SetGunLook(glm::vec3 newPos);
+	GLvoid SetGunType(GunType gunType);
+	GLvoid SetGunRotation(glm::quat newRotate);
 };

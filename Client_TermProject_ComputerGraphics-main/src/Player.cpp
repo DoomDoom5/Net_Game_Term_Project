@@ -476,7 +476,7 @@ GLvoid Player::ProcessKeyDown(const GLint& key)
 		return;
 	case 'q':
 	case 'Q':
-		ChaingeGun();
+		ChangeGun();
 		return;
 	}
 
@@ -654,6 +654,21 @@ glm::vec3 Player::GetHeadLook() const
 	return mHead->GetLook();
 }
 
+glm::vec3 Player::GetGunPos() const
+{
+	return mCrntGun->GetPosition();
+}
+
+glm::vec3 Player::GetGunLook() const
+{
+	return mCrntGun->GetLook();
+}
+
+glm::quat Player::GetGunRotation() const
+{
+	return mCrntGun->GetRotation();
+}
+
 GLint Player::GetAmmo() const
 {
 	return mCrntGun->GetAmmo();
@@ -676,6 +691,10 @@ struct PlayerInfo {
 	char headlook[sizeof(uint32_t) * 3];
 	char isFired[sizeof(bool)];
 	char isInstall[sizeof(bool)];
+	char gunpos[sizeof(uint32_t) * 3];
+	char gunlook[sizeof(uint32_t) * 3];
+	char guntype[sizeof(GunType)];
+	char gunrotate[sizeof(glm::quat)];
 };
 
 GLvoid Player::PlayerSend(SOCKET& sock)
@@ -690,12 +709,18 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	uint32_t nPos[3]; 
 	uint32_t nBodyLook[3];
 	uint32_t nHeadLook[3];
+	uint32_t nGunPos[3];
+	uint32_t nGunLook[3];
 	char buf[sizeof(PlayerInfo)];
 	memset(buf, 0, sizeof(buf));
 
 	glm::vec3 pos = GetPosition();
 	glm::vec3 bodylook = GetBodyLook();
 	glm::vec3 headlook = GetHeadLook();
+	glm::vec3 playerGunPos = GetGunPos();
+	glm::vec3 playerGunLook = GetGunLook();
+	glm::quat rotation = GetGunRotation();
+	GunType guntype = GetGunType();
 	nPos[0] = *reinterpret_cast<uint32_t*>(&pos.x);
 	nPos[1] = *reinterpret_cast<uint32_t*>(&pos.y);
 	nPos[2] = *reinterpret_cast<uint32_t*>(&pos.z);
@@ -705,12 +730,22 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	nHeadLook[0] = *reinterpret_cast<uint32_t*>(&headlook.x);
 	nHeadLook[1] = *reinterpret_cast<uint32_t*>(&headlook.y);
 	nHeadLook[2] = *reinterpret_cast<uint32_t*>(&headlook.z);
+	nGunPos[0] = *reinterpret_cast<uint32_t*>(&playerGunPos.x);
+	nGunPos[1] = *reinterpret_cast<uint32_t*>(&playerGunPos.y);
+	nGunPos[2] = *reinterpret_cast<uint32_t*>(&playerGunPos.z);
+	nGunLook[0] = *reinterpret_cast<uint32_t*>(&playerGunLook.x);
+	nGunLook[1] = *reinterpret_cast<uint32_t*>(&playerGunLook.y);
+	nGunLook[2] = *reinterpret_cast<uint32_t*>(&playerGunLook.z);
 
 	memcpy(playerInfo.pos, nPos, sizeof(uint32_t) * 3);
 	memcpy(playerInfo.bodylook, nBodyLook, sizeof(uint32_t) * 3);
 	memcpy(playerInfo.headlook, nHeadLook, sizeof(uint32_t) * 3);
 	memcpy(playerInfo.isFired, &mlsFire, sizeof(bool));
 	memcpy(playerInfo.isInstall, &mIsInstall, sizeof(bool));
+	memcpy(playerInfo.gunpos, nGunPos, sizeof(uint32_t) * 3);
+	memcpy(playerInfo.gunlook, nGunLook, sizeof(uint32_t) * 3 );
+	memcpy(playerInfo.guntype, &guntype, sizeof(GunType));
+	memcpy(playerInfo.gunrotate, &rotation, sizeof(glm::quat));
 
 	// 데이터 보내기
 	memcpy(buf, &playerInfo, sizeof(PlayerInfo));
@@ -751,6 +786,22 @@ GLvoid Player::SetHeadLook(glm::vec3 newPos)
 	mArms->SetLook(newPos);
 }
 
+
+GLvoid Player::SetGunPos(glm::vec3 newPos)
+{
+	mCrntGun->SetPosition(newPos);
+}
+
+GLvoid Player::SetGunLook(glm::vec3 newPos)
+{
+	mCrntGun->SetLook(newPos);
+}
+
+GLvoid Player::SetGunRotation(glm::quat newRotation)
+{
+	mCrntGun->SetRotation(newRotation);
+}
+
 GLint Player::GetHoldTullet() const
 {
 	return mHoldTurret;
@@ -775,6 +826,27 @@ GLfloat Player::GetHp() const
 	return mHP;
 }
 
+GLvoid Player::SetGunType(GunType gunType)
+{
+	switch (gunType)
+	{
+	case GunType::Rifle:
+		mCrntGun = mRifle;
+		break;
+
+	case GunType::Shotgun:
+		mCrntGun = mShotGun;
+		break;
+
+	case GunType::Launcher:
+		mCrntGun = mLauncher;
+		break;
+
+	case GunType::Sniper:
+		mCrntGun = mSniper;
+		break;
+	}
+}
 
 
 GLvoid Player::Install_Turret()
@@ -786,10 +858,8 @@ GLvoid Player::Install_Turret()
 	}
 }
 
-GLvoid Player::ChaingeGun()
+GLvoid Player::ChangeGun()
 {
-	static int gun_num = 0;
-
 	soundManager->PlayEffectSound(EffectSound::CheageWeapon, 0.2f, GL_TRUE);
 	if (mCrntGun->IsReloading())
 	{
