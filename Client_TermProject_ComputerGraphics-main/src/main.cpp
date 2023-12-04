@@ -702,6 +702,7 @@ struct PlayersInfo
 	char gunpos[sizeof(uint32_t) * 3 * MAXUSER];
 	char gunlook[sizeof(uint32_t) * 3 * MAXUSER];
 	char guntype[sizeof(GunType) * MAXUSER];
+	char gunquat[sizeof(glm::quat) * MAXUSER];
 };
 
 GLvoid UpdateplayersPos(SOCKET& sock)
@@ -725,6 +726,7 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 	uint32_t nGunPos[MAXUSER * 3]; 
 	uint32_t nGunLook[MAXUSER * 3];
 	GunType gunType[MAXUSER];
+	glm::quat gunRotation[MAXUSER];
 
 	memcpy(nPos, playerInfo.pos, sizeof(uint32_t) * 3 * users);
 	memcpy(nBodyLook, playerInfo.bodylook, sizeof(uint32_t) * 3 * users);
@@ -732,6 +734,7 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 	memcpy(nGunPos, playerInfo.gunpos, sizeof(uint32_t) * 3 * users);
 	memcpy(nGunLook, playerInfo.gunlook, sizeof(uint32_t) * 3 * users);
 	memcpy(gunType, playerInfo.guntype, sizeof(GunType) * users);
+	memcpy(gunRotation, playerInfo.gunquat, sizeof(glm::quat) * users);
 
 	int id = 0;
 	for (size_t i = 0; i < users; i++)
@@ -772,5 +775,6 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 		player[i]->SetHeadLook(fHeadLook);
 		player[i]->SetGunPos(fGunLook);
 		player[i]->SetGunLook(fGunLook);
+		player[i]->SetGunRotation(gunRotation[i]);
 	}
 }

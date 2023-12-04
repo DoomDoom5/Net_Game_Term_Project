@@ -350,6 +350,7 @@ struct PlayersInfo
     char gunpos[sizeof(uint32_t) * 3 * MAXUSER];
     char gunlook[sizeof(uint32_t) * 3 * MAXUSER];
     char guntype[sizeof(GunType) * MAXUSER];
+    char gunquat[sizeof(glm::quat) * MAXUSER];
 };
 
 GLvoid SendAllPlayersInfo(SOCKET& sock)
@@ -367,6 +368,9 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
     uint32_t nGunPos[MAXUSER * 3]; // 최대 3명 플레이어 xyz(3) 전달
     uint32_t nGunLook[MAXUSER * 3]; // 최대 3명 플레이어 xyz(3) 전달
     GunType gunType[MAXUSER];
+    glm::quat gunRotation[MAXUSER];
+
+    SetConsoleCursor(0, 7);
     cout << "SendToClient: " << endl;
     for (size_t i = 0; i < users; i++)
     {
@@ -375,6 +379,7 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
         glm::vec3 playerHeadLook = player[i]->GetHeadLook();
         glm::vec3 playerGunPos = player[i]->GetGunPos();
         glm::vec3 playerGunLook = player[i]->GetGunLook();
+        glm::quat playerGunRotation = player[i]->GetGunRotation();
         GunType guntype = player[i]->GetGunType();
         nPos[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&playerPos.x);
         nPos[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&playerPos.y);
@@ -404,6 +409,7 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
     memcpy(playersInfo.gunpos, nGunPos, sizeof(uint32_t) * 3 * users);
     memcpy(playersInfo.gunlook, nGunLook, sizeof(uint32_t) * 3 * users);
     memcpy(playersInfo.guntype, gunType, sizeof(GunType) * users);
+    memcpy(playersInfo.gunquat, &gunRotation, sizeof(glm::quat) * users);
     memcpy(buf, &playersInfo, sizeof(PlayersInfo));
     send(sock, buf, sizeof(PlayersInfo), 0);
 }

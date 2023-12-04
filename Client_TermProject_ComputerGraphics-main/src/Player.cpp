@@ -664,6 +664,11 @@ glm::vec3 Player::GetGunLook() const
 	return mCrntGun->GetLook();
 }
 
+glm::quat Player::GetGunRotation() const
+{
+	return mCrntGun->GetRotation();
+}
+
 GLint Player::GetAmmo() const
 {
 	return mCrntGun->GetAmmo();
@@ -689,6 +694,7 @@ struct PlayerInfo {
 	char gunpos[sizeof(uint32_t) * 3];
 	char gunlook[sizeof(uint32_t) * 3];
 	char guntype[sizeof(GunType)];
+	char gunrotate[sizeof(glm::quat)];
 };
 
 GLvoid Player::PlayerSend(SOCKET& sock)
@@ -713,6 +719,7 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	glm::vec3 headlook = GetHeadLook();
 	glm::vec3 playerGunPos = GetGunPos();
 	glm::vec3 playerGunLook = GetGunLook();
+	glm::quat rotation = GetGunRotation();
 	GunType guntype = GetGunType();
 	nPos[0] = *reinterpret_cast<uint32_t*>(&pos.x);
 	nPos[1] = *reinterpret_cast<uint32_t*>(&pos.y);
@@ -738,6 +745,7 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	memcpy(playerInfo.gunpos, nGunPos, sizeof(uint32_t) * 3);
 	memcpy(playerInfo.gunlook, nGunLook, sizeof(uint32_t) * 3 );
 	memcpy(playerInfo.guntype, &guntype, sizeof(GunType));
+	memcpy(playerInfo.gunrotate, &rotation, sizeof(glm::quat));
 
 	// 데이터 보내기
 	memcpy(buf, &playerInfo, sizeof(PlayerInfo));
@@ -787,6 +795,11 @@ GLvoid Player::SetGunPos(glm::vec3 newPos)
 GLvoid Player::SetGunLook(glm::vec3 newPos)
 {
 	mCrntGun->SetLook(newPos);
+}
+
+GLvoid Player::SetGunRotation(glm::quat newRotation)
+{
+	mCrntGun->SetRotation(newRotation);
 }
 
 GLint Player::GetHoldTullet() const

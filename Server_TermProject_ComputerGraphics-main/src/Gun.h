@@ -45,7 +45,7 @@ public:
 	inline constexpr GunType GetType() const { return mType; };
 	glm::vec3 GetPosition() { return mGunPosition; };
 	glm::vec3 GetLook() { return mObject->GetLook(); };
-
+	glm::quat GetRotation() {return mObject->GetRotation(); }
 	inline constexpr GLfloat GetYaw() const { return mYaw; }
 	inline constexpr GLfloat GetPitch() const { return mPitch; }
 
@@ -54,7 +54,7 @@ public:
 
 	GLvoid SetPosition(glm::vec3 newPos) { mGunPosition = newPos; }
 	GLvoid SetLook(glm::vec3 newPos) { mObject->SetLook(newPos); }
-
+	GLvoid SetRotation(glm::quat newRotate) { mObject->SetRotation(newRotate); }
 	GLvoid Reload();
 	inline constexpr GLboolean IsReloading() const { return mCrntReloadTime > 0; }
 };

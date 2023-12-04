@@ -583,6 +583,11 @@ glm::vec3 Player::GetGunLook() const
 	return mCrntGun->GetLook();
 }
 
+glm::quat Player::GetGunRotation() const
+{
+	return mCrntGun->GetRotation(); 
+}
+
 GLint Player::GetAmmo() const
 {
 	return mCrntGun->GetAmmo();
@@ -698,6 +703,7 @@ struct PlayerInfo {
 	char gunpos[sizeof(uint32_t) * 3];
 	char gunlook[sizeof(uint32_t) * 3];
 	char guntype[sizeof(GunType)];
+	char gunrotate[sizeof(glm::quat)];
 };
 
 GLvoid Player::PlayerRecv(SOCKET& client_sock)
@@ -713,6 +719,7 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	uint32_t nGunPos[3];
 	uint32_t nGunLook[3];
 	GunType gunType;
+	glm::quat rotate;
 	bool isFire , isInstall = false;
 
 	retval = recv(client_sock, buf, sizeof(PlayerInfo), 0);
@@ -725,6 +732,7 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	memcpy(nGunPos, playerInfo.gunpos, sizeof(uint32_t) * 3);
 	memcpy(nGunLook, playerInfo.gunlook, sizeof(uint32_t) * 3);
 	memcpy(&gunType, playerInfo.guntype, sizeof(GunType));
+	memcpy(&rotate, playerInfo.gunrotate, sizeof(glm::quat));
 
 	glm::vec3 playerPos;
 	glm::vec3 playerBodyLook;
@@ -752,6 +760,7 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	SetHeadLook(playerHeadLook);
 	SetGunPos(fGunPos);
 	SetGunLook(fGunLook);
+	SetGunRotation(rotate);
 	mIsInstall = isInstall;
 	mlsFire = isFire;
 
@@ -780,6 +789,11 @@ GLvoid Player::SetGunType(GunType gunType)
 		mCrntGun = mSniper;
 		break;
 	}
+}
+
+GLvoid Player::SetGunRotation(glm::quat newRotate)
+{
+	mCrntGun->SetRotation(newRotate);
 }
 
 GLvoid Player::SetPosition(glm::vec3 newPos)
