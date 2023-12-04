@@ -397,6 +397,7 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
         nGunLook[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&playerGunLook.y);
         nGunLook[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&playerGunLook.z);
         gunType[i] = guntype;
+        gunRotation[i] = playerGunRotation;
         cout << i << " Pos: (" << playerPos.x << ", " << playerPos.y << ", " << playerPos.z << ")" << endl;
         cout << i << " BodyLook: (" << playerBodyLook.x << ", " << playerBodyLook.y << ", " << playerBodyLook.z << ")" << endl;
         cout << i << " HeadLook: (" << playerHeadLook.x << ", " << playerHeadLook.y << ", " << playerHeadLook.z << ")" << endl;
