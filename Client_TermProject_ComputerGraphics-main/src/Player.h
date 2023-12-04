@@ -118,7 +118,10 @@ private:
 	GLfloat mFrameTime = 0.0f;
 	bool mlsFire = false;
 	bool mIsInstall = false;
+	bool mIsGunChanged = false;
+
 	GLint id = 0;
+	GLint gun_num = 0;
 
 	// for collision
 	Circle* mBoundingCircle = nullptr;
@@ -175,6 +178,8 @@ public:
 	glm::vec3 GetPosition() const;
 	glm::vec3 GetBodyLook() const;
 	glm::vec3 GetHeadLook() const;
+	glm::vec3 GetGunPos() const;
+	glm::vec3 GetGunLook() const;
 	inline constexpr Camera* GetFirstPersonCamera() { return mFpCamera; }
 	inline constexpr Camera* GetThirdPersonCamera() { return mTpCamera; }
 	inline constexpr Camera* GetZoomFirstPersonCamera() { return mZoomFPCamera; }
@@ -184,6 +189,7 @@ public:
 	GLfloat GetRadius() const;
 	GLvoid Damage(const GLfloat& damage);
 	GLfloat GetHp() const;
+	GLvoid SetGunType(GunType gunType);
 	GunType GetGunType() const;
 	bool GetIsFIre() { return mlsFire; };
 	GLfloat GetYaw() { return mYaw; };
@@ -199,11 +205,19 @@ public:
 	GLvoid SetBodyLook(glm::vec3);
 	GLvoid SetHeadLook(glm::vec3);
 
+	GLvoid SetGunPos(glm::vec3 newPos);
+
+	GLvoid SetGunLook(glm::vec3 newPos);
+
 	// Add
 	GLvoid AddHoldturret(const GLint& value);
 
 
 	// Skills
 	GLvoid Install_Turret();
-	GLvoid ChaingeGun();
+	GLvoid ChangeGun();
+
+	// bool IsGunChanged() { return mIsGunChanged; }
+	// GLvoid ChangeGun() { mIsGunChanged = true; }
+	// GLvoid ChangeGunDone() { mIsGunChanged = false; }
 };

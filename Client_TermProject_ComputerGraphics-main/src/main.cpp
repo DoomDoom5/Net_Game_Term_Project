@@ -699,6 +699,9 @@ struct PlayersInfo
 	char pos[sizeof(uint32_t) * 3 * MAXUSER];
 	char bodylook[sizeof(uint32_t) * 3 * MAXUSER];
 	char headlook[sizeof(uint32_t) * 3 * MAXUSER];
+	char gunpos[sizeof(uint32_t) * 3 * MAXUSER];
+	char gunlook[sizeof(uint32_t) * 3 * MAXUSER];
+	char guntype[sizeof(GunType) * MAXUSER];
 };
 
 GLvoid UpdateplayersPos(SOCKET& sock)
@@ -719,9 +722,16 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 	uint32_t nPos[MAXUSER * 3];
 	uint32_t nBodyLook[MAXUSER * 3];
 	uint32_t nHeadLook[MAXUSER * 3];
+	uint32_t nGunPos[MAXUSER * 3]; 
+	uint32_t nGunLook[MAXUSER * 3];
+	GunType gunType[MAXUSER];
+
 	memcpy(nPos, playerInfo.pos, sizeof(uint32_t) * 3 * users);
 	memcpy(nBodyLook, playerInfo.bodylook, sizeof(uint32_t) * 3 * users);
 	memcpy(nHeadLook, playerInfo.headlook, sizeof(uint32_t) * 3 * users);
+	memcpy(nGunPos, playerInfo.gunpos, sizeof(uint32_t) * 3 * users);
+	memcpy(nGunLook, playerInfo.gunlook, sizeof(uint32_t) * 3 * users);
+	memcpy(gunType, playerInfo.guntype, sizeof(GunType) * users);
 
 	int id = 0;
 	for (size_t i = 0; i < users; i++)
@@ -729,6 +739,8 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 		glm::vec3 fPos;
 		glm::vec3 fBodyLook;
 		glm::vec3 fHeadLook;
+		glm::vec3 fGunPos;
+		glm::vec3 fGunLook;
 		if (player[i] == nullptr) return;
 		fPos.x = *reinterpret_cast<float*>(&nPos[3 * i + 0]);
 		fPos.y = *reinterpret_cast<float*>(&nPos[3 * i + 1]);
@@ -739,15 +751,26 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 		fHeadLook.x = *reinterpret_cast<float*>(&nHeadLook[3 * i + 0]);
 		fHeadLook.y = *reinterpret_cast<float*>(&nHeadLook[3 * i + 1]);
 		fHeadLook.z = *reinterpret_cast<float*>(&nHeadLook[3 * i + 2]);
+		fGunPos.x = *reinterpret_cast<float*>(&nGunPos[3 * i + 0]);
+		fGunPos.y = *reinterpret_cast<float*>(&nGunPos[3 * i + 1]);
+		fGunPos.z = *reinterpret_cast<float*>(&nGunPos[3 * i + 2]);
+		fGunLook.x = *reinterpret_cast<float*>(&nGunLook[3 * i + 0]);
+		fGunLook.y = *reinterpret_cast<float*>(&nGunLook[3 * i + 1]);
+		fGunLook.z = *reinterpret_cast<float*>(&nGunLook[3 * i + 2]);
 
 		cout << i << " Pos: ( " << fPos.x << ", " << fPos.y << ", " << fPos.z << " )" << endl;
 		cout << i << " BodyLook: ( " << fBodyLook.x << ", " << fBodyLook.y << ", " << fBodyLook.z << " )" << endl;
 		cout << i << " HeadLook: ( " << fHeadLook.x << ", " << fHeadLook.y << ", " << fHeadLook.z << " )" << endl;
+		cout << i << " GunPos: (" << fGunPos.x << ", " << fGunPos.y << ", " << fGunPos.z << ")" << endl;
+		cout << i << " GunLook: (" << fGunLook.x << ", " << fGunLook.y << ", " << fGunLook.z << ")" << endl;
 
 		if (i == myid) continue;
 
+		player[i]->SetGunType(gunType[i]);
 		player[i]->SetPosition(fPos);
 		player[i]->SetBodyLook(fBodyLook);
 		player[i]->SetHeadLook(fHeadLook);
+		player[i]->SetGunPos(fGunLook);
+		player[i]->SetGunLook(fGunLook);
 	}
 }

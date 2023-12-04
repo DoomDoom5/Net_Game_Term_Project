@@ -373,30 +373,6 @@ GLvoid Player::Update()
 	mCrntGun->Update();
 }
 
-GLvoid Player::InitPlayer(SOCKET& client_sock, int id)
-{
-	int retval;
-	 
-	string vec3AsString = to_string(mHP);
-	cout << mHP << endl;
-	const char* buf = vec3AsString.c_str();
-	retval = send(client_sock, buf, (int)strlen(buf), 0);
-
-	// ============================
-
-	mCrntState->Update();
-
-	// mPosition = mBody->GetPviotedPosition();
-	//mCrntGun->SetYaw(mYaw);
-	//mCrntGun->SetPitch(mPitch);
-	//mCrntGun->SetPostion(mPosition);
-
-	if (mlsFire == true) mCrntGun->StartFire();
-	else if(mlsFire == false) mCrntGun->StopFire();
-	mCrntGun->Update();
-
-}
-
 GLvoid Player::Draw(const CameraMode& cameraMode) const
 {
 	if (cameraMode == CameraMode::FirstPerson)
@@ -597,6 +573,16 @@ glm::vec3 Player::GetHeadLook() const
 	return mHead->GetLook();
 }
 
+glm::vec3 Player::GetGunPos() const
+{
+	return mCrntGun->GetPosition();
+}
+
+glm::vec3 Player::GetGunLook() const
+{
+	return mCrntGun->GetLook();
+}
+
 GLint Player::GetAmmo() const
 {
 	return mCrntGun->GetAmmo();
@@ -605,6 +591,11 @@ GLint Player::GetAmmo() const
 GLint Player::GetMaxAmmo() const
 {
 	return mCrntGun->GetMaxAmmo();
+}
+
+Gun* Player::GetGun()
+{
+	if (mCrntGun != nullptr) return mCrntGun;
 }
 
 GunType Player::GetGunType() const
@@ -704,6 +695,9 @@ struct PlayerInfo {
 	char headlook[sizeof(uint32_t) * 3];
 	char isFired[sizeof(bool)];
 	char isInstall[sizeof(bool)];
+	char gunpos[sizeof(uint32_t) * 3];
+	char gunlook[sizeof(uint32_t) * 3];
+	char guntype[sizeof(GunType)];
 };
 
 GLvoid Player::PlayerRecv(SOCKET& client_sock)
@@ -716,6 +710,9 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	uint32_t pos[3];
 	uint32_t bodylook[3];
 	uint32_t headlook[3];
+	uint32_t nGunPos[3];
+	uint32_t nGunLook[3];
+	GunType gunType;
 	bool isFire , isInstall = false;
 
 	retval = recv(client_sock, buf, sizeof(PlayerInfo), 0);
@@ -725,10 +722,15 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	memcpy(&headlook, playerInfo.headlook, sizeof(uint32_t) * 3);
 	memcpy(&isFire, playerInfo.isFired, sizeof(bool));
 	memcpy(&isInstall, playerInfo.isInstall, sizeof(bool));
-	
+	memcpy(nGunPos, playerInfo.gunpos, sizeof(uint32_t) * 3);
+	memcpy(nGunLook, playerInfo.gunlook, sizeof(uint32_t) * 3);
+	memcpy(&gunType, playerInfo.guntype, sizeof(GunType));
+
 	glm::vec3 playerPos;
 	glm::vec3 playerBodyLook;
 	glm::vec3 playerHeadLook;
+	glm::vec3 fGunPos;
+	glm::vec3 fGunLook;
 	playerPos.x = *reinterpret_cast<float*>(&pos[0]);
 	playerPos.y = *reinterpret_cast<float*>(&pos[1]);
 	playerPos.z = *reinterpret_cast<float*>(&pos[2]);
@@ -738,13 +740,46 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	playerHeadLook.x = *reinterpret_cast<float*>(&headlook[0]);
 	playerHeadLook.y = *reinterpret_cast<float*>(&headlook[1]);
 	playerHeadLook.z = *reinterpret_cast<float*>(&headlook[2]);
+	fGunPos.x = *reinterpret_cast<float*>(&nGunPos[0]);
+	fGunPos.y = *reinterpret_cast<float*>(&nGunPos[1]);
+	fGunPos.z = *reinterpret_cast<float*>(&nGunPos[2]);
+	fGunLook.x = *reinterpret_cast<float*>(&nGunLook[0]);
+	fGunLook.y = *reinterpret_cast<float*>(&nGunLook[1]);
+	fGunLook.z = *reinterpret_cast<float*>(&nGunLook[2]);
+	SetGunType(gunType);
 	SetPosition(playerPos);
 	SetBodyLook(playerBodyLook);
 	SetHeadLook(playerHeadLook);
+	SetGunPos(fGunPos);
+	SetGunLook(fGunLook);
 	mIsInstall = isInstall;
+	mlsFire = isFire;
+
 
 	if (mIsInstall) Install_Turret();
 	mIsInstall = false;
+}
+
+GLvoid Player::SetGunType(GunType gunType)
+{
+	switch (gunType)
+	{
+	case GunType::Rifle:
+		mCrntGun = mRifle;
+		break;
+
+	case GunType::Shotgun:
+		mCrntGun = mShotGun;
+		break;
+
+	case GunType::Launcher:
+		mCrntGun = mLauncher;
+		break;
+
+	case GunType::Sniper:
+		mCrntGun = mSniper;
+		break;
+	}
 }
 
 GLvoid Player::SetPosition(glm::vec3 newPos)
@@ -760,6 +795,16 @@ GLvoid Player::SetBodyLook(glm::vec3 newPos)
 GLvoid Player::SetHeadLook(glm::vec3 newPos)
 {
 	mHead->SetLook(newPos);
+}
+
+GLvoid Player::SetGunPos(glm::vec3 newPos)
+{
+	mCrntGun->SetPosition(newPos);
+}
+
+GLvoid Player::SetGunLook(glm::vec3 newPos)
+{
+	mCrntGun->SetLook(newPos);
 }
 
 GLvoid Player::AddHoldturret(const GLint& value)

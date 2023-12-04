@@ -43,13 +43,17 @@ public:
 	inline constexpr GLint GetAmmo() const { return mAmmo; };
 	inline constexpr GLint GetMaxAmmo() const { return mMaxAmmo; };
 	inline constexpr GunType GetType() const { return mType; };
+	glm::vec3 GetPosition() { return mGunPosition; };
+	glm::vec3 GetLook() { return mObject->GetLook(); };
 
 	inline constexpr GLfloat GetYaw() const { return mYaw; }
 	inline constexpr GLfloat GetPitch() const { return mPitch; }
 
 	GLvoid SetYaw(GLfloat newYaw)  {  mYaw = newYaw; }
 	GLvoid SetPitch(GLfloat newPitch)  {  mPitch = newPitch; }
-	GLvoid SetPostion(glm::vec3 newPos)  {  mGunPosition = newPos; }
+
+	GLvoid SetPosition(glm::vec3 newPos) { mGunPosition = newPos; }
+	GLvoid SetLook(glm::vec3 newPos) { mObject->SetLook(newPos); }
 
 	GLvoid Reload();
 	inline constexpr GLboolean IsReloading() const { return mCrntReloadTime > 0; }

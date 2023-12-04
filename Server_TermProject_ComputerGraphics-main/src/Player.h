@@ -174,11 +174,14 @@ public:
 	glm::vec3 GetPosition() const;
 	glm::vec3 GetBodyLook() const;
 	glm::vec3 GetHeadLook() const;
+	glm::vec3 GetGunPos() const;
+	glm::vec3 GetGunLook() const;
 	inline constexpr Camera* GetFirstPersonCamera() { return mFpCamera; }
 	inline constexpr Camera* GetThirdPersonCamera() { return mTpCamera; }
 	inline constexpr Camera* GetZoomFirstPersonCamera() { return mZoomFPCamera; }
 	GLint GetAmmo() const;
 	GLint GetMaxAmmo() const;
+	Gun* GetGun();
 	GLint GetHoldTullet() const;
 	GLfloat GetRadius() const;
 	GLvoid Damage(const GLfloat& damage);
@@ -196,8 +199,12 @@ public:
 	GLvoid PlayerSend(SOCKET& client_sock);
 	GLvoid PlayerRecv(SOCKET& client_sock);
 
+	GLvoid SetGunType(GunType gunType);
+
 	// ======= Set ======
 	GLvoid SetPosition(glm::vec3);
 	GLvoid SetBodyLook(glm::vec3);
 	GLvoid SetHeadLook(glm::vec3);
+	GLvoid SetGunPos(glm::vec3 newPos);
+	GLvoid SetGunLook(glm::vec3 newPos);
 };
