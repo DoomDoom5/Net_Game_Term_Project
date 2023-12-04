@@ -22,7 +22,7 @@ public:
 	inline constexpr GLint GetWave() const { return mCrntWave; }
 
 	GLvoid SendBuf(SOCKET& client_sock) { 
-		string wave = to_string(mCrntWave);
+		string wave = to_string((int)mCrntWave);
 		send(client_sock, wave.c_str(), wave.size(), 0);
 	};
 };

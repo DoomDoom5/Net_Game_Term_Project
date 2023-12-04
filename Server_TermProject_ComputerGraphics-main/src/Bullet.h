@@ -86,6 +86,8 @@ private:
 	vector<IBulletCollisionable*> mParticleCollisions;
 
 	GLfloat mCrntInkSoundDelay = 0.0f;
+
+
 public:
 	BulletManager();
 	~BulletManager();
@@ -101,4 +103,7 @@ public:
 	GLvoid AddParticleCollision(IBulletCollisionable* object);
 	GLvoid DelCollisionObject(IBulletCollisionable* object);
 	GLvoid DelParticleCollision(IBulletCollisionable* object);
+
+	GLvoid SendBuf(SOCKET& sock);
+
 };

@@ -268,33 +268,6 @@ GLvoid BulletManager::Update()
 		}
 	}
 
-	char numbuf[5]; 
-
-	int num = 0;
-	if (!mBulletList.empty())
-		num = mBulletList.size();
-	else num = 0;
-
-	std::ostringstream oss;
-
-	
-
-	for (int i = 0; i < num; ++i) {
-		Bullet* bullet = mBulletList[i];
-		oss << std::fixed << std::setprecision(2)
-			<< bullet->GetPosition().x << " "
-			<< bullet->GetPosition().y << " "
-			<< bullet->GetPosition().z << " ";
-	}
-	
-
-
-	std::string buf = oss.str();
-	const char* sendbuf = buf.c_str();
-
-	std::cout << buf; // 버퍼에 저장된 문자열 출력
-	//send(sock, sendbuf, (int)strlen(sendbuf), 0);
-
 }
 //GLvoid ProcessCollision(Bullet* bullet, IBulletCollisionable* object, vector<PaintPlane*>& paints)
 //{
@@ -484,4 +457,34 @@ GLvoid BulletManager::DelCollisionObject(IBulletCollisionable* object)
 GLvoid BulletManager::DelParticleCollision(IBulletCollisionable* object)
 {
 	mParticleCollisions.erase(remove_if(mParticleCollisions.begin(), mParticleCollisions.end() - 1, [&object](IBulletCollisionable* item) {return object->GetID() == item->GetID(); }));
+}
+
+GLvoid BulletManager::SendBuf(SOCKET& sock)
+{
+	int num = 0;
+	if (!mBulletList.empty())
+		num = mBulletList.size();
+	else num = 0;
+
+	std::ostringstream oss;
+
+
+
+	for (int i = 0; i < num; ++i) {
+		Bullet* bullet = mBulletList[i];
+		oss << std::fixed << std::setprecision(2)
+			<< bullet->GetPosition().x << " "
+			<< bullet->GetPosition().y << " "
+			<< bullet->GetPosition().z << " ";
+	}
+
+
+
+	std::string buf = oss.str();
+	const char* sendbuf = buf.c_str();
+
+	std::cout << buf; // 버퍼에 저장된 문자열 출력
+
+	send(sock, sendbuf, (int)strlen(sendbuf), 0);
+	return GLvoid();
 }

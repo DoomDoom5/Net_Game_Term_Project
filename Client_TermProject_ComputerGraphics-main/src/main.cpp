@@ -400,17 +400,15 @@ GLvoid Update()
 	timer::CalculateFPS();
 	timer::Update();
 	if (player[myid] != nullptr) player[myid]->Update();
-
 	if (player[myid] != nullptr) player[myid]->PlayerSend(sock);
-	
-	monsterManager->Update(sock);
-	for (int i = 0; i < users; ++i) player[i]->Update();
-	if (player[myid] != nullptr) player[myid]->PlayerSend(sock);
-	if (player[myid] != nullptr) player[myid]->PlayerRecv(sock);
+	// ==================================================
+	 waveManager->Update(sock);
 	turretManager->Update(sock);
-	// waveManager->Update(sock);
+	monsterManager->Update(sock);
+	//bulletManager->Update(sock);
+	// ==================================================
 
-
+	if (player[myid] != nullptr) player[myid]->PlayerRecv(sock);
 	// ====================================
 	if (player[myid] != nullptr) UpdateplayersPos(sock);
 	// ====================================

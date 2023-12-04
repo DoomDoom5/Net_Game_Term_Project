@@ -50,7 +50,7 @@ GLvoid WaveManager::Start()
 
 GLvoid WaveManager::Update(SOCKET& sock)
 {
-	int newWave = 0;
+	int newWave = 1;
 	char buf[10];
 	int retval = recv(sock, buf, 10, 0);
 
@@ -62,6 +62,7 @@ GLvoid WaveManager::Update(SOCKET& sock)
 		mPlayer->AddHoldturret(1);
 	}
 
+	cout << "mCrntWave: " << mCrntWave << endl;
 #ifdef DEBUG
 	cout << "mCrntWave: " << mCrntWave << endl;
 #endif

@@ -162,7 +162,7 @@ GLvoid BulletManager::Update(SOCKET& sock)
 	char buffer[1000];
 
 	// 첫 번째 데이터 받기
-	//retval = recv(sock, buffer, BUFSIZE, 0);
+	retval = recv(sock, buffer, BUFSIZE, 0);
 	memcpy(&num, &buffer, sizeof(int)); // numbuf 대신 buffer를 사용해야 합니다.
 
 	// 두 번째 데이터 받기
