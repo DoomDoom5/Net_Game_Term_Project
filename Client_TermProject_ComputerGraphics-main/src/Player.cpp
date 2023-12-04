@@ -741,7 +741,6 @@ GLvoid Player::SetPosition(glm::vec3 newPos)
 GLvoid Player::SetBodyLook(glm::vec3 newPos)
 {
 	mBody->SetLook(newPos);
-	mArms->SetLook(newPos);
 	mLegL->SetLook(newPos);
 	mLegR->SetLook(newPos);
 }
@@ -749,6 +748,7 @@ GLvoid Player::SetBodyLook(glm::vec3 newPos)
 GLvoid Player::SetHeadLook(glm::vec3 newPos)
 {
 	mHead->SetLook(newPos);
+	mArms->SetLook(newPos);
 }
 
 GLint Player::GetHoldTullet() const

@@ -55,6 +55,7 @@ GLvoid Gun::Draw()
 {
 	mObject->Draw();
 }
+
 GLvoid Gun::Rotate(const GLfloat& yaw, const GLfloat& pitch)
 {
 	mYaw = yaw;
@@ -68,6 +69,7 @@ GLvoid Gun::Rotate(const GLfloat& yaw, const GLfloat& pitch)
 	mObject->Rotate(Vector3::Up(), mPitch);
 	mObject->RotateLocal(mYaw, 0, 0);
 }
+
 GLvoid Gun::RotateLocal(const GLfloat& yaw, const GLfloat& pitch)
 {
 	mYaw = yaw;
