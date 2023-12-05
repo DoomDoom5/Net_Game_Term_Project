@@ -179,6 +179,8 @@ public:
 	glm::vec3 GetPosition() const;
 	glm::vec3 GetBodyLook() const;
 	glm::vec3 GetHeadLook() const;
+	glm::vec3 GetLegLLook() const;
+	glm::vec3 GetLegRLook() const;
 	glm::vec3 GetGunPos() const;
 	glm::vec3 GetGunLook() const;
 	glm::quat GetGunRotation() const;
@@ -209,6 +211,8 @@ public:
 	GLvoid SetGunPos(glm::vec3 newPos);
 	GLvoid SetGunLook(glm::vec3 newPos);
 	GLvoid SetGunRotation(glm::quat newRotation);
+	GLvoid SetLegRLook(glm::vec3 newPos);
+	GLvoid SetLegLLook(glm::vec3 newPos);
 
 	// Add
 	GLvoid AddHoldturret(const GLint& value);
@@ -229,6 +233,8 @@ struct PlayerInfo {
 	char pos[sizeof(glm::vec3)];
 	char bodylook[sizeof(glm::vec3)];
 	char headlook[sizeof(glm::vec3)];
+	char legRlook[sizeof(glm::vec3)];
+	char legLlook[sizeof(glm::vec3)];
 	char isFired[sizeof(bool)];
 	char isInstall[sizeof(bool)];
 	char gunlook[sizeof(glm::vec3)];

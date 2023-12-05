@@ -706,6 +706,8 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	glm::vec3 vPlayerPos;
 	glm::vec3 vPlayerBodyLook;
 	glm::vec3 vPlayerHeadLook;
+	glm::vec3 vPlayerLegLLook;
+	glm::vec3 vPlayerLegRLook;
 	glm::vec3 vGunLook;
 	GunType gunType;
 	glm::quat rotate;
@@ -717,6 +719,8 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	memcpy(&vPlayerPos, playerInfo.pos, sizeof(glm::vec3));
 	memcpy(&vPlayerBodyLook, playerInfo.bodylook, sizeof(glm::vec3));
 	memcpy(&vPlayerHeadLook, playerInfo.headlook, sizeof(glm::vec3));
+	memcpy(&vPlayerLegLLook, playerInfo.legLlook, sizeof(glm::vec3));
+	memcpy(&vPlayerLegRLook, playerInfo.legRlook, sizeof(glm::vec3));
 	memcpy(&isFire, playerInfo.isFired, sizeof(bool));
 	memcpy(&isInstall, playerInfo.isInstall, sizeof(bool));
 	memcpy(&vGunLook, playerInfo.gunlook, sizeof(glm::vec3));
@@ -728,6 +732,8 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	SetPosition(vPlayerPos);
 	SetBodyLook(vPlayerBodyLook);
 	SetHeadLook(vPlayerHeadLook);
+	SetLegLLook(vPlayerLegLLook);
+	SetLegRLook(vPlayerLegRLook);
 	SetGunLook(vGunLook);
 	SetGunRotation(rotate);
 	state = currentState;
@@ -790,6 +796,26 @@ GLvoid Player::SetGunPos(glm::vec3 newPos)
 GLvoid Player::SetGunLook(glm::vec3 newPos)
 {
 	mCrntGun->SetLook(newPos);
+}
+
+glm::vec3 Player::GetLegRLook() const
+{
+	return mLegR->GetLook();
+}
+
+glm::vec3 Player::GetLegLLook() const
+{
+	return mLegL->GetLook();
+}
+
+GLvoid Player::SetLegRLook(glm::vec3 newPos)
+{
+	mLegR->SetLook(newPos);
+}
+
+GLvoid Player::SetLegLLook(glm::vec3 newPos)
+{
+	mLegL->SetLook(newPos);
 }
 
 GLvoid Player::AddHoldturret(const GLint& value)

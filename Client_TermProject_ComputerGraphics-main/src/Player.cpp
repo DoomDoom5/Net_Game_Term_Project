@@ -655,6 +655,26 @@ glm::vec3 Player::GetHeadLook() const
 	return mHead->GetLook();
 }
 
+glm::vec3 Player::GetLegRLook() const
+{
+	return mLegR->GetLook();
+}
+
+glm::vec3 Player::GetLegLLook() const
+{
+	return mLegL->GetLook();
+}
+
+GLvoid Player::SetLegRLook(glm::vec3 newPos)
+{
+	mLegR->SetLook(newPos);
+}
+
+GLvoid Player::SetLegLLook(glm::vec3 newPos)
+{
+	mLegL->SetLook(newPos);
+}
+
 glm::vec3 Player::GetGunPos() const
 {
 	return mCrntGun->GetPosition();
@@ -701,6 +721,8 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	glm::vec3 bodylook = GetBodyLook();
 	glm::vec3 headlook = GetHeadLook();
 	glm::vec3 playerGunLook = GetGunLook();
+	glm::vec3 legLlook = GetLegLLook();
+	glm::vec3 legRlook = GetLegRLook();
 	glm::quat rotation = GetGunRotation();
 	GunType guntype = GetGunType();
 	Player::State currentState = state;
@@ -708,6 +730,8 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	memcpy(playerInfo.pos, &pos, sizeof(glm::vec3));
 	memcpy(playerInfo.bodylook, &bodylook, sizeof(glm::vec3));
 	memcpy(playerInfo.headlook, &headlook, sizeof(glm::vec3));
+	memcpy(playerInfo.legLlook, &legLlook, sizeof(glm::vec3));
+	memcpy(playerInfo.legRlook, &legRlook, sizeof(glm::vec3));
 	memcpy(playerInfo.isFired, &mlsFire, sizeof(bool));
 	memcpy(playerInfo.isInstall, &mIsInstall, sizeof(bool));
 	memcpy(playerInfo.gunlook, &playerGunLook, sizeof(glm::vec3));

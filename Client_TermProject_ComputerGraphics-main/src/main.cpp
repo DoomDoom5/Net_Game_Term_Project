@@ -701,6 +701,8 @@ struct PlayersInfo
 	char pos[sizeof(glm::vec3) * MAXUSER];
 	char bodylook[sizeof(glm::vec3) * MAXUSER];
 	char headlook[sizeof(glm::vec3) * MAXUSER];
+	char legRlook[sizeof(glm::vec3) * MAXUSER];
+	char legLlook[sizeof(glm::vec3) * MAXUSER];
 	char gunlook[sizeof(glm::vec3) * MAXUSER];
 	char guntype[sizeof(GunType) * MAXUSER];
 	char gunquat[sizeof(glm::quat) * MAXUSER];
@@ -726,6 +728,8 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 	glm::vec3 vPos[MAXUSER];
 	glm::vec3 vBodyLook[MAXUSER];
 	glm::vec3 vHeadLook[MAXUSER];
+	glm::vec3 vLegLLook[MAXUSER];
+	glm::vec3 vLegRLook[MAXUSER];
 	glm::vec3 vGunLook[MAXUSER];
 	GunType gunType[MAXUSER];
 	glm::quat gunRotation[MAXUSER];
@@ -735,6 +739,8 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 	memcpy(vPos, playerInfo.pos, sizeof(glm::vec3) * users);
 	memcpy(vBodyLook, playerInfo.bodylook, sizeof(glm::vec3) * users);
 	memcpy(vHeadLook, playerInfo.headlook, sizeof(glm::vec3) * users);
+	memcpy(vLegLLook, playerInfo.legLlook, sizeof(glm::vec3) * users);
+	memcpy(vLegRLook, playerInfo.legRlook , sizeof(glm::vec3) * users);
 	memcpy(vGunLook, playerInfo.gunlook, sizeof(glm::vec3) * users);
 	memcpy(gunType, playerInfo.guntype, sizeof(GunType) * users);
 	memcpy(gunRotation, playerInfo.gunquat, sizeof(glm::quat) * users);
@@ -775,6 +781,8 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 		player[i]->SetPosition(vPos[i]);
 		player[i]->SetBodyLook(vBodyLook[i]);
 		player[i]->SetHeadLook(vHeadLook[i]);
+		player[i]->SetLegLLook(vLegLLook[i]);
+		player[i]->SetLegRLook(vLegRLook[i]);
 		player[i]->SetGunLook(vGunLook[i]);
 		player[i]->SetGunRotation(gunRotation[i]);
 

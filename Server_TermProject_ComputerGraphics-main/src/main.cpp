@@ -352,6 +352,8 @@ struct PlayersInfo
     char pos[sizeof(glm::vec3) * MAXUSER];
     char bodylook[sizeof(glm::vec3) * MAXUSER];
     char headlook[sizeof(glm::vec3) * MAXUSER];
+    char legRlook[sizeof(glm::vec3) * MAXUSER];
+    char legLlook[sizeof(glm::vec3) * MAXUSER];
     char gunlook[sizeof(glm::vec3) * MAXUSER];
     char guntype[sizeof(GunType) * MAXUSER];
     char gunquat[sizeof(glm::quat) * MAXUSER];
@@ -367,10 +369,12 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
     bool isover = IsGameOver();
     memcpy(playersInfo.gameover, &isover, sizeof(bool));
     
-    glm::vec3 vPos[MAXUSER]; // 최대 3명 플레이어 xyz(3) 전달
-    glm::vec3 vBodyLook[MAXUSER]; // 최대 3명 플레이어 xyz(3) 전달
-    glm::vec3 vHeadLook[MAXUSER]; // 최대 3명 플레이어 xyz(3) 전달
-    glm::vec3 vGunLook[MAXUSER]; // 최대 3명 플레이어 xyz(3) 전달
+    glm::vec3 vPos[MAXUSER]; 
+    glm::vec3 vBodyLook[MAXUSER];
+    glm::vec3 vHeadLook[MAXUSER];
+    glm::vec3 vGunLook[MAXUSER]; 
+    glm::vec3 vLegLLook[MAXUSER];
+    glm::vec3 vLegRLook[MAXUSER];
     GunType gunType[MAXUSER];
     glm::quat gunRotation[MAXUSER];
     Player::State currentStates[MAXUSER];
@@ -382,6 +386,8 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
         vPos[i] = player[i]->GetPosition();
         vBodyLook[i] = player[i]->GetBodyLook();
         vHeadLook[i] = player[i]->GetHeadLook();
+        vLegLLook[i] = player[i]->GetLegLLook();
+        vLegRLook[i] = player[i]->GetLegRLook();
         vGunLook[i] = player[i]->GetGunLook();
         gunRotation[i] = player[i]->GetGunRotation();
         gunType[i] = player[i]->GetGunType();
@@ -416,6 +422,8 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
     memcpy(playersInfo.pos, vPos, sizeof(glm::vec3) * users);
     memcpy(playersInfo.bodylook, vBodyLook, sizeof(glm::vec3) * users);
     memcpy(playersInfo.headlook, vHeadLook, sizeof(glm::vec3) * users);
+    memcpy(playersInfo.legLlook, vLegLLook, sizeof(glm::vec3) * users);
+    memcpy(playersInfo.legRlook, vLegRLook, sizeof(glm::vec3) * users);
     memcpy(playersInfo.gunlook, vGunLook, sizeof(glm::vec3) * users);
     memcpy(playersInfo.guntype, gunType, sizeof(GunType) * users);
     memcpy(playersInfo.gunquat, &gunRotation, sizeof(glm::quat) * users);
