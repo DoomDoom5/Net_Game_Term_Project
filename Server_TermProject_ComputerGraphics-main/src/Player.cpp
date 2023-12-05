@@ -723,7 +723,6 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	uint32_t nGunLook[3];
 	GunType gunType;
 	glm::quat rotate;
-	playerState::PlayerState state;
 	bool isFire , isInstall = false;
 
 	retval = recv(client_sock, buf, sizeof(PlayerInfo), 0);
