@@ -356,6 +356,7 @@ struct PlayersInfo
     char gunlook[sizeof(uint32_t) * 3 * MAXUSER];
     char guntype[sizeof(GunType) * MAXUSER];
     char gunquat[sizeof(glm::quat) * MAXUSER];
+    char state[sizeof(Player::State) * MAXUSER];
 };
 
 GLvoid SendAllPlayersInfo(SOCKET& sock)
@@ -374,6 +375,7 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
     uint32_t nGunLook[MAXUSER * 3]; // 최대 3명 플레이어 xyz(3) 전달
     GunType gunType[MAXUSER];
     glm::quat gunRotation[MAXUSER];
+    Player::State currentStates[MAXUSER];
 
     SetConsoleCursor(0, 7);
     cout << "SendToClient: " << endl;
@@ -386,6 +388,7 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
         glm::vec3 playerGunLook = player[i]->GetGunLook();
         glm::quat playerGunRotation = player[i]->GetGunRotation();
         GunType guntype = player[i]->GetGunType();
+        Player::State currentState = player[i]->state;
         nPos[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&playerPos.x);
         nPos[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&playerPos.y);
         nPos[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&playerPos.z);
@@ -403,6 +406,7 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
         nGunLook[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&playerGunLook.z);
         gunType[i] = guntype;
         gunRotation[i] = playerGunRotation;
+        currentStates[i] = currentState;
 
 #ifdef  DEBUG
         cout << i << " Pos: (" << playerPos.x << ", " << playerPos.y << ", " << playerPos.z << ")" << endl;
@@ -410,7 +414,22 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
         cout << i << " HeadLook: (" << playerHeadLook.x << ", " << playerHeadLook.y << ", " << playerHeadLook.z << ")" << endl;
         cout << i << " GunPos: (" << playerGunPos.x << ", " << playerGunPos.y << ", " << playerGunPos.z << ")" << endl;
         cout << i << " GunLook: (" << playerGunLook.x << ", " << playerGunLook.y << ", " << playerGunLook.z << ")" << endl;
-#endif //  DEBUG
+        cout << i << " State: ";
+        switch (currentState) {
+        case Player::State::Idle:
+            cout << "Idle" << endl;
+            break;
+        case Player::State::Jump:
+            cout << "Jump" << endl;
+            break;
+        case Player::State::Run:
+            cout << "Run" << endl;
+            break;
+        case Player::State::Walk:
+            cout << "Walk" << endl;
+            break;
+        }
+#endif
 
      
     }
@@ -421,6 +440,8 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
     memcpy(playersInfo.gunlook, nGunLook, sizeof(uint32_t) * 3 * users);
     memcpy(playersInfo.guntype, gunType, sizeof(GunType) * users);
     memcpy(playersInfo.gunquat, &gunRotation, sizeof(glm::quat) * users);
+    memcpy(playersInfo.state, &currentStates, sizeof(Player::State) * users);
+
     memcpy(buf, &playersInfo, sizeof(PlayersInfo));
     send(sock, buf, sizeof(PlayersInfo), 0);
 }

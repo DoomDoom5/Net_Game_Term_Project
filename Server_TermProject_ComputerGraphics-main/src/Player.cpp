@@ -706,7 +706,7 @@ struct PlayerInfo {
 	char gunlook[sizeof(uint32_t) * 3];
 	char guntype[sizeof(GunType)];
 	char gunrotate[sizeof(glm::quat)];
-	char state[sizeof(PlayerState)];
+	char state[sizeof(Player::State)];
 };
 
 GLvoid Player::PlayerRecv(SOCKET& client_sock)
@@ -723,6 +723,7 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	uint32_t nGunLook[3];
 	GunType gunType;
 	glm::quat rotate;
+	Player::State currentState;
 	bool isFire , isInstall = false;
 
 	retval = recv(client_sock, buf, sizeof(PlayerInfo), 0);
@@ -736,6 +737,7 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	memcpy(nGunLook, playerInfo.gunlook, sizeof(uint32_t) * 3);
 	memcpy(&gunType, playerInfo.guntype, sizeof(GunType));
 	memcpy(&rotate, playerInfo.gunrotate, sizeof(glm::quat));
+	memcpy(&currentState, playerInfo.state, sizeof(Player::State));
 
 	glm::vec3 playerPos;
 	glm::vec3 playerBodyLook;
@@ -764,12 +766,14 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	SetGunPos(fGunPos);
 	SetGunLook(fGunLook);
 	SetGunRotation(rotate);
+	state = currentState;
 	mIsInstall = isInstall;
 	mlsFire = isFire;
 
 
 	if (mIsInstall) Install_Turret();
 	mIsInstall = false;
+
 }
 
 GLvoid Player::SetGunType(GunType gunType)

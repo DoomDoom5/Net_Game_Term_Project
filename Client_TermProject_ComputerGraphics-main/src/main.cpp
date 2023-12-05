@@ -608,6 +608,7 @@ GLvoid ProcessKeyDown(unsigned char key, GLint x, GLint y)
 	if (player[myid] != nullptr)
 	{
 		player[myid]->ProcessKeyDown(key);
+		//player[myid]->SendKeyToServer(key);
 	}
 }
 GLvoid ProcessKeyUp(unsigned char key, GLint x, GLint y)
@@ -704,6 +705,7 @@ struct PlayersInfo
 	char gunlook[sizeof(uint32_t) * 3 * MAXUSER];
 	char guntype[sizeof(GunType) * MAXUSER];
 	char gunquat[sizeof(glm::quat) * MAXUSER];
+	char state[sizeof(Player::State) * MAXUSER];
 };
 
 GLvoid UpdateplayersPos(SOCKET& sock)
@@ -729,6 +731,8 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 	uint32_t nGunLook[MAXUSER * 3];
 	GunType gunType[MAXUSER];
 	glm::quat gunRotation[MAXUSER];
+	Player::State currentStates[MAXUSER];
+
 
 	memcpy(nPos, playerInfo.pos, sizeof(uint32_t) * 3 * users);
 	memcpy(nBodyLook, playerInfo.bodylook, sizeof(uint32_t) * 3 * users);
@@ -737,6 +741,7 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 	memcpy(nGunLook, playerInfo.gunlook, sizeof(uint32_t) * 3 * users);
 	memcpy(gunType, playerInfo.guntype, sizeof(GunType) * users);
 	memcpy(gunRotation, playerInfo.gunquat, sizeof(glm::quat) * users);
+	memcpy(currentStates, playerInfo.state, sizeof(Player::State) * users);
 
 	int id = 0;
 	for (size_t i = 0; i < users; i++)
@@ -769,6 +774,22 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 		cout << i << " HeadLook: ( " << fHeadLook.x << ", " << fHeadLook.y << ", " << fHeadLook.z << " )" << endl;
 		cout << i << " GunPos: (" << fGunPos.x << ", " << fGunPos.y << ", " << fGunPos.z << ")" << endl;
 		cout << i << " GunLook: (" << fGunLook.x << ", " << fGunLook.y << ", " << fGunLook.z << ")" << endl;
+		cout << i << " State: ";
+		switch (currentStates[i]) {
+		case Player::State::Idle:
+			cout << "Idle" << endl;
+			break;
+		case Player::State::Jump:
+			cout << "Jump" << endl;
+			break;
+		case Player::State::Run:
+			cout << "Run" << endl;
+			break;
+		case Player::State::Walk:
+			cout << "Walk" << endl;
+			break;
+		}
+
 #endif
 		if (i == myid) continue;
 
@@ -779,5 +800,9 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 		player[i]->SetGunPos(fGunLook);
 		player[i]->SetGunLook(fGunLook);
 		player[i]->SetGunRotation(gunRotation[i]);
+
+		if (player[i]->state != currentStates[i]) {
+			player[i]->ChangeState(currentStates[i]);
+		}
 	}
 }

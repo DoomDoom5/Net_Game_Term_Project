@@ -432,6 +432,7 @@ GLvoid Player::ChangeState(const State& playerState, const Event& e, const GLint
 		assert(0);
 	}
 
+	state = playerState;
 	mCrntState->Enter(e, value);
 }
 
@@ -685,24 +686,11 @@ GunType Player::GetGunType() const
 	else return GunType::None;
 }
 
-struct PlayerInfo {
-	char pos[sizeof(uint32_t) * 3];
-	char bodylook[sizeof(uint32_t) * 3];
-	char headlook[sizeof(uint32_t) * 3];
-	char isFired[sizeof(bool)];
-	char isInstall[sizeof(bool)];
-	char gunpos[sizeof(uint32_t) * 3];
-	char gunlook[sizeof(uint32_t) * 3];
-	char guntype[sizeof(GunType)];
-	char gunrotate[sizeof(glm::quat)];
-};
-
 GLvoid Player::PlayerSend(SOCKET& sock)
 {
 	int retval = 0;
 	// ===================클라이언트 정보 수신===============
 	// glm::vec3를 문자열로 변환
-
 	PlayerInfo playerInfo;
 	memset(&playerInfo, 0, sizeof(playerInfo));
 
@@ -721,6 +709,7 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	glm::vec3 playerGunLook = GetGunLook();
 	glm::quat rotation = GetGunRotation();
 	GunType guntype = GetGunType();
+	Player::State currentState = state;
 	nPos[0] = *reinterpret_cast<uint32_t*>(&pos.x);
 	nPos[1] = *reinterpret_cast<uint32_t*>(&pos.y);
 	nPos[2] = *reinterpret_cast<uint32_t*>(&pos.z);
@@ -737,7 +726,7 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	nGunLook[1] = *reinterpret_cast<uint32_t*>(&playerGunLook.y);
 	nGunLook[2] = *reinterpret_cast<uint32_t*>(&playerGunLook.z);
 
-	memcpy(playerInfo.pos, nPos, sizeof(uint32_t) * 3);
+	//memcpy(playerInfo.key, nPos, sizeof(uint32_t) * 3);
 	memcpy(playerInfo.bodylook, nBodyLook, sizeof(uint32_t) * 3);
 	memcpy(playerInfo.headlook, nHeadLook, sizeof(uint32_t) * 3);
 	memcpy(playerInfo.isFired, &mlsFire, sizeof(bool));
@@ -746,7 +735,7 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	memcpy(playerInfo.gunlook, nGunLook, sizeof(uint32_t) * 3 );
 	memcpy(playerInfo.guntype, &guntype, sizeof(GunType));
 	memcpy(playerInfo.gunrotate, &rotation, sizeof(glm::quat));
-
+	memcpy(playerInfo.state, &currentState, sizeof(Player::State));
 	// 데이터 보내기
 	memcpy(buf, &playerInfo, sizeof(PlayerInfo));
 	retval = send(sock, buf, sizeof(PlayerInfo), 0);
