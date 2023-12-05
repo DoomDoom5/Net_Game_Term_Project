@@ -153,8 +153,91 @@ GLvoid BulletManager::Draw() const
 	}
 }
 
-GLvoid BulletManager::Update(SOCKET& sock)
+
+GLboolean ProcessCollision(Bullet* bullet, IBulletCollisionable* object, vector<PaintPlane*>& paints, GLfloat& crntInkSoundDelay)
 {
+	constexpr GLfloat inkSoundDelay = 0.5f;
+	constexpr GLfloat NO_NORMAL = 9;
+
+	glm::vec3 hitPoint;
+	glm::vec3 normal = { NO_NORMAL, NO_NORMAL, NO_NORMAL };
+
+	if (object->CheckCollisionBullet(bullet->GetAttribute(), hitPoint, normal) == GL_TRUE)
+	{
+		/* create paint */
+		if (normal.x != NO_NORMAL)
+		{
+			GLuint randPaint = rand() % NUM_PAINT;
+			Textures texture = static_cast<Textures>(static_cast<GLuint>(Textures::Paint) + randPaint);
+			const IdentityObject* object = GetIdentityTextureObject(texture);
+
+			if (bullet->GetType() != BulletType::Rocket)
+			{
+				if (crntInkSoundDelay >= inkSoundDelay)
+				{
+					crntInkSoundDelay = 0;
+					soundManager->PlayEffectSound(EffectSound::Drawing_ink, hitPoint, 0.2f);
+				}
+			}
+			else
+			{
+				soundManager->PlayEffectSound(EffectSound::Drawing_Bigink, hitPoint, 0.2f);
+			}
+			PaintPlane* plane = new PaintPlane(object, bullet->GetColor(), hitPoint, normal);
+			plane->SetScale(BULLET_RADIUS * bullet->GetScale());
+			paints.emplace_back(plane);
+		}
+
+		if (bullet->GetType() == BulletType::Rocket)
+		{
+			bulletManager->CreateExplosion(RED, bullet->GetCenterPos(), bullet->GetRadius());
+		}
+
+		bullet->Destroy();
+		return GL_TRUE;
+	}
+
+	return GL_FALSE;
+}
+
+struct BulletInfo {
+	char bulletNumBuf[sizeof(int)];
+	char bulletPosBuf[sizeof(float) * 3 * 20];		// num은 10이 최대
+};
+
+GLvoid BulletManager::Update(SOCKET& sock) {
+
+	BulletInfo bulletInfo{};
+	char buf[sizeof(BulletInfo)];
+	char nBulletBuf[sizeof(int)];
+	int retval = recv(sock, buf, sizeof(BulletInfo), 0);
+	if (retval == SOCKET_ERROR) {
+		printf("SOCKET_ERROR\n");
+		return;
+	}
+	memcpy(&bulletInfo, &buf, sizeof(BulletInfo));
+	int nbullets;
+	memcpy(&nbullets, &bulletInfo.bulletNumBuf, sizeof(int));
+	nbullets = ntohl(nbullets);
+	cout << nbullets << "개의 데이터를 받을게요" << endl;
+
+	// 데이터 받기
+	uint32_t convertToFloat[1000];
+	memcpy(&convertToFloat, &bulletInfo.bulletPosBuf, sizeof(uint32_t) * 3 * nbullets);
+	float fBulletPos[1000]{ 0 };
+	for (int i = 0; i < nbullets * 3; ++i) {
+		convertToFloat[i] = ntohl(convertToFloat[i]);
+		fBulletPos[i] = *reinterpret_cast<float*>(&convertToFloat[i]);
+	}
+	for (int i = 0; i < nbullets; ++i) {
+		printf("%d Position: (%f, %f, %f)\n", i, fBulletPos[i * 3 + 0],
+			fBulletPos[i * 3 + 1], fBulletPos[i * 3 + 2]);
+	}
+
+	//memset(convertToFloat, 0, sizeof(uint32_t));
+
+
+	/*
 	int retval = 0;
 	const char* numbuf;
 	int num;
@@ -191,8 +274,9 @@ GLvoid BulletManager::Update(SOCKET& sock)
 	if (bulletCount == 0) {
 		std::cout << "No bullets found." << std::endl;
 	}
+	*/
 	/////////////////////////////////////////////////////////////////
-	
+
 	mCrntInkSoundDelay += timer::DeltaTime();
 
 	int cnt2 = 0;
@@ -206,14 +290,15 @@ GLvoid BulletManager::Update(SOCKET& sock)
 		}
 		else
 		{
-			glm::vec3 v = glm::vec3(bulletinfo[cnt2].x, bulletinfo[cnt2].y, bulletinfo[cnt2].z);
+
+			glm::vec3 v = glm::vec3(fBulletPos[3 * cnt2 + 0], fBulletPos[3 * cnt2 + 1], fBulletPos[3 * cnt2 + 2]);
 			bullet->SetPosition(v);
 			std::cout << "Bullet " << cnt2 << " Position: "
-				<< bulletinfo[cnt2].x << ", " << bulletinfo[cnt2].y << ", " << bulletinfo[cnt2].z << std::endl;
+				<< fBulletPos[3 * cnt2 + 0] << ", " << fBulletPos[3 * cnt2 + 1] << ", " << fBulletPos[3 * cnt2 + 2] << std::endl;
 			//bullet->Update();
 			++iter;
 			++cnt2;
-			if (bulletCount < cnt2) bullet->Destroy();
+			if (nbullets < cnt2) bullet->Destroy();
 		}
 	}
 

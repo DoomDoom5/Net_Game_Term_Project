@@ -195,8 +195,12 @@ GLboolean ProcessCollision(Bullet* bullet, IBulletCollisionable* object, vector<
 
 	return GL_FALSE;
 }
+struct BulletInfo {
+	char bulletNumBuf[sizeof(int)];
+	char bulletPosBuf[sizeof(float) * 3 * 20];		// num은 10이 최대
+};
 
-GLvoid BulletManager::Update()
+GLvoid BulletManager::Update(SOCKET sock)
 {
 	mCrntInkSoundDelay += timer::DeltaTime();
 
@@ -268,6 +272,7 @@ GLvoid BulletManager::Update()
 		}
 	}
 
+	/*
 	char numbuf[5]; // 총알 99999 를 max로
 
 	int num = 0;
@@ -275,12 +280,9 @@ GLvoid BulletManager::Update()
 		num = mBulletList.size();
 	else num = 0;
 
-	//snprintf(numbuf, sizeof(numbuf), "%d", num);
-	//send(sock, numbuf, (int)strlen(numbuf), 0);
-
 	std::ostringstream oss;
 
-	
+
 
 	for (int i = 0; i < num; ++i) {
 		Bullet* bullet = mBulletList[i];
@@ -288,33 +290,45 @@ GLvoid BulletManager::Update()
 			<< bullet->GetPosition().x << " "
 			<< bullet->GetPosition().y << " "
 			<< bullet->GetPosition().z << " ";
-		//std::cout << i << ": (" << bullet->GetPosition().x << ", "
-			//<< bullet->GetPosition().y << ", "
-			//<< bullet->GetPosition().z << ")\n";
 	}
-	
-	
-	/*
-	num = 10;
-	float c = 0;
-	for (int i = 0; i < num; ++i) {
-		c++;
-		oss << std::fixed << std::setprecision(2)
-			<< c << " "
-			<< c << " "
-			<< c << " ";
-		std::cout << i << ": (" << c << ", "
-			<< c << ", "
-			<< c << ")\n";
-	}
-	*/
 
 
 	std::string buf = oss.str();
 	const char* sendbuf = buf.c_str();
 
 	std::cout << buf; // 버퍼에 저장된 문자열 출력
-	//send(sock, sendbuf, (int)strlen(sendbuf), 0);
+	send(sock, sendbuf, (int)strlen(sendbuf), 0);
+	*/
+
+	char numbuf[10];
+	int num = 0;
+	BulletInfo bulletInfo{};
+
+	int nbullets = 0;
+	int netbyte = 0;
+	if (!mBulletList.empty())
+		nbullets = mBulletList.size();
+	std::cout << nbullets << "개의 몬스터 위치가 있음" << std::endl;
+	netbyte = htonl(nbullets);
+	memcpy(&bulletInfo.bulletNumBuf, &netbyte, sizeof(int));
+
+	// Postion 설정
+	uint32_t converToFloat[1000];
+	memset(converToFloat, 0, sizeof(converToFloat));
+	for (int i = 0; i < nbullets; ++i)
+	{
+		Bullet* bullet = mBulletList[i];
+		glm::vec3 pos = bullet->GetPosition();
+		converToFloat[i * 3 + 0] = htonl(*reinterpret_cast<uint32_t*>(&pos.x));
+		converToFloat[i * 3 + 1] = htonl(*reinterpret_cast<uint32_t*>(&pos.y));
+		converToFloat[i * 3 + 2] = htonl(*reinterpret_cast<uint32_t*>(&pos.z));
+		printf("%d Position: (%f, %f, %f)\n", i, pos.x, pos.y, pos.z);
+	}
+	memcpy(&bulletInfo.bulletPosBuf, &converToFloat, sizeof(uint32_t) * 3 * nbullets);
+
+	char buf[sizeof(bulletInfo)];
+	memcpy(&buf, &bulletInfo, sizeof(BulletInfo));
+	send(sock, buf, sizeof(BulletInfo), 0);
 
 }
 //GLvoid ProcessCollision(Bullet* bullet, IBulletCollisionable* object, vector<PaintPlane*>& paints)
