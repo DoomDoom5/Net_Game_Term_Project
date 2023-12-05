@@ -706,6 +706,7 @@ struct PlayerInfo {
 	char gunlook[sizeof(uint32_t) * 3];
 	char guntype[sizeof(GunType)];
 	char gunrotate[sizeof(glm::quat)];
+	char state[sizeof(PlayerState)];
 };
 
 GLvoid Player::PlayerRecv(SOCKET& client_sock)
@@ -722,6 +723,7 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	uint32_t nGunLook[3];
 	GunType gunType;
 	glm::quat rotate;
+	playerState::PlayerState state;
 	bool isFire , isInstall = false;
 
 	retval = recv(client_sock, buf, sizeof(PlayerInfo), 0);
