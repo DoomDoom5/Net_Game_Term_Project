@@ -140,6 +140,7 @@ public:
 	// state
 	enum class State { Idle = 0, Walk, Run, Jump };
 	GLvoid ChangeState(const State& playerState, const Event& e = Event::None, const GLint& value = 0);
+	Player::State state;
 
 	// Frame
 	GLvoid Update();

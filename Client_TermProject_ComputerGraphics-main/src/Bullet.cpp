@@ -173,8 +173,9 @@ GLvoid BulletManager::Update(SOCKET& sock) {
 	int nbullets;
 	memcpy(&nbullets, &bulletInfo.bulletNumBuf, sizeof(int));
 	nbullets = ntohl(nbullets);
+#ifdef DEBUG
 	cout << nbullets << "개의 데이터를 받을게요" << endl;
-
+#endif
 	// 데이터 받기
 	uint32_t convertToFloat[1000];
 	memcpy(&convertToFloat, &bulletInfo.bulletPosBuf, sizeof(uint32_t) * 3 * nbullets);
@@ -183,11 +184,13 @@ GLvoid BulletManager::Update(SOCKET& sock) {
 		convertToFloat[i] = ntohl(convertToFloat[i]);
 		fBulletPos[i] = *reinterpret_cast<float*>(&convertToFloat[i]);
 	}
+
+#ifdef DEBUG
 	for (int i = 0; i < nbullets; ++i) {
 		printf("%d Position: (%f, %f, %f)\n", i, fBulletPos[i * 3 + 0],
 			fBulletPos[i * 3 + 1], fBulletPos[i * 3 + 2]);
 	}
-
+#endif
 	//memset(convertToFloat, 0, sizeof(uint32_t));
 
 
@@ -248,8 +251,10 @@ GLvoid BulletManager::Update(SOCKET& sock) {
 
 			glm::vec3 v = glm::vec3(fBulletPos[3 * cnt2 + 0], fBulletPos[3 * cnt2 + 1], fBulletPos[3 * cnt2 + 2]);
 			bullet->SetPosition(v);
+#ifdef DEBUG
 			std::cout << "Bullet " << cnt2 << " Position: "
 				<< fBulletPos[3 * cnt2 + 0] << ", " << fBulletPos[3 * cnt2 + 1] << ", " << fBulletPos[3 * cnt2 + 2] << std::endl;
+#endif
 			//bullet->Update();
 			++iter;
 			++cnt2;

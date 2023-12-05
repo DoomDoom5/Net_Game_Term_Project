@@ -75,7 +75,7 @@ class Player {
 private:
 	// state
 	playerState::PlayerState* mCrntState = nullptr;
-
+	
 	// direction
 	GLchar mDirX = 0;
 	GLchar mDirY = 0;
@@ -134,6 +134,7 @@ private:
 	GLfloat mYaw = 0.0f;
 	GLfloat mPitch = 0.0f;
 
+
 public:
 	Player(const glm::vec3& position);
 	Player(const glm::vec3& position, const CameraMode* cameraMode);
@@ -149,6 +150,8 @@ public:
 	GLvoid Update();
 	GLvoid Draw(const CameraMode& cameraMode) const;
 	GLvoid DrawIcon() const;
+
+	GLvoid SendKeyToServer(const GLint& key);
 
 	// Process
 	GLvoid ProcessKeyDown(const GLint& key);
@@ -217,7 +220,22 @@ public:
 	GLvoid Install_Turret();
 	GLvoid ChangeGun();
 
+	Player::State state;
+
 	// bool IsGunChanged() { return mIsGunChanged; }
 	// GLvoid ChangeGun() { mIsGunChanged = true; }
 	// GLvoid ChangeGunDone() { mIsGunChanged = false; }
+};
+
+struct PlayerInfo {
+	char pos[sizeof(uint32_t) * 3];
+	char bodylook[sizeof(uint32_t) * 3];
+	char headlook[sizeof(uint32_t) * 3];
+	char isFired[sizeof(bool)];
+	char isInstall[sizeof(bool)];
+	char gunpos[sizeof(uint32_t) * 3];
+	char gunlook[sizeof(uint32_t) * 3];
+	char guntype[sizeof(GunType)];
+	char gunrotate[sizeof(glm::quat)];
+	char state[sizeof(Player::State)];
 };
