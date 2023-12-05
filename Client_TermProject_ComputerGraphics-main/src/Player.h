@@ -69,19 +69,6 @@ namespace playerState {
 	};
 }
 
-struct PlayerInfo {
-	char pos[sizeof(uint32_t) * 3];
-	char bodylook[sizeof(uint32_t) * 3];
-	char headlook[sizeof(uint32_t) * 3];
-	char isFired[sizeof(bool)];
-	char isInstall[sizeof(bool)];
-	char gunpos[sizeof(uint32_t) * 3];
-	char gunlook[sizeof(uint32_t) * 3];
-	char guntype[sizeof(GunType)];
-	char gunrotate[sizeof(glm::quat)];
-	//char state[sizeof(Player::State)];
-};
-
 class Player {
 private:
 	// state
@@ -236,5 +223,18 @@ public:
 	// bool IsGunChanged() { return mIsGunChanged; }
 	// GLvoid ChangeGun() { mIsGunChanged = true; }
 	// GLvoid ChangeGunDone() { mIsGunChanged = false; }
+};
+
+struct PlayerInfo {
+	char pos[sizeof(uint32_t) * 3];
+	char bodylook[sizeof(uint32_t) * 3];
+	char headlook[sizeof(uint32_t) * 3];
+	char isFired[sizeof(bool)];
+	char isInstall[sizeof(bool)];
+	char gunpos[sizeof(uint32_t) * 3];
+	char gunlook[sizeof(uint32_t) * 3];
+	char guntype[sizeof(GunType)];
+	char gunrotate[sizeof(glm::quat)];
+	char state[sizeof(Player::State)];
 };
 
