@@ -200,80 +200,86 @@ GLboolean ProcessCollision(Bullet* bullet, IBulletCollisionable* object, vector<
 	return GL_FALSE;
 }
 
-GLvoid BulletManager::Update(SOCKET& sock){
-	/////////////////////////////////////////////////////////////////
+struct BulletInfo {
+	char bulletNumBuf[sizeof(int)];
+	char bulletPosBuf[sizeof(float) * 3 * 20];		// num은 10이 최대
+};
+
+GLvoid BulletManager::Update(SOCKET& sock) {
+
+	BulletInfo bulletInfo{};
+	char buf[sizeof(BulletInfo)];
+	char nBulletBuf[sizeof(int)];
+	int retval = recv(sock, buf, sizeof(BulletInfo), 0);
+	if (retval == SOCKET_ERROR) {
+		printf("SOCKET_ERROR\n");
+		return;
+	}
+	memcpy(&bulletInfo, &buf, sizeof(BulletInfo));
+	int nbullets;
+	memcpy(&nbullets, &bulletInfo.bulletNumBuf, sizeof(int));
+	nbullets = ntohl(nbullets);
+	cout << nbullets << "개의 데이터를 받을게요" << endl;
+
+	// 데이터 받기
+	uint32_t convertToFloat[1000];
+	memcpy(&convertToFloat, &bulletInfo.bulletPosBuf, sizeof(uint32_t) * 3 * nbullets);
+	float fBulletPos[1000]{ 0 };
+	for (int i = 0; i < nbullets * 3; ++i) {
+		convertToFloat[i] = ntohl(convertToFloat[i]);
+		fBulletPos[i] = *reinterpret_cast<float*>(&convertToFloat[i]);
+	}
+	for (int i = 0; i < nbullets; ++i) {
+		printf("%d Position: (%f, %f, %f)\n", i, fBulletPos[i * 3 + 0],
+			fBulletPos[i * 3 + 1], fBulletPos[i * 3 + 2]);
+	}
+
+	//memset(convertToFloat, 0, sizeof(uint32_t));
+
+
+	/*
 	int retval = 0;
 	const char* numbuf;
 	int num;
 	int BUFSIZE = 512;
 	char buffer[1000];
 
+	// 첫 번째 데이터 받기
+	//retval = recv(sock, buffer, BUFSIZE, 0);
+	memcpy(&num, &buffer, sizeof(int)); // numbuf 대신 buffer를 사용해야 합니다.
+
 	// 두 번째 데이터 받기
 	retval = recv(sock, buffer, BUFSIZE, 0);
 
 	// 데이터 출력
-	std::istringstream iss1(buffer);
+	std::istringstream iss(buffer);
 	float x, y, z;
 	int bulletCount = 0;
 	struct Bulletinfo {
 		float x, y, z;
 	}bulletinfo[1000];
-	while (iss1 >> x >> y >> z) {
+	while (iss >> x >> y >> z) {
 		bulletinfo[bulletCount].x = x;
 		bulletinfo[bulletCount].y = y;
 		bulletinfo[bulletCount].z = z;
+		//Bullet* bullet = mBulletList[bulletCount];
+		//glm::vec3 v = glm::vec3(x, y, z);
+		//bullet->SetPosition(v);
+		bulletCount++;
+		//std::cout << "Bullet " << bulletCount << " Position: "
+			//<< x << ", " << y << ", " << z << std::endl;
+
 
 	}
 	if (bulletCount == 0) {
 		std::cout << "No bullets found." << std::endl;
 	}
-
-	/*
-	/////////////////////////////////////////////////////////////////
-
-	retval = recv(sock, buffer, BUFSIZE, 0);
-
-	// 데이터 출력
-	std::istringstream iss2(buffer);
-	int particleCount = 0;
-	struct Particleinfo {
-		float x, y, z;
-	}particleinfo[1000];
-	while (iss2 >> x >> y >> z) {
-		particleinfo[particleCount].x = x;
-		particleinfo[particleCount].y = y;
-		particleinfo[particleCount].z = z;
-
-	}
-	if (particleCount == 0) {
-		std::cout << "No paints found." << std::endl;
-	}
-	
-	/////////////////////////////////////////////////////////////////
-
-	retval = recv(sock, buffer, BUFSIZE, 0);
-
-	// 데이터 출력
-	std::istringstream iss3(buffer);
-	int paintCount = 0;
-	struct Paininfo {
-		float x, y, z;
-	}paintinfo[1000];
-	while (iss3 >> x >> y >> z) {
-		paintinfo[particleCount].x = x;
-		paintinfo[particleCount].y = y;
-		paintinfo[particleCount].z = z;
-
-	}
-	if (particleCount == 0) {
-		std::cout << "No paints found." << std::endl;
-	}
 	*/
 	/////////////////////////////////////////////////////////////////
-	
+
 	mCrntInkSoundDelay += timer::DeltaTime();
 
-	int cnt1 = 0;
+	int cnt2 = 0;
 	for (auto iter = mBulletList.begin(); iter != mBulletList.end();)
 	{
 		Bullet* bullet = (*iter);
@@ -284,39 +290,42 @@ GLvoid BulletManager::Update(SOCKET& sock){
 		}
 		else
 		{
-			glm::vec3 v = glm::vec3(bulletinfo[cnt1].x, bulletinfo[cnt1].y, bulletinfo[cnt1].z);
+
+			glm::vec3 v = glm::vec3(fBulletPos[3 * cnt2 + 0], fBulletPos[3 * cnt2 + 1], fBulletPos[3 * cnt2 + 2]);
 			bullet->SetPosition(v);
-			std::cout << "Bullet " << cnt1 << " Position: "
-				<< bulletinfo[cnt1].x << ", " << bulletinfo[cnt1].y << ", " << bulletinfo[cnt1].z << std::endl;
+			std::cout << "Bullet " << cnt2 << " Position: "
+				<< fBulletPos[3 * cnt2 + 0] << ", " << fBulletPos[3 * cnt2 + 1] << ", " << fBulletPos[3 * cnt2 + 2] << std::endl;
+			//bullet->Update();
 			++iter;
-			++cnt1;
-			if (bulletCount < cnt1) bullet->Destroy();
+			++cnt2;
+			if (nbullets < cnt2) bullet->Destroy();
 		}
 	}
+
 	/*
-	cnt1 = 0;
 	for (auto iter = mParticles.begin(); iter != mParticles.end();)
 	{
-		Bullet* particle = (*iter);
+		Bullet* bullet = (*iter);
 
-		if (particle->IsDestroyed())
+		for (IBulletCollisionable* object : mParticleCollisions)
+		{
+			if (ProcessCollision(bullet, object, mPaints, mCrntInkSoundDelay) == GL_TRUE)
+			{
+				break;
+			}
+		}
+
+		if (bullet->IsDestroyed())
 		{
 			iter = mParticles.erase(iter);
 		}
 		else
 		{
-			glm::vec3 v = glm::vec3(particleinfo[cnt1].x, particleinfo[cnt1].y, particleinfo[cnt1].z);
-			particle->SetPosition(v);
-			std::cout << "Paint " << cnt1 << " Position: "
-				<< particleinfo[cnt1].x << ", " << particleinfo[cnt1].y << ", " << particleinfo[cnt1].z << std::endl;
+			bullet->Update();
 			++iter;
-			++cnt1;
-			if (bulletCount < cnt1) particle->Destroy();
 		}
 	}
-	*/
-	/*
-	cnt1 = 0;
+
 	for (auto iter = mPaints.begin(); iter != mPaints.end();)
 	{
 		PaintPlane* paint = *iter;
@@ -327,13 +336,7 @@ GLvoid BulletManager::Update(SOCKET& sock){
 		}
 		else
 		{
-			glm::vec3 v = glm::vec3(paintinfo[cnt1].x, paintinfo[cnt1].y, paintinfo[cnt1].z);
-			paint->SetPosition(v);
-			std::cout << "Paint " << cnt1 << " Position: "
-				<< paintinfo[cnt1].x << ", " << paintinfo[cnt1].y << ", " << paintinfo[cnt1].z << std::endl;
 			++iter;
-			++cnt1;
-			if (bulletCount < cnt1) delete paint;
 		}
 	}
 	*/
