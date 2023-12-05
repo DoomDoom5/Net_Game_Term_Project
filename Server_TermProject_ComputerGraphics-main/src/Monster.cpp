@@ -379,7 +379,7 @@ GLvoid MonsterManager::Create(const MonsterType& monsterType, const glm::vec3& p
 GLvoid MonsterManager::Update()
 {
 #ifdef DEBUG
-	printf("Monster:\n");
+	//printf("Monster:\n");
 #endif
 	MonsterInfo monsterInfo{};
 	for (auto it = mMonsterList.begin(); it != mMonsterList.end();)

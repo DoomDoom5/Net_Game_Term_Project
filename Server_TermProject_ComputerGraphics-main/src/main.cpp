@@ -184,7 +184,6 @@ GLvoid Update()
     timer::CalculateFPS();
     timer::Update();
 
-    SetConsoleCursor(0, 1);
     printf("서버 접속자 수 %d / %d\n", users, MAXUSER);
 	monsterManager->Update();
     for (size_t i = 0; i < users; i++)  if (player[i] != nullptr) player[i]->Update();
@@ -286,7 +285,7 @@ DWORD WINAPI SleepCls(LPVOID arg)
     while (true)
     {
         Sleep(2000);
-        SetConsoleCursor(0, 1);
+        system("cls");
         printf("서버 접속자 수 %d / %d\n", users, MAXUSER);
     }
 }
@@ -357,9 +356,9 @@ struct PlayersInfo
     char gunlook[sizeof(glm::vec3) * MAXUSER];
     char guntype[sizeof(GunType) * MAXUSER];
     char gunquat[sizeof(glm::quat) * MAXUSER];
-    char state[sizeof(Player::State) * MAXUSER];
 };
 
+bool print = false;
 GLvoid SendAllPlayersInfo(SOCKET& sock)
 {
     PlayersInfo playersInfo;
@@ -377,9 +376,8 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
     glm::vec3 vLegRLook[MAXUSER];
     GunType gunType[MAXUSER];
     glm::quat gunRotation[MAXUSER];
-    Player::State currentStates[MAXUSER];
 
-    SetConsoleCursor(0, 7);
+    SetConsoleCursor(0, 10);
     cout << "SendToClient: " << endl;
     for (size_t i = 0; i < users; i++)
     {
@@ -391,29 +389,19 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
         vGunLook[i] = player[i]->GetGunLook();
         gunRotation[i] = player[i]->GetGunRotation();
         gunType[i] = player[i]->GetGunType();
-        currentStates[i] = player[i]->state;
 
 #ifdef  DEBUG
-        cout << i << " Pos: (" << vPos[i].x << ", " << vPos[i].y << ", " << vPos[i].z << ")" << endl;
-        cout << i << " BodyLook: (" << vBodyLook[i].x << ", " << vBodyLook[i].y << ", " << vBodyLook[i].z << ")" << endl;
-        cout << i << " HeadLook: (" << vHeadLook[i].x << ", " << vHeadLook[i].y << ", " << vHeadLook[i].z << ")" << endl;
-        cout << i << " GunLook: (" << vGunLook[i].x << ", " << vGunLook[i].y << ", " << vGunLook[i].z << ")" << endl;
-        cout << i << " State: ";
-        switch (currentStates[i]) {
-        case Player::State::Idle:
-            cout << "Idle" << endl;
-            break;
-        case Player::State::Jump:
-            cout << "Jump" << endl;
-            break;
-        case Player::State::Run:
-            cout << "Run" << endl;
-            break;
-        case Player::State::Walk:
-            cout << "Walk" << endl;
-            break;
-        default:
-            cout << "None" << endl;
+        if (!print) {
+            print = !print;
+            cout << i << " Pos: (" << vPos[i].x << ", " << vPos[i].y << ", " << vPos[i].z << ")" << endl;
+            cout << i << " BodyLook: (" << vBodyLook[i].x << ", " << vBodyLook[i].y << ", " << vBodyLook[i].z << ")" << endl;
+            cout << i << " HeadLook: (" << vHeadLook[i].x << ", " << vHeadLook[i].y << ", " << vHeadLook[i].z << ")" << endl;
+            cout << i << " GunLook: (" << vGunLook[i].x << ", " << vGunLook[i].y << ", " << vGunLook[i].z << ")" << endl;
+            cout << i << " LegLeftLook: (" << vLegLLook[i].x << ", " << vLegLLook[i].y << ", " << vLegLLook[i].z << ")" << endl;
+            cout << i << " LegRightLook: (" << vLegRLook[i].x << ", " << vLegRLook[i].y << ", " << vLegRLook[i].z << ")" << endl;
+            cout << i << " State: ";
+            print = !print;
+            system("cls");
         }
 #endif
 
@@ -427,7 +415,6 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
     memcpy(playersInfo.gunlook, vGunLook, sizeof(glm::vec3) * users);
     memcpy(playersInfo.guntype, gunType, sizeof(GunType) * users);
     memcpy(playersInfo.gunquat, &gunRotation, sizeof(glm::quat) * users);
-    memcpy(playersInfo.state, &currentStates, sizeof(Player::State) * users);
 
     memcpy(buf, &playersInfo, sizeof(PlayersInfo));
     send(sock, buf, sizeof(PlayersInfo), 0);

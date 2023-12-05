@@ -706,7 +706,6 @@ struct PlayersInfo
 	char gunlook[sizeof(glm::vec3) * MAXUSER];
 	char guntype[sizeof(GunType) * MAXUSER];
 	char gunquat[sizeof(glm::quat) * MAXUSER];
-	char state[sizeof(Player::State) * MAXUSER];
 };
 
 GLvoid UpdateplayersPos(SOCKET& sock)
@@ -733,18 +732,15 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 	glm::vec3 vGunLook[MAXUSER];
 	GunType gunType[MAXUSER];
 	glm::quat gunRotation[MAXUSER];
-	Player::State currentStates[MAXUSER];
-
 
 	memcpy(vPos, playerInfo.pos, sizeof(glm::vec3) * users);
 	memcpy(vBodyLook, playerInfo.bodylook, sizeof(glm::vec3) * users);
 	memcpy(vHeadLook, playerInfo.headlook, sizeof(glm::vec3) * users);
 	memcpy(vLegLLook, playerInfo.legLlook, sizeof(glm::vec3) * users);
-	memcpy(vLegRLook, playerInfo.legRlook , sizeof(glm::vec3) * users);
+	memcpy(vLegRLook, playerInfo.legRlook, sizeof(glm::vec3) * users);
 	memcpy(vGunLook, playerInfo.gunlook, sizeof(glm::vec3) * users);
 	memcpy(gunType, playerInfo.guntype, sizeof(GunType) * users);
 	memcpy(gunRotation, playerInfo.gunquat, sizeof(glm::quat) * users);
-	memcpy(currentStates, playerInfo.state, sizeof(Player::State) * users);
 
 	int id = 0;
 	for (size_t i = 0; i < users; i++)
@@ -756,24 +752,8 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 		cout << i << " BodyLook: ( " << vBodyLook[i].x << ", " << vBodyLook[i].y << ", " << vBodyLook[i].z << " )" << endl;
 		cout << i << " HeadLook: ( " << vHeadLook[i].x << ", " << vHeadLook[i].y << ", " << vHeadLook[i].z << " )" << endl;
 		cout << i << " GunLook: (" << vGunLook[i].x << ", " << vGunLook[i].y << ", " << vGunLook[i].z << ")" << endl;
-		cout << i << " State: ";
-		switch (currentStates[i]) {
-		case Player::State::Idle:
-			cout << "Idle" << endl;
-			break;
-		case Player::State::Jump:
-			cout << "Jump" << endl;
-			break;
-		case Player::State::Run:
-			cout << "Run" << endl;
-			break;
-		case Player::State::Walk:
-			cout << "Walk" << endl;
-			break;
-		default:
-			cout << "None" << endl;
-		}
-
+		cout << i << " LegLeftLook: (" << vLegLLook[i].x << ", " << vLegLLook[i].y << ", " << vLegLLook[i].z << ")" << endl;
+		cout << i << " LegRightLook: (" << vLegRLook[i].x << ", " << vLegRLook[i].y << ", " << vLegRLook[i].z << ")" << endl;
 #endif
 		if (i == myid) continue;
 
@@ -785,9 +765,5 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 		player[i]->SetLegRLook(vLegRLook[i]);
 		player[i]->SetGunLook(vGunLook[i]);
 		player[i]->SetGunRotation(gunRotation[i]);
-
-		if (player[i]->state != currentStates[i]) {
-			player[i]->ChangeState(currentStates[i]);
-		}
 	}
 }

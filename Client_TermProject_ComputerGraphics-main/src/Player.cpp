@@ -725,7 +725,6 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	glm::vec3 legRlook = GetLegRLook();
 	glm::quat rotation = GetGunRotation();
 	GunType guntype = GetGunType();
-	Player::State currentState = state;
 
 	memcpy(playerInfo.pos, &pos, sizeof(glm::vec3));
 	memcpy(playerInfo.bodylook, &bodylook, sizeof(glm::vec3));
@@ -737,7 +736,6 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	memcpy(playerInfo.gunlook, &playerGunLook, sizeof(glm::vec3));
 	memcpy(playerInfo.guntype, &guntype, sizeof(GunType));
 	memcpy(playerInfo.gunrotate, &rotation, sizeof(glm::quat));
-	memcpy(playerInfo.state, &currentState, sizeof(Player::State));
 	// 데이터 보내기
 	memcpy(buf, &playerInfo, sizeof(PlayerInfo));
 	retval = send(sock, buf, sizeof(PlayerInfo), 0);
@@ -767,8 +765,6 @@ GLvoid Player::SetPosition(glm::vec3 newPos)
 GLvoid Player::SetBodyLook(glm::vec3 newPos)
 {
 	mBody->SetLook(newPos);
-	mLegL->SetLook(newPos);
-	mLegR->SetLook(newPos);
 }
 
 GLvoid Player::SetHeadLook(glm::vec3 newPos)

@@ -711,7 +711,6 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	glm::vec3 vGunLook;
 	GunType gunType;
 	glm::quat rotate;
-	Player::State currentState;
 	bool isFire , isInstall = false;
 
 	retval = recv(client_sock, buf, sizeof(PlayerInfo), 0);
@@ -726,7 +725,6 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	memcpy(&vGunLook, playerInfo.gunlook, sizeof(glm::vec3));
 	memcpy(&gunType, playerInfo.guntype, sizeof(GunType));
 	memcpy(&rotate, playerInfo.gunrotate, sizeof(glm::quat));
-	memcpy(&currentState, playerInfo.state, sizeof(Player::State));
 
 	SetGunType(gunType);
 	SetPosition(vPlayerPos);
@@ -736,7 +734,6 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	SetLegRLook(vPlayerLegRLook);
 	SetGunLook(vGunLook);
 	SetGunRotation(rotate);
-	state = currentState;
 	mIsInstall = isInstall;
 	mlsFire = isFire;
 
