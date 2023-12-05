@@ -400,6 +400,7 @@ GLvoid Update()
 	if (player[myid] != nullptr) UpdateplayersPos(sock);
 
 	//bulletManager->Update(sock);
+	//buildingManager->Update(sock);
 	//turretManager->Update(sock);
 	//waveManager->Update(sock);
 	

@@ -182,9 +182,9 @@ GLvoid Update()
     SetConsoleCursor(0, 1);
     printf("서버 접속자 수 %d / %d\n", users, MAXUSER);
 	monsterManager->Update();
-
     for (size_t i = 0; i < users; i++)  if (player[i] != nullptr) player[i]->Update();
-	buildingManager->Update();
+    //bulletManager->Update();
+    //buildingManager->Update();
 	//turretManager->Update();
 	//waveManager->Update();
 
