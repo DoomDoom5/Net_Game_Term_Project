@@ -368,8 +368,8 @@ GLvoid Player::ChangeState(const State& playerState, const Event& e, const GLint
 
 GLvoid Player::Update()
 {
-	if (mlsFire)
-		mCrntGun->StartFire();
+	/*if (mlsFire)
+		mCrntGun->StartFire();*/
 	mCrntState->Update();
 	mPosition = mBody->GetPviotedPosition();
 	mCrntGun->Update();
@@ -696,19 +696,6 @@ GLvoid Player::PlayerSend(SOCKET& client_sock)
 
 }
 
-struct PlayerInfo {
-	char pos[sizeof(uint32_t) * 3];
-	char bodylook[sizeof(uint32_t) * 3];
-	char headlook[sizeof(uint32_t) * 3];
-	char isFired[sizeof(bool)];
-	char isInstall[sizeof(bool)];
-	char gunpos[sizeof(uint32_t) * 3];
-	char gunlook[sizeof(uint32_t) * 3];
-	char guntype[sizeof(GunType)];
-	char gunrotate[sizeof(glm::quat)];
-	char state[sizeof(Player::State)];
-};
-
 GLvoid Player::PlayerRecv(SOCKET& client_sock)
 {
 	// ======= 사용자 정보수신 ======
@@ -723,7 +710,7 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	uint32_t nGunLook[3];
 	GunType gunType;
 	glm::quat rotate;
-	Player::State currentState;
+	//Player::State currentState;
 	bool isFire , isInstall = false;
 
 	retval = recv(client_sock, buf, sizeof(PlayerInfo), 0);
@@ -737,7 +724,7 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	memcpy(nGunLook, playerInfo.gunlook, sizeof(uint32_t) * 3);
 	memcpy(&gunType, playerInfo.guntype, sizeof(GunType));
 	memcpy(&rotate, playerInfo.gunrotate, sizeof(glm::quat));
-	memcpy(&currentState, playerInfo.state, sizeof(Player::State));
+	//memcpy(&currentState, playerInfo.state, sizeof(Player::State));
 
 	glm::vec3 playerPos;
 	glm::vec3 playerBodyLook;
@@ -766,7 +753,7 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	SetGunPos(fGunPos);
 	SetGunLook(fGunLook);
 	SetGunRotation(rotate);
-	state = currentState;
+	//state = currentState;
 	mIsInstall = isInstall;
 	mlsFire = isFire;
 

@@ -709,7 +709,7 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	glm::vec3 playerGunLook = GetGunLook();
 	glm::quat rotation = GetGunRotation();
 	GunType guntype = GetGunType();
-	Player::State currentState = state;
+	//Player::State currentState = state;
 	nPos[0] = *reinterpret_cast<uint32_t*>(&pos.x);
 	nPos[1] = *reinterpret_cast<uint32_t*>(&pos.y);
 	nPos[2] = *reinterpret_cast<uint32_t*>(&pos.z);
@@ -726,7 +726,7 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	nGunLook[1] = *reinterpret_cast<uint32_t*>(&playerGunLook.y);
 	nGunLook[2] = *reinterpret_cast<uint32_t*>(&playerGunLook.z);
 
-	//memcpy(playerInfo.key, nPos, sizeof(uint32_t) * 3);
+	memcpy(playerInfo.pos, nPos, sizeof(uint32_t) * 3);
 	memcpy(playerInfo.bodylook, nBodyLook, sizeof(uint32_t) * 3);
 	memcpy(playerInfo.headlook, nHeadLook, sizeof(uint32_t) * 3);
 	memcpy(playerInfo.isFired, &mlsFire, sizeof(bool));
@@ -735,7 +735,7 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	memcpy(playerInfo.gunlook, nGunLook, sizeof(uint32_t) * 3 );
 	memcpy(playerInfo.guntype, &guntype, sizeof(GunType));
 	memcpy(playerInfo.gunrotate, &rotation, sizeof(glm::quat));
-	memcpy(playerInfo.state, &currentState, sizeof(Player::State));
+	//memcpy(playerInfo.state, &currentState, sizeof(Player::State));
 	// 데이터 보내기
 	memcpy(buf, &playerInfo, sizeof(PlayerInfo));
 	retval = send(sock, buf, sizeof(PlayerInfo), 0);

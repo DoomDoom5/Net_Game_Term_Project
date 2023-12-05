@@ -394,10 +394,10 @@ GLvoid Update()
 	timer::Update();
 
 	monsterManager->Update(sock);
-	waveManager->Update(sock);
-	turretManager->Update(sock);
-	buildingManager->Update(sock);
-	bulletManager->Update(sock);
+	//waveManager->Update(sock);
+	//turretManager->Update(sock);
+	//buildingManager->Update(sock);
+	//bulletManager->Update(sock);
 
 	for (int i = 0; i < users; ++i) player[i]->Update();
 	if (player[myid] != nullptr) player[myid]->PlayerSend(sock);
@@ -705,7 +705,7 @@ struct PlayersInfo
 	char gunlook[sizeof(uint32_t) * 3 * MAXUSER];
 	char guntype[sizeof(GunType) * MAXUSER];
 	char gunquat[sizeof(glm::quat) * MAXUSER];
-	char state[sizeof(Player::State) * MAXUSER];
+	//char state[sizeof(Player::State) * MAXUSER];
 };
 
 GLvoid UpdateplayersPos(SOCKET& sock)
@@ -731,7 +731,7 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 	uint32_t nGunLook[MAXUSER * 3];
 	GunType gunType[MAXUSER];
 	glm::quat gunRotation[MAXUSER];
-	Player::State currentStates[MAXUSER];
+	//Player::State currentStates[MAXUSER];
 
 
 	memcpy(nPos, playerInfo.pos, sizeof(uint32_t) * 3 * users);
@@ -741,7 +741,7 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 	memcpy(nGunLook, playerInfo.gunlook, sizeof(uint32_t) * 3 * users);
 	memcpy(gunType, playerInfo.guntype, sizeof(GunType) * users);
 	memcpy(gunRotation, playerInfo.gunquat, sizeof(glm::quat) * users);
-	memcpy(currentStates, playerInfo.state, sizeof(Player::State) * users);
+	//memcpy(currentStates, playerInfo.state, sizeof(Player::State) * users);
 
 	int id = 0;
 	for (size_t i = 0; i < users; i++)
@@ -775,7 +775,7 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 		cout << i << " GunPos: (" << fGunPos.x << ", " << fGunPos.y << ", " << fGunPos.z << ")" << endl;
 		cout << i << " GunLook: (" << fGunLook.x << ", " << fGunLook.y << ", " << fGunLook.z << ")" << endl;
 		cout << i << " State: ";
-		switch (currentStates[i]) {
+		/*switch (currentStates[i]) {
 		case Player::State::Idle:
 			cout << "Idle" << endl;
 			break;
@@ -788,7 +788,7 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 		case Player::State::Walk:
 			cout << "Walk" << endl;
 			break;
-		}
+		}*/
 
 #endif
 		if (i == myid) continue;
@@ -801,8 +801,8 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 		player[i]->SetGunLook(fGunLook);
 		player[i]->SetGunRotation(gunRotation[i]);
 
-		if (player[i]->state != currentStates[i]) {
+		/*if (player[i]->state != currentStates[i]) {
 			player[i]->ChangeState(currentStates[i]);
-		}
+		}*/
 	}
 }

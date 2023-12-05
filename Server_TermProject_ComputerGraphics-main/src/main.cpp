@@ -188,9 +188,9 @@ GLvoid Update()
     printf("서버 접속자 수 %d / %d\n", users, MAXUSER);
 	monsterManager->Update();
     for (size_t i = 0; i < users; i++)  if (player[i] != nullptr) player[i]->Update();
-	buildingManager->Update();
-	turretManager->Update();
-	waveManager->Update();
+	//buildingManager->Update();
+	//turretManager->Update();
+	//waveManager->Update();
 
     LeaveCriticalSection(&cs);
     glutPostRedisplay();
@@ -321,10 +321,10 @@ DWORD WINAPI ProcessClient(LPVOID arg)
     while (1)
     {
         monsterManager->SendBuf(player_sock);
-        waveManager->SendBuf(player_sock);
-        turretManager->SendBuf(player_sock);
-        buildingManager->SendBuf(player_sock);
-        bulletManager->SendBuf(player_sock);
+        //waveManager->SendBuf(player_sock);
+        //turretManager->SendBuf(player_sock);
+        //buildingManager->SendBuf(player_sock);
+        //bulletManager->SendBuf(player_sock);
 
         player[id]->PlayerRecv(player_sock);
         player[id]->PlayerSend(player_sock);
@@ -356,7 +356,7 @@ struct PlayersInfo
     char gunlook[sizeof(uint32_t) * 3 * MAXUSER];
     char guntype[sizeof(GunType) * MAXUSER];
     char gunquat[sizeof(glm::quat) * MAXUSER];
-    char state[sizeof(Player::State) * MAXUSER];
+    //char state[sizeof(Player::State) * MAXUSER];
 };
 
 GLvoid SendAllPlayersInfo(SOCKET& sock)
@@ -375,7 +375,7 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
     uint32_t nGunLook[MAXUSER * 3]; // 최대 3명 플레이어 xyz(3) 전달
     GunType gunType[MAXUSER];
     glm::quat gunRotation[MAXUSER];
-    Player::State currentStates[MAXUSER];
+    //Player::State currentStates[MAXUSER];
 
     SetConsoleCursor(0, 7);
     cout << "SendToClient: " << endl;
@@ -406,7 +406,7 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
         nGunLook[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&playerGunLook.z);
         gunType[i] = guntype;
         gunRotation[i] = playerGunRotation;
-        currentStates[i] = currentState;
+        //currentStates[i] = currentState;
 
 #ifdef  DEBUG
         cout << i << " Pos: (" << playerPos.x << ", " << playerPos.y << ", " << playerPos.z << ")" << endl;
@@ -415,20 +415,20 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
         cout << i << " GunPos: (" << playerGunPos.x << ", " << playerGunPos.y << ", " << playerGunPos.z << ")" << endl;
         cout << i << " GunLook: (" << playerGunLook.x << ", " << playerGunLook.y << ", " << playerGunLook.z << ")" << endl;
         cout << i << " State: ";
-        switch (currentState) {
-        case Player::State::Idle:
-            cout << "Idle" << endl;
-            break;
-        case Player::State::Jump:
-            cout << "Jump" << endl;
-            break;
-        case Player::State::Run:
-            cout << "Run" << endl;
-            break;
-        case Player::State::Walk:
-            cout << "Walk" << endl;
-            break;
-        }
+        //switch (currentState) {
+        //case Player::State::Idle:
+        //    cout << "Idle" << endl;
+        //    break;
+        //case Player::State::Jump:
+        //    cout << "Jump" << endl;
+        //    break;
+        //case Player::State::Run:
+        //    cout << "Run" << endl;
+        //    break;
+        //case Player::State::Walk:
+        //    cout << "Walk" << endl;
+        //    break;
+        //}
 #endif
 
      
@@ -440,7 +440,7 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
     memcpy(playersInfo.gunlook, nGunLook, sizeof(uint32_t) * 3 * users);
     memcpy(playersInfo.guntype, gunType, sizeof(GunType) * users);
     memcpy(playersInfo.gunquat, &gunRotation, sizeof(glm::quat) * users);
-    memcpy(playersInfo.state, &currentStates, sizeof(Player::State) * users);
+    //memcpy(playersInfo.state, &currentStates, sizeof(Player::State) * users);
 
     memcpy(buf, &playersInfo, sizeof(PlayersInfo));
     send(sock, buf, sizeof(PlayersInfo), 0);
