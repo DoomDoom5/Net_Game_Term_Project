@@ -87,7 +87,7 @@ GLint main(GLint argc, GLchar** argv)
     timer::StartUpdate();
 
 	glutMainLoop();
-}
+ }
 
 
 ///// INIT /////

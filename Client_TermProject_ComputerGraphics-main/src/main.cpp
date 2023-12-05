@@ -719,9 +719,10 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 	memcpy(&isover, playerInfo.gameover, sizeof(bool));
 	if (isover) GameOver();
 	memcpy(&users, playerInfo.num, sizeof(int));
+#ifdef DEBUG
 	cout << "myID: " << myid << endl;
 	cout << "RecvFromServer: " << endl;
-
+#endif
 	uint32_t nPos[MAXUSER * 3];
 	uint32_t nBodyLook[MAXUSER * 3];
 	uint32_t nHeadLook[MAXUSER * 3];
@@ -763,12 +764,13 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 		fGunLook.y = *reinterpret_cast<float*>(&nGunLook[3 * i + 1]);
 		fGunLook.z = *reinterpret_cast<float*>(&nGunLook[3 * i + 2]);
 
+#ifdef DEBUG
 		cout << i << " Pos: ( " << fPos.x << ", " << fPos.y << ", " << fPos.z << " )" << endl;
 		cout << i << " BodyLook: ( " << fBodyLook.x << ", " << fBodyLook.y << ", " << fBodyLook.z << " )" << endl;
 		cout << i << " HeadLook: ( " << fHeadLook.x << ", " << fHeadLook.y << ", " << fHeadLook.z << " )" << endl;
 		cout << i << " GunPos: (" << fGunPos.x << ", " << fGunPos.y << ", " << fGunPos.z << ")" << endl;
 		cout << i << " GunLook: (" << fGunLook.x << ", " << fGunLook.y << ", " << fGunLook.z << ")" << endl;
-
+#endif
 		if (i == myid) continue;
 
 		player[i]->SetGunType(gunType[i]);
