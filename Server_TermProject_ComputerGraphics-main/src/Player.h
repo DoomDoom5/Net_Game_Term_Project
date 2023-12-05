@@ -211,13 +211,12 @@ public:
 };
 
 struct PlayerInfo {
-	char pos[sizeof(uint32_t) * 3];
-	char bodylook[sizeof(uint32_t) * 3];
-	char headlook[sizeof(uint32_t) * 3];
+	char pos[sizeof(glm::vec3)];
+	char bodylook[sizeof(glm::vec3)];
+	char headlook[sizeof(glm::vec3)];
 	char isFired[sizeof(bool)];
 	char isInstall[sizeof(bool)];
-	char gunpos[sizeof(uint32_t) * 3];
-	char gunlook[sizeof(uint32_t) * 3];
+	char gunlook[sizeof(glm::vec3)];
 	char guntype[sizeof(GunType)];
 	char gunrotate[sizeof(glm::quat)];
 	char state[sizeof(Player::State)];
