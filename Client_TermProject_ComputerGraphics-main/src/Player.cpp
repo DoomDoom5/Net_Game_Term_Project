@@ -760,7 +760,10 @@ GLvoid Player::PlayerRecv(SOCKET& sock)
 	char HPbuf[sizeof(GLfloat)];
 	retval = recv(sock, HPbuf, sizeof(HPbuf), 0);
 	memcpy(&mHP, &HPbuf, sizeof(HPbuf));
-	cout << "RECV HP : " << mHP << '\n'; 
+
+#ifdef DEBUG
+	cout << "RECV HP : " << mHP << '\n';
+#endif // DEBUG
 
 	if (mHP <= 0)
 	{

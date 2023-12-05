@@ -634,8 +634,6 @@ GLfloat Player::GetHp() const
 	return mHP;
 }
 
-
-
 GLvoid Player::Install_Turret()
 {
 	glm::vec3 position = GetPosition();

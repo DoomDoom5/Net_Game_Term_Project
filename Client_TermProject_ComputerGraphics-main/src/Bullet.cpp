@@ -161,7 +161,6 @@ struct BulletInfo {
 };
 
 GLvoid BulletManager::Update(SOCKET& sock) {
-
 	BulletInfo bulletInfo{};
 	char buf[sizeof(BulletInfo)];
 	char nBulletBuf[sizeof(int)];

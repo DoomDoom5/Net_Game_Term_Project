@@ -380,12 +380,11 @@ GLvoid Update()
 
 	if (IsGameOver() == GL_TRUE)
 	{
-		glutPostRedisplay();
-
 		// 소켓 닫기
 		closesocket(sock);
 		// 윈속 종료
 		WSACleanup();
+		glutPostRedisplay();
 
 		return;
 	}
@@ -599,6 +598,10 @@ GLvoid ProcessKeyDown(unsigned char key, GLint x, GLint y)
 		// objects
 
 	case KEY_ESCAPE:
+		// // 소켓 닫기
+		closesocket(sock);
+		// 윈속 종료
+		WSACleanup();
 		glutLeaveMainLoop();
 		break;
 	default:
@@ -763,11 +766,13 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 		fGunLook.y = *reinterpret_cast<float*>(&nGunLook[3 * i + 1]);
 		fGunLook.z = *reinterpret_cast<float*>(&nGunLook[3 * i + 2]);
 
+#ifdef DEBUG
 		cout << i << " Pos: ( " << fPos.x << ", " << fPos.y << ", " << fPos.z << " )" << endl;
 		cout << i << " BodyLook: ( " << fBodyLook.x << ", " << fBodyLook.y << ", " << fBodyLook.z << " )" << endl;
 		cout << i << " HeadLook: ( " << fHeadLook.x << ", " << fHeadLook.y << ", " << fHeadLook.z << " )" << endl;
 		cout << i << " GunPos: (" << fGunPos.x << ", " << fGunPos.y << ", " << fGunPos.z << ")" << endl;
 		cout << i << " GunLook: (" << fGunLook.x << ", " << fGunLook.y << ", " << fGunLook.z << ")" << endl;
+#endif // DEBUG
 
 		if (i == myid) continue;
 

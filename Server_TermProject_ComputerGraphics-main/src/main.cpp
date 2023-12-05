@@ -57,6 +57,7 @@ DWORD WINAPI ServerMain(LPVOID arg);
 DWORD WINAPI ProcessClient(LPVOID arg); 
 vector <string> Current(MAXUSER);
 vector <bool> ClientOn(MAXUSER);
+bool updateOn = false;
 
 struct  USER
 {
@@ -171,16 +172,18 @@ GLvoid DrawScene()
 ///// [ HANDLE EVENTS ] /////
 GLvoid Update()
 {
-    EnterCriticalSection(&cs);
 	if (IsGameOver() == GL_TRUE)
 	{
 	//	glutPostRedisplay();
+        cout << "게임 오버" << endl;
         DeleteCriticalSection(&cs);
         return;
 	}
     if (player[0] == nullptr) return;
 
-    
+    EnterCriticalSection(&cs);
+    updateOn = false;
+
     timer::CalculateFPS();
     timer::Update();
 
@@ -193,6 +196,7 @@ GLvoid Update()
 	turretManager->Update();
 	waveManager->Update();
 
+    updateOn = true;
     LeaveCriticalSection(&cs);
     glutPostRedisplay();
 }
@@ -231,7 +235,6 @@ DWORD WINAPI ServerMain(LPVOID arg)
     int addrlen;
     HANDLE hThread;
 
-
     // 화면 초기화 쓰레드
     HANDLE h_cThread = CreateThread(NULL, 0, SleepCls,
         NULL, 0, NULL);
@@ -267,9 +270,10 @@ DWORD WINAPI ServerMain(LPVOID arg)
             (LPVOID)&client, 0, NULL);
         if (hThread == NULL) {
             closesocket(client_sock);
-            users--;
         }
-        else { CloseHandle(hThread); }
+        else { CloseHandle(hThread); 
+        users--;
+        }
 
     }
 
@@ -289,6 +293,7 @@ DWORD WINAPI SleepCls(LPVOID arg)
         Sleep(2000);
         SetConsoleCursor(0, 1);
         printf("서버 접속자 수 %d / %d\n", users, MAXUSER);
+      
     }
 }
 
@@ -321,6 +326,9 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 
     while (1)
     {
+        if (!updateOn) continue;
+        // send/recv 순서  꼭 지킬것!
+
         monsterManager->SendBuf(player_sock);
         waveManager->SendBuf(player_sock);
         turretManager->SendBuf(player_sock);
@@ -336,14 +344,6 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 
         //Sleep(1000/60);
     }
-    /*
-    send/recv 순서  [꼭 지킬것!]
-
-    1. player[0]->Update(client_sock()); -> 클라에서 변환된 부분 받음
-
-    7. player[0]->recv(client_sock(); -> 플레이어 변화된 부분 클라에게 전달
-
-    */
 } 
 
 struct PlayersInfo
@@ -377,7 +377,9 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
     glm::quat gunRotation[MAXUSER];
 
     SetConsoleCursor(0, 7);
+#ifdef  DEBUG
     cout << "SendToClient: " << endl;
+#endif
     for (size_t i = 0; i < users; i++)
     {
         glm::vec3 playerPos = player[i]->GetPosition();
@@ -413,7 +415,6 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
         cout << i << " GunLook: (" << playerGunLook.x << ", " << playerGunLook.y << ", " << playerGunLook.z << ")" << endl;
 #endif //  DEBUG
 
-     
     }
     memcpy(playersInfo.pos, nPos, sizeof(uint32_t) * 3 * users);
     memcpy(playersInfo.bodylook, nBodyLook, sizeof(uint32_t) * 3 * users);
