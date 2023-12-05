@@ -81,6 +81,7 @@ struct PlayerInfo {
 	char gunlook[sizeof(glm::vec3)];
 	char guntype[sizeof(GunType)];
 	char gunrotate[sizeof(glm::quat)];
+	char holdturret[sizeof(GLint)];
 };
 
 class Player {
@@ -126,7 +127,7 @@ private:
 	GLfloat mHP = 100.0f;
 	GLfloat mSpeed = PLAYER_WALK_SPEED;
 	GLfloat mJumpSpeed = PLAYER_JUMP_SPEED;
-	GLint mHoldTurret = 0;
+	GLint mHoldTurret = 3;
 	GLfloat mFrameTime = 0.0f;
 	bool mlsFire = false;
 	bool mIsInstall = false;

@@ -395,7 +395,7 @@ GLvoid Update()
 
 	monsterManager->Update(sock);
 	//waveManager->Update(sock);
-	//turretManager->Update(sock);
+	turretManager->Update(sock);
 	//buildingManager->Update(sock);
 	//bulletManager->Update(sock);
 

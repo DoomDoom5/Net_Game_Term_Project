@@ -80,6 +80,7 @@ struct PlayerInfo {
 	char gunlook[sizeof(glm::vec3)];
 	char guntype[sizeof(GunType)];
 	char gunrotate[sizeof(glm::quat)];
+	char holdturret[sizeof(GLint)];
 };
 
 class Player {

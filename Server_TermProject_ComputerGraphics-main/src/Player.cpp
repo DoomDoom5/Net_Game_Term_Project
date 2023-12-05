@@ -636,12 +636,11 @@ GLfloat Player::GetHp() const
 	return mHP;
 }
 
-
-
 GLvoid Player::Install_Turret()
 {
 	glm::vec3 position = GetPosition();
 	turretManager->Create(glm::vec3( position.x, 0, position.z));
+	mHoldTurret--;
 }
 
 GLvoid Player::ChaingeGun()
@@ -681,19 +680,28 @@ GLvoid Player::ChaingeGun()
 	mCrntGun->RotateLocal(prevGun->GetYaw(), prevGun->GetPitch());
 }
 
+struct PlayerSubInfo {
+	char holdturret[sizeof(GLint)];
+	char hp[sizeof(GLfloat)];
+};
+
 GLvoid Player::PlayerSend(SOCKET& client_sock)
 {
+	PlayerSubInfo playerRecvInfo{};
+
 	int retval = 0;
 	// ======= 사용자 정보 송신 ======
-	char HPbuf[sizeof(GLfloat)];
-	memcpy(HPbuf, &mHP, sizeof(HPbuf));
-	retval = send(client_sock, HPbuf, sizeof(HPbuf), 0);
+	memcpy(playerRecvInfo.holdturret, &mHoldTurret, sizeof(GLint));
+	memcpy(playerRecvInfo.hp, &mHP, sizeof(GLfloat));
+	char buf[sizeof(PlayerSubInfo)];
+	memcpy(&buf, &playerRecvInfo, sizeof(PlayerSubInfo));
+	retval = send(client_sock, buf, sizeof(buf), 0);
 	// ======= ========== ======
-	SetConsoleCursor(0, 12);
+	//SetConsoleCursor(0, 12);
 #ifdef  DEBUG
 	cout << "SEND HP : " << mHP << endl;
+	cout << "SEND HOLD TURRET : " << mHoldTurret << '\n';
 #endif //  DEBUG
-
 }
 
 GLvoid Player::PlayerRecv(SOCKET& client_sock)

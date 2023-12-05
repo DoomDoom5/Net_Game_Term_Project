@@ -742,14 +742,25 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	mIsInstall = false;
 }
 
+struct PlayerSubInfo {
+	char holdturret[sizeof(GLint)];
+	char hp[sizeof(GLfloat)];
+};
+
 GLvoid Player::PlayerRecv(SOCKET& sock)
 {
+	PlayerSubInfo playerRecvInfo{};
 	int retval = 0;
 	// ==============클라이언트 정보 송신====================
-	char HPbuf[sizeof(GLfloat)];
-	retval = recv(sock, HPbuf, sizeof(HPbuf), 0);
-	memcpy(&mHP, &HPbuf, sizeof(HPbuf));
+	char buf[sizeof(PlayerSubInfo)];
+	retval = recv(sock, buf, sizeof(buf), 0);
+	memcpy(&playerRecvInfo, &buf, sizeof(buf));
+	memcpy(&mHoldTurret, &playerRecvInfo.holdturret, sizeof(GLint));
+	memcpy(&mHP, &playerRecvInfo.hp, sizeof(GLfloat));
+#ifdef DEBUG
 	cout << "RECV HP : " << mHP << '\n'; 
+	cout << "RECV HOLD TURRET : " << mHoldTurret << '\n';
+#endif
 
 	if (mHP <= 0)
 	{
@@ -841,7 +852,6 @@ GLvoid Player::Install_Turret()
 	if (mHoldTurret > 0)
 	{
 		mIsInstall = true;
-		mHoldTurret--;
 	}
 }
 

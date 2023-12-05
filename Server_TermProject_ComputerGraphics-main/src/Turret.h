@@ -9,8 +9,8 @@
 #define MAX_TURRET 100
 struct TurretInfo {
 	char num[sizeof(int)];
-	char look[sizeof(uint32_t) * 3 * MAX_TURRET];
-	char pos[sizeof(uint32_t) * 3 * MAX_TURRET];
+	char look[sizeof(glm::vec3) * MAX_TURRET];
+	char pos[sizeof(glm::vec3) * MAX_TURRET];
 };
 
 class TurretManager {

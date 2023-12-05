@@ -188,7 +188,7 @@ GLvoid Update()
 	monsterManager->Update();
     for (size_t i = 0; i < users; i++)  if (player[i] != nullptr) player[i]->Update();
 	//buildingManager->Update();
-	//turretManager->Update();
+	turretManager->Update();
 	//waveManager->Update();
 
     LeaveCriticalSection(&cs);
@@ -321,7 +321,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
     {
         monsterManager->SendBuf(player_sock);
         //waveManager->SendBuf(player_sock);
-        //turretManager->SendBuf(player_sock);
+        turretManager->SendBuf(player_sock);
         //buildingManager->SendBuf(player_sock);
         //bulletManager->SendBuf(player_sock);
 
