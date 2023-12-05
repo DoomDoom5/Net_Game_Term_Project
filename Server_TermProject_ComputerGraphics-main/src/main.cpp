@@ -325,6 +325,8 @@ DWORD WINAPI ProcessClient(LPVOID arg)
         waveManager->SendBuf(player_sock);
         turretManager->SendBuf(player_sock);
         buildingManager->SendBuf(player_sock);
+        bulletManager->SendBuf(player_sock);
+
         player[id]->PlayerRecv(player_sock);
         player[id]->PlayerSend(player_sock);
 

@@ -195,12 +195,8 @@ GLboolean ProcessCollision(Bullet* bullet, IBulletCollisionable* object, vector<
 
 	return GL_FALSE;
 }
-struct BulletInfo {
-	char bulletNumBuf[sizeof(int)];
-	char bulletPosBuf[sizeof(float) * 3 * 20];		// num은 10이 최대
-};
 
-GLvoid BulletManager::Update(SOCKET sock)
+GLvoid BulletManager::Update()
 {
 	mCrntInkSoundDelay += timer::DeltaTime();
 
@@ -326,9 +322,10 @@ GLvoid BulletManager::Update(SOCKET sock)
 	}
 	memcpy(&bulletInfo.bulletPosBuf, &converToFloat, sizeof(uint32_t) * 3 * nbullets);
 
-	char buf[sizeof(bulletInfo)];
-	memcpy(&buf, &bulletInfo, sizeof(BulletInfo));
-	send(sock, buf, sizeof(BulletInfo), 0);
+	memcpy(&m_cBuf, &bulletInfo, sizeof(BulletInfo));
+	
+	
+	//send(sock, buf, sizeof(BulletInfo), 0);
 
 }
 //GLvoid ProcessCollision(Bullet* bullet, IBulletCollisionable* object, vector<PaintPlane*>& paints)

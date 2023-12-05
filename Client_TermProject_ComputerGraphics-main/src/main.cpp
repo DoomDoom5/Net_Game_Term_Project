@@ -397,13 +397,13 @@ GLvoid Update()
 	waveManager->Update(sock);
 	turretManager->Update(sock);
 	buildingManager->Update(sock);
+	bulletManager->Update(sock);
 
 	for (int i = 0; i < users; ++i) player[i]->Update();
 	if (player[myid] != nullptr) player[myid]->PlayerSend(sock);
 	if (player[myid] != nullptr) player[myid]->PlayerRecv(sock);
 	if (player[myid] != nullptr) UpdateplayersPos(sock);
 
-	//bulletManager->Update(sock);
 	
 	constexpr GLfloat cameraMovement = 100.0f;
 	GLfloat cameraSpeed = cameraMovement;
