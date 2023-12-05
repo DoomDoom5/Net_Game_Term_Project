@@ -51,6 +51,7 @@ Player* player[3] = { nullptr ,nullptr ,nullptr };
 
 ///// [Thread] /////
 // 소켓 통신 스레드 함수
+CRITICAL_SECTION cs; // 임계 영역
 DWORD WINAPI SleepCls(LPVOID arg);
 DWORD WINAPI ServerMain(LPVOID arg);
 DWORD WINAPI ProcessClient(LPVOID arg); 
@@ -86,13 +87,14 @@ GLint main(GLint argc, GLchar** argv)
     timer::StartUpdate();
 
 	glutMainLoop();
-}
+ }
 
 
 ///// INIT /////
 MyColor backColor;
 GLvoid Init()
 {
+
     glewInit();
     InitMeshes();
     timer::Init();
@@ -100,6 +102,7 @@ GLvoid Init()
     waveManager->Start();
 
 	//************ [Server]************
+    InitializeCriticalSection(&cs);
 
     // 소켓 통신 스레드 생성
     CreateThread(NULL, 0, ServerMain, NULL, 0, NULL);
@@ -168,14 +171,16 @@ GLvoid DrawScene()
 ///// [ HANDLE EVENTS ] /////
 GLvoid Update()
 {
-
+    EnterCriticalSection(&cs);
 	if (IsGameOver() == GL_TRUE)
 	{
 	//	glutPostRedisplay();
+        DeleteCriticalSection(&cs);
         return;
 	}
     if (player[0] == nullptr) return;
 
+    
     timer::CalculateFPS();
     timer::Update();
 
@@ -183,11 +188,11 @@ GLvoid Update()
     printf("서버 접속자 수 %d / %d\n", users, MAXUSER);
 	monsterManager->Update();
     for (size_t i = 0; i < users; i++)  if (player[i] != nullptr) player[i]->Update();
-    //bulletManager->Update();
-    //buildingManager->Update();
-	//turretManager->Update();
-	//waveManager->Update();
+	buildingManager->Update();
+	turretManager->Update();
+	waveManager->Update();
 
+    LeaveCriticalSection(&cs);
     glutPostRedisplay();
 }
 
@@ -316,6 +321,10 @@ DWORD WINAPI ProcessClient(LPVOID arg)
     while (1)
     {
         monsterManager->SendBuf(player_sock);
+        waveManager->SendBuf(player_sock);
+        turretManager->SendBuf(player_sock);
+        buildingManager->SendBuf(player_sock);
+        bulletManager->SendBuf(player_sock);
 
         player[id]->PlayerRecv(player_sock);
         player[id]->PlayerSend(player_sock);
@@ -330,11 +339,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
     send/recv 순서  [꼭 지킬것!]
 
     1. player[0]->Update(client_sock()); -> 클라에서 변환된 부분 받음
-    2.	bulletManager->send(client_sock);
-    3.
-    4.	buildingManager->send(client_sock);
-    5.	turretManager->send(client_sock);
-    6.	waveManager->send(client_sock);
+
     7. player[0]->recv(client_sock(); -> 플레이어 변화된 부분 클라에게 전달
 
     */
@@ -398,11 +403,16 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
         nGunLook[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&playerGunLook.z);
         gunType[i] = guntype;
         gunRotation[i] = playerGunRotation;
+
+#ifdef  DEBUG
         cout << i << " Pos: (" << playerPos.x << ", " << playerPos.y << ", " << playerPos.z << ")" << endl;
         cout << i << " BodyLook: (" << playerBodyLook.x << ", " << playerBodyLook.y << ", " << playerBodyLook.z << ")" << endl;
         cout << i << " HeadLook: (" << playerHeadLook.x << ", " << playerHeadLook.y << ", " << playerHeadLook.z << ")" << endl;
         cout << i << " GunPos: (" << playerGunPos.x << ", " << playerGunPos.y << ", " << playerGunPos.z << ")" << endl;
         cout << i << " GunLook: (" << playerGunLook.x << ", " << playerGunLook.y << ", " << playerGunLook.z << ")" << endl;
+#endif //  DEBUG
+
+     
     }
     memcpy(playersInfo.pos, nPos, sizeof(uint32_t) * 3 * users);
     memcpy(playersInfo.bodylook, nBodyLook, sizeof(uint32_t) * 3 * users);

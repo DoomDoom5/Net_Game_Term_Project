@@ -169,7 +169,6 @@ GLvoid Init()
 	mouseCenter = { screenWidth / 2 + screenPosX, screenHeight / 2 + screenPosY };
 
 	waveManager->Start();
-	soundManager->PlayBGMSound(BGMSound::Normal, 0.2f, GL_TRUE);
 
 	//************ [Server]************
 	cout << "접속 IP를 입력해 주세요, 그냥 00는 127.0.0.1로 연결됩니다. : ";
@@ -224,6 +223,7 @@ GLvoid InitPlayer()
 	uiManager->SetPlayer(player[myid]);
 	monsterManager->SetPlayer(player[myid]);
 	waveManager->SetPlayer(player[myid]);
+	soundManager->PlayBGMSound(BGMSound::Normal, 0.2f, GL_TRUE);
 }
 
 GLvoid Reset()
@@ -394,15 +394,15 @@ GLvoid Update()
 	timer::Update();
 
 	monsterManager->Update(sock);
+	waveManager->Update(sock);
+	turretManager->Update(sock);
+	buildingManager->Update(sock);
+	bulletManager->Update(sock);
+
 	for (int i = 0; i < users; ++i) player[i]->Update();
 	if (player[myid] != nullptr) player[myid]->PlayerSend(sock);
 	if (player[myid] != nullptr) player[myid]->PlayerRecv(sock);
 	if (player[myid] != nullptr) UpdateplayersPos(sock);
-
-	//bulletManager->Update(sock);
-	//buildingManager->Update(sock);
-	//turretManager->Update(sock);
-	//waveManager->Update(sock);
 	
 	constexpr GLfloat cameraMovement = 100.0f;
 	GLfloat cameraSpeed = cameraMovement;
@@ -718,9 +718,10 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 	memcpy(&isover, playerInfo.gameover, sizeof(bool));
 	if (isover) GameOver();
 	memcpy(&users, playerInfo.num, sizeof(int));
+#ifdef DEBUG
 	cout << "myID: " << myid << endl;
 	cout << "RecvFromServer: " << endl;
-
+#endif
 	uint32_t nPos[MAXUSER * 3];
 	uint32_t nBodyLook[MAXUSER * 3];
 	uint32_t nHeadLook[MAXUSER * 3];
@@ -762,12 +763,13 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 		fGunLook.y = *reinterpret_cast<float*>(&nGunLook[3 * i + 1]);
 		fGunLook.z = *reinterpret_cast<float*>(&nGunLook[3 * i + 2]);
 
+#ifdef DEBUG
 		cout << i << " Pos: ( " << fPos.x << ", " << fPos.y << ", " << fPos.z << " )" << endl;
 		cout << i << " BodyLook: ( " << fBodyLook.x << ", " << fBodyLook.y << ", " << fBodyLook.z << " )" << endl;
 		cout << i << " HeadLook: ( " << fHeadLook.x << ", " << fHeadLook.y << ", " << fHeadLook.z << " )" << endl;
 		cout << i << " GunPos: (" << fGunPos.x << ", " << fGunPos.y << ", " << fGunPos.z << ")" << endl;
 		cout << i << " GunLook: (" << fGunLook.x << ", " << fGunLook.y << ", " << fGunLook.z << ")" << endl;
-
+#endif
 		if (i == myid) continue;
 
 		player[i]->SetGunType(gunType[i]);

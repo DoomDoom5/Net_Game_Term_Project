@@ -76,6 +76,11 @@ public:
 	inline constexpr BulletType GetType() const { return mType; }
 };
 
+struct BulletInfo {
+	char bulletNumBuf[sizeof(int)];
+	char bulletPosBuf[sizeof(float) * 3 * 20];		// num은 10이 최대
+};
+
 class BulletManager {
 private:
 	GLint mID = 0;
@@ -86,6 +91,8 @@ private:
 	vector<IBulletCollisionable*> mParticleCollisions;
 
 	GLfloat mCrntInkSoundDelay = 0.0f;
+	char m_cBuf[sizeof(BulletInfo)];
+
 public:
 	BulletManager();
 	~BulletManager();
@@ -101,4 +108,6 @@ public:
 	GLvoid AddParticleCollision(IBulletCollisionable* object);
 	GLvoid DelCollisionObject(IBulletCollisionable* object);
 	GLvoid DelParticleCollision(IBulletCollisionable* object);
+
+	GLvoid SendBuf(const SOCKET& sock) { send(sock, m_cBuf, sizeof(BulletInfo), 0); }
 };

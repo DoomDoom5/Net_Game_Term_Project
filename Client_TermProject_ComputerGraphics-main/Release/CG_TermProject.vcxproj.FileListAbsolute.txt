@@ -1,2 +1,3 @@
 C:\Users\alseh\Desktop\TermProject_ComputerGraphics\Release\CG_TermProject.exe
 E:\Net_Game_term\Client_TermProject_ComputerGraphics-main\Release\client.exe
+C:\netgame\Net_Game_Term_Project\Client_TermProject_ComputerGraphics-main\Release\client.exe

@@ -21,5 +21,5 @@ public:
 
 	inline constexpr GLint GetWave() const { return mCrntWave; }
 
-	GLvoid SendWace(SOCKET& client_sock);
+	GLvoid SendBuf(SOCKET& client_sock) { send(client_sock, (const char*)mCrntWave, sizeof(int), 0); };
 };
