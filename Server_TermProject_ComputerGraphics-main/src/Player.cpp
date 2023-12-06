@@ -369,6 +369,9 @@ GLvoid Player::ChangeState(const State& playerState, const Event& e, const GLint
 GLvoid Player::Update()
 {
 	mCrntState->Update();
+	
+	if (mlsFire) mCrntGun->StartFire();
+	else mCrntGun->StopFire();
 	mPosition = mBody->GetPviotedPosition();
 	mCrntGun->Update();
 }

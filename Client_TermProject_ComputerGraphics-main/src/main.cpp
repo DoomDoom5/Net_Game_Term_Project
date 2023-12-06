@@ -393,11 +393,12 @@ GLvoid Update()
 	timer::CalculateFPS();
 	timer::Update();
 
+	bulletManager->Update(sock);
 	monsterManager->Update(sock);
 	waveManager->Update(sock);
 	turretManager->Update(sock);
 	buildingManager->Update(sock);
-	bulletManager->Update(sock);
+	
 
 	for (int i = 0; i < users; ++i) player[i]->Update();
 	if (player[myid] != nullptr) player[myid]->PlayerSend(sock);

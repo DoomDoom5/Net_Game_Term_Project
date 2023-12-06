@@ -78,7 +78,7 @@ public:
 
 struct BulletInfo {
 	char bulletNumBuf[sizeof(int)];
-	char bulletPosBuf[sizeof(float) * 3 * 20];		// num은 10이 최대
+	char bulletPosBuf[sizeof(float) * 3 * 90];		// num은 10이 최대
 };
 
 class BulletManager {
@@ -91,7 +91,7 @@ private:
 	vector<IBulletCollisionable*> mParticleCollisions;
 
 	GLfloat mCrntInkSoundDelay = 0.0f;
-	char m_cBuf[sizeof(BulletInfo)];
+	char Buf[sizeof(BulletInfo)];
 
 public:
 	BulletManager();
@@ -109,5 +109,5 @@ public:
 	GLvoid DelCollisionObject(IBulletCollisionable* object);
 	GLvoid DelParticleCollision(IBulletCollisionable* object);
 
-	GLvoid SendBuf(const SOCKET& sock) { send(sock, m_cBuf, sizeof(BulletInfo), 0); }
+	GLvoid SendBuf(const SOCKET& sock) { send(sock, Buf, sizeof(BulletInfo), 0); }
 };

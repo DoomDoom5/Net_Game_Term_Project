@@ -157,7 +157,7 @@ GLvoid BulletManager::Draw() const
 
 struct BulletInfo {
 	char bulletNumBuf[sizeof(int)];
-	char bulletPosBuf[sizeof(float) * 3 * 20];		// num은 10이 최대
+	char bulletPosBuf[sizeof(float) * 3 * 90];		// num은 10이 최대
 };
 
 GLvoid BulletManager::Update(SOCKET& sock) {
@@ -185,7 +185,7 @@ GLvoid BulletManager::Update(SOCKET& sock) {
 		fBulletPos[i] = *reinterpret_cast<float*>(&convertToFloat[i]);
 	}
 	for (int i = 0; i < nbullets; ++i) {
-		printf("%d Position: (%f, %f, %f)\n", i, fBulletPos[i * 3 + 0],
+		printf("%d번째 총알Position: (%f, %f, %f)\n", i, fBulletPos[i * 3 + 0],
 			fBulletPos[i * 3 + 1], fBulletPos[i * 3 + 2]);
 	}
 

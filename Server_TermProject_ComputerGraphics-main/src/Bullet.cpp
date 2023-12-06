@@ -296,7 +296,6 @@ GLvoid BulletManager::Update()
 	send(sock, sendbuf, (int)strlen(sendbuf), 0);
 	*/
 
-	char numbuf[10];
 	int num = 0;
 	BulletInfo bulletInfo{};
 
@@ -304,7 +303,7 @@ GLvoid BulletManager::Update()
 	int netbyte = 0;
 	if (!mBulletList.empty())
 		nbullets = mBulletList.size();
-	std::cout << nbullets << "개의 몬스터 위치가 있음" << std::endl;
+	std::cout << nbullets << "개의 총알 위치가 있음" << std::endl;
 	netbyte = htonl(nbullets);
 	memcpy(&bulletInfo.bulletNumBuf, &netbyte, sizeof(int));
 
@@ -322,12 +321,11 @@ GLvoid BulletManager::Update()
 	}
 	memcpy(&bulletInfo.bulletPosBuf, &converToFloat, sizeof(uint32_t) * 3 * nbullets);
 
-	memcpy(&m_cBuf, &bulletInfo, sizeof(BulletInfo));
-	
-	
-	//send(sock, buf, sizeof(BulletInfo), 0);
+	memcpy(&Buf, &bulletInfo, sizeof(BulletInfo));
 
 }
+
+
 //GLvoid ProcessCollision(Bullet* bullet, IBulletCollisionable* object, vector<PaintPlane*>& paints)
 //{
 //	constexpr GLfloat NO_NORMAL = 9;
