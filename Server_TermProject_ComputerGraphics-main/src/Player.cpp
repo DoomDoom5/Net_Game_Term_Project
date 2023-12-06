@@ -371,11 +371,6 @@ GLvoid Player::Update()
 	/*if (mlsFire)
 		mCrntGun->StartFire();*/
 	//mCrntState->Update(); 다리가 계속 Rotate하는 버그.
-	if (mIsTeamInstall)
-	{
-		Install_Turret();
-		mIsTeamInstall = false;
-	}
 	mPosition = mBody->GetPviotedPosition();
 	mCrntGun->Update();
 }
@@ -685,16 +680,18 @@ GLvoid Player::ChaingeGun()
 }
 
 struct PlayerSubInfo {
+	char myid[sizeof(GLint)];
 	char holdturret[sizeof(GLint)];
 	char hp[sizeof(GLfloat)];
 };
 
-GLvoid Player::PlayerSend(SOCKET& client_sock)
+GLvoid Player::PlayerSend(SOCKET& client_sock, GLint id)
 {
 	PlayerSubInfo playerSubInfo{};
 
 	int retval = 0;
 	// ======= 사용자 정보 송신 ======
+	memcpy(playerSubInfo.myid, &id, sizeof(GLint));
 	memcpy(playerSubInfo.holdturret, &mHoldTurret, sizeof(GLint));
 	memcpy(playerSubInfo.hp, &mHP, sizeof(GLfloat));
 	char buf[sizeof(PlayerSubInfo)];
@@ -703,12 +700,13 @@ GLvoid Player::PlayerSend(SOCKET& client_sock)
 	// ======= ========== ======
 	//SetConsoleCursor(0, 12);
 #ifdef  DEBUG
+	cout << "SEND ID : " << id << endl;
 	cout << "SEND HP : " << mHP << endl;
 	cout << "SEND HOLD TURRET : " << mHoldTurret << '\n';
 #endif //  DEBUG
 }
 
-GLvoid Player::PlayerRecv(SOCKET& client_sock)
+bool Player::PlayerRecv(SOCKET& client_sock)
 {
 	// ======= 사용자 정보수신 ======
 	PlayerInfo playerInfo;
@@ -725,7 +723,13 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	glm::quat rotate;
 	bool isFire , isInstall = false;
 
+	int SOCKET_READ_TIMEOUT_SEC = 1;
+
+	DWORD timeout = SOCKET_READ_TIMEOUT_SEC * 1000;
+	setsockopt(client_sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
+
 	retval = recv(client_sock, buf, sizeof(PlayerInfo), 0);
+	if (retval <= 0) return false;
 	memcpy(&playerInfo, buf, sizeof(PlayerInfo));
 	memcpy(&vPlayerPos, playerInfo.pos, sizeof(glm::vec3));
 	memcpy(&vPlayerBodyLook, playerInfo.bodylook, sizeof(glm::vec3));
@@ -751,6 +755,7 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 
 	if (mIsInstall)
 		Install_Turret();
+	return true;
 }
 
 GLvoid Player::SetGunType(GunType gunType)

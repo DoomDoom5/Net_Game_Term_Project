@@ -215,7 +215,7 @@ public:
 
 	// ==== send/recv ====
 	GLvoid PlayerSend(SOCKET& sock);
-	GLvoid PlayerRecv(SOCKET& sock);
+	GLint PlayerRecv(SOCKET& sock);
 
 
 	// ======= Set ======

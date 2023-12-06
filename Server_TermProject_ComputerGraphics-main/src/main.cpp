@@ -57,7 +57,7 @@ DWORD WINAPI ServerMain(LPVOID arg);
 DWORD WINAPI ProcessClient(LPVOID arg); 
 vector <string> Current(MAXUSER);
 vector <bool> ClientOn(MAXUSER);
-
+bool updateOn = false;
 
 
 struct  USER
@@ -173,25 +173,55 @@ GLvoid DrawScene()
 ///// [ HANDLE EVENTS ] /////
 GLvoid Update()
 {
-    EnterCriticalSection(&cs);
-	if (IsGameOver() == GL_TRUE)
-	{
-	//	glutPostRedisplay();
+    if (IsGameOver() == GL_TRUE)
+    {
+        //	glutPostRedisplay();
+        cout << "GameOver" << endl;
         DeleteCriticalSection(&cs);
         return;
-	}
+    }
     if (player[0] == nullptr) return;
 
-    
+
+    EnterCriticalSection(&cs);
+    updateOn = false;
+
     timer::CalculateFPS();
     timer::Update();
 
     printf("서버 접속자 수 %d / %d\n", users, MAXUSER);
-	monsterManager->Update();
+    monsterManager->Update();
     for (size_t i = 0; i < users; i++)  if (player[i] != nullptr) player[i]->Update();
-	//buildingManager->Update();
-	turretManager->Update();
-	//waveManager->Update();
+    //buildingManager->Update();
+    turretManager->Update();
+    //waveManager->Update();
+
+#ifdef  DEBUG
+    cout << "SendToClient: " << endl;
+#endif
+    for (size_t i = 0; i < users; i++)
+    {
+        glm::vec3 vPos = player[i]->GetPosition();
+        glm::vec3 vBodyLook = player[i]->GetBodyLook();
+        glm::vec3 vHeadLook = player[i]->GetHeadLook();
+        glm::vec3 vLegLLook = player[i]->GetLegLLook();
+        glm::vec3 vLegRLook = player[i]->GetLegRLook();
+        glm::vec3 vGunLook = player[i]->GetGunLook();
+        glm::quat gunRotation = player[i]->GetGunRotation();
+        GunType gunType = player[i]->GetGunType();
+
+#ifdef  DEBUG
+        cout << i << " Pos: (" << vPos.x << ", " << vPos.y << ", " << vPos.z << ")" << endl;
+        cout << i << " BodyLook: (" << vBodyLook.x << ", " << vBodyLook.y << ", " << vBodyLook.z << ")" << endl;
+        cout << i << " HeadLook: (" << vHeadLook.x << ", " << vHeadLook.y << ", " << vHeadLook.z << ")" << endl;
+        cout << i << " GunLook: (" << vGunLook.x << ", " << vGunLook.y << ", " << vGunLook.z << ")" << endl;
+        cout << i << " LegLeftLook: (" << vLegLLook.x << ", " << vLegLLook.y << ", " << vLegLLook.z << ")" << endl;
+        cout << i << " LegRightLook: (" << vLegRLook.x << ", " << vLegRLook.y << ", " << vLegRLook.z << ")" << endl;
+#endif
+
+    }
+
+    updateOn = true;
 
     LeaveCriticalSection(&cs);
     glutPostRedisplay();
@@ -269,7 +299,9 @@ DWORD WINAPI ServerMain(LPVOID arg)
             closesocket(client_sock);
             users--;
         }
-        else { CloseHandle(hThread); }
+        else { 
+            CloseHandle(hThread); 
+        }
 
     }
 
@@ -292,7 +324,7 @@ DWORD WINAPI SleepCls(LPVOID arg)
     }
 }
 
-
+int deleteMember[MAXUSER] = { -1, -1, -1 };
 
 // 클라이언트와 데이터 통신
 DWORD WINAPI ProcessClient(LPVOID arg)
@@ -321,13 +353,29 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 
     while (1)
     {
+        if (!updateOn) continue;
+
+        if (deleteMember[id] != -1)
+        {
+            if (deleteMember[id] < id)
+                id--;
+        }
         monsterManager->SendBuf(player_sock);
         //waveManager->SendBuf(player_sock);
         turretManager->SendBuf(player_sock);
         //buildingManager->SendBuf(player_sock);
         //bulletManager->SendBuf(player_sock);
 
-        player[id]->PlayerRecv(player_sock);
+        bool result = player[id]->PlayerRecv(player_sock);
+        if (!result) {
+            delete player[id];
+            if(id != 2)
+                player[id] = player[id + 1];
+            users--;
+            memset(deleteMember, id, sizeof(deleteMember));
+            monsterManager->DeletePlayer(id);
+            return 0;
+        }
         if (player[id]->IsInstalled())
         {
             for (int i = 0; i < users; ++i) {
@@ -335,7 +383,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
             }
             player[id]->InstallDone();
         }
-        player[id]->PlayerSend(player_sock);
+        player[id]->PlayerSend(player_sock, id);
 
         // ====================================
         SendAllPlayersInfo(player_sock);
@@ -386,8 +434,6 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
     GunType gunType[MAXUSER];
     glm::quat gunRotation[MAXUSER];
 
-    SetConsoleCursor(0, 10);
-    cout << "SendToClient: " << endl;
     for (size_t i = 0; i < users; i++)
     {
         vPos[i] = player[i]->GetPosition();
@@ -397,24 +443,7 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
         vLegRLook[i] = player[i]->GetLegRLook();
         vGunLook[i] = player[i]->GetGunLook();
         gunRotation[i] = player[i]->GetGunRotation();
-        gunType[i] = player[i]->GetGunType();
-
-#ifdef  DEBUG
-        if (!print) {
-            print = !print;
-            cout << i << " Pos: (" << vPos[i].x << ", " << vPos[i].y << ", " << vPos[i].z << ")" << endl;
-            cout << i << " BodyLook: (" << vBodyLook[i].x << ", " << vBodyLook[i].y << ", " << vBodyLook[i].z << ")" << endl;
-            cout << i << " HeadLook: (" << vHeadLook[i].x << ", " << vHeadLook[i].y << ", " << vHeadLook[i].z << ")" << endl;
-            cout << i << " GunLook: (" << vGunLook[i].x << ", " << vGunLook[i].y << ", " << vGunLook[i].z << ")" << endl;
-            cout << i << " LegLeftLook: (" << vLegLLook[i].x << ", " << vLegLLook[i].y << ", " << vLegLLook[i].z << ")" << endl;
-            cout << i << " LegRightLook: (" << vLegRLook[i].x << ", " << vLegRLook[i].y << ", " << vLegRLook[i].z << ")" << endl;
-            cout << i << " State: ";
-            print = !print;
-            system("cls");
-        }
-#endif
-
-     
+        gunType[i] = player[i]->GetGunType();     
     }
     memcpy(playersInfo.pos, vPos, sizeof(glm::vec3) * users);
     memcpy(playersInfo.bodylook, vBodyLook, sizeof(glm::vec3) * users);

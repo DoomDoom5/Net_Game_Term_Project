@@ -743,21 +743,25 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 }
 
 struct PlayerSubInfo {
+	char myid[sizeof(GLint)];
 	char holdturret[sizeof(GLint)];
 	char hp[sizeof(GLfloat)];
 };
 
-GLvoid Player::PlayerRecv(SOCKET& sock)
+GLint Player::PlayerRecv(SOCKET& sock)
 {
 	PlayerSubInfo playerSubInfo{};
 	int retval = 0;
 	// ==============클라이언트 정보 송신====================
 	char buf[sizeof(PlayerSubInfo)];
 	retval = recv(sock, buf, sizeof(buf), 0);
+	int myid = 0;
 	memcpy(&playerSubInfo, &buf, sizeof(buf));
+	memcpy(&myid, playerSubInfo.myid, sizeof(GLint));
 	memcpy(&mHoldTurret, &playerSubInfo.holdturret, sizeof(GLint));
 	memcpy(&mHP, &playerSubInfo.hp, sizeof(GLfloat));
 #ifdef DEBUG
+	cout << "RECV ID : " << myid << endl;
 	cout << "RECV HP : " << mHP << '\n'; 
 	cout << "RECV HOLD TURRET : " << mHoldTurret << '\n';
 #endif
@@ -766,6 +770,7 @@ GLvoid Player::PlayerRecv(SOCKET& sock)
 	{
 		GameOver();
 	}
+	return myid;
 }
 
 GLvoid Player::SetPosition(glm::vec3 newPos)
