@@ -125,12 +125,13 @@ private:
 
 	// values
 	GLfloat mHP = 100.0f;
+	GLint mHoldTurret = 3;
 	GLfloat mSpeed = PLAYER_WALK_SPEED;
 	GLfloat mJumpSpeed = PLAYER_JUMP_SPEED;
-	GLint mHoldTurret = 3;
 	GLfloat mFrameTime = 0.0f;
 	bool mlsFire = false;
 	bool mIsInstall = false;
+	bool mIsTeamInstall = false;
 
 	// for collision
 	Circle* mBoundingCircle = nullptr;
@@ -208,6 +209,7 @@ public:
 
 	// Skills
 	GLvoid Install_Turret();
+	GLvoid TeamInstall_Turret() { mHoldTurret--; }
 	GLvoid ChaingeGun();
 
 	// send / recv
@@ -225,5 +227,8 @@ public:
 	GLvoid SetLegRLook(glm::vec3 newPos);
 	GLvoid SetGunType(GunType gunType);
 	GLvoid SetGunRotation(glm::quat newRotate);
+
+	GLboolean IsInstalled() { return mIsInstall; }
+	GLvoid InstallDone(){ mIsInstall = false; }
 };
 

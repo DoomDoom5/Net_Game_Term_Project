@@ -749,14 +749,14 @@ struct PlayerSubInfo {
 
 GLvoid Player::PlayerRecv(SOCKET& sock)
 {
-	PlayerSubInfo playerRecvInfo{};
+	PlayerSubInfo playerSubInfo{};
 	int retval = 0;
 	// ==============클라이언트 정보 송신====================
 	char buf[sizeof(PlayerSubInfo)];
 	retval = recv(sock, buf, sizeof(buf), 0);
-	memcpy(&playerRecvInfo, &buf, sizeof(buf));
-	memcpy(&mHoldTurret, &playerRecvInfo.holdturret, sizeof(GLint));
-	memcpy(&mHP, &playerRecvInfo.hp, sizeof(GLfloat));
+	memcpy(&playerSubInfo, &buf, sizeof(buf));
+	memcpy(&mHoldTurret, &playerSubInfo.holdturret, sizeof(GLint));
+	memcpy(&mHP, &playerSubInfo.hp, sizeof(GLfloat));
 #ifdef DEBUG
 	cout << "RECV HP : " << mHP << '\n'; 
 	cout << "RECV HOLD TURRET : " << mHoldTurret << '\n';

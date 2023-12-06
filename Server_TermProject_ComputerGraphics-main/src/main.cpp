@@ -58,6 +58,8 @@ DWORD WINAPI ProcessClient(LPVOID arg);
 vector <string> Current(MAXUSER);
 vector <bool> ClientOn(MAXUSER);
 
+
+
 struct  USER
 {
     SOCKET client_sock = NULL;
@@ -326,6 +328,13 @@ DWORD WINAPI ProcessClient(LPVOID arg)
         //bulletManager->SendBuf(player_sock);
 
         player[id]->PlayerRecv(player_sock);
+        if (player[id]->IsInstalled())
+        {
+            for (int i = 0; i < users; ++i) {
+                player[i]->TeamInstall_Turret();
+            }
+            player[id]->InstallDone();
+        }
         player[id]->PlayerSend(player_sock);
 
         // ====================================

@@ -370,7 +370,12 @@ GLvoid Player::Update()
 {
 	/*if (mlsFire)
 		mCrntGun->StartFire();*/
-	mCrntState->Update();
+	//mCrntState->Update(); 다리가 계속 Rotate하는 버그.
+	if (mIsTeamInstall)
+	{
+		Install_Turret();
+		mIsTeamInstall = false;
+	}
 	mPosition = mBody->GetPviotedPosition();
 	mCrntGun->Update();
 }
@@ -640,7 +645,6 @@ GLvoid Player::Install_Turret()
 {
 	glm::vec3 position = GetPosition();
 	turretManager->Create(glm::vec3( position.x, 0, position.z));
-	mHoldTurret--;
 }
 
 GLvoid Player::ChaingeGun()
@@ -687,14 +691,14 @@ struct PlayerSubInfo {
 
 GLvoid Player::PlayerSend(SOCKET& client_sock)
 {
-	PlayerSubInfo playerRecvInfo{};
+	PlayerSubInfo playerSubInfo{};
 
 	int retval = 0;
 	// ======= 사용자 정보 송신 ======
-	memcpy(playerRecvInfo.holdturret, &mHoldTurret, sizeof(GLint));
-	memcpy(playerRecvInfo.hp, &mHP, sizeof(GLfloat));
+	memcpy(playerSubInfo.holdturret, &mHoldTurret, sizeof(GLint));
+	memcpy(playerSubInfo.hp, &mHP, sizeof(GLfloat));
 	char buf[sizeof(PlayerSubInfo)];
-	memcpy(&buf, &playerRecvInfo, sizeof(PlayerSubInfo));
+	memcpy(&buf, &playerSubInfo, sizeof(PlayerSubInfo));
 	retval = send(client_sock, buf, sizeof(buf), 0);
 	// ======= ========== ======
 	//SetConsoleCursor(0, 12);
@@ -745,10 +749,8 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	mIsInstall = isInstall;
 	mlsFire = isFire;
 
-
-	if (mIsInstall) Install_Turret();
-	mIsInstall = false;
-
+	if (mIsInstall)
+		Install_Turret();
 }
 
 GLvoid Player::SetGunType(GunType gunType)

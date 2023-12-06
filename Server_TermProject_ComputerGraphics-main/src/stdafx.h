@@ -142,7 +142,6 @@ const GLuint NUM_CORE = thread::hardware_concurrency();
 constexpr GLint NUM_OF_SHADER = static_cast<GLint>(Shader::_count) - 1;	// exclusive Shader::None
 
 
-
 static unordered_map<Dir, Dir> dir_opposite = {
 	{Dir::Left, Dir::Right},
 	{Dir::Right, Dir::Left},
