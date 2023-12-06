@@ -62,7 +62,7 @@ bool updateOn = false;
 struct  USER
 {
     SOCKET client_sock = NULL;
-    int id;
+    int id = -1;
 };
 int users = 0;
 
@@ -95,7 +95,6 @@ GLint main(GLint argc, GLchar** argv)
 MyColor backColor;
 GLvoid Init()
 {
-
     glewInit();
     InitMeshes();
     timer::Init();
@@ -121,7 +120,6 @@ GLvoid InitMeshes()
 
     buildingManager->Create(BuildingType::Core, { 0, 0, 550 });
     turretManager->Create(glm::vec3(100,0,450));
-
 	crntMap = new Map();
 
 }
@@ -151,6 +149,7 @@ GLvoid Reset()
         delete crntMap;
         crntMap = nullptr;
     }
+
     for (int i = 0; i < users; ++i)
     {
         if (player[i] != nullptr)
@@ -172,6 +171,7 @@ GLvoid DrawScene()
 ///// [ HANDLE EVENTS ] /////
 GLvoid Update()
 {
+    if (users <= 0) return;
 	if (IsGameOver() == GL_TRUE)
 	{
 	//	glutPostRedisplay();
@@ -179,7 +179,6 @@ GLvoid Update()
         DeleteCriticalSection(&cs);
         return;
 	}
-    if (player[0] == nullptr) return;
 
     EnterCriticalSection(&cs);
     updateOn = false;
@@ -188,7 +187,6 @@ GLvoid Update()
     timer::Update();
 
     SetConsoleCursor(0, 1);
-    printf("서버 접속자 수 %d / %d\n", users, MAXUSER);
 	monsterManager->Update();
     for (size_t i = 0; i < users; i++)  if (player[i] != nullptr) player[i]->Update();
 	buildingManager->Update();
@@ -197,6 +195,7 @@ GLvoid Update()
 
     updateOn = true;
     LeaveCriticalSection(&cs);
+
     glutPostRedisplay();
 }
 
@@ -239,6 +238,11 @@ DWORD WINAPI ServerMain(LPVOID arg)
         NULL, 0, NULL);
 
     while (1) {
+
+        if (users > 3) {
+            cout << "소캣 생성 실패, 사람이 꽉 찻습니다" << endl;
+            continue;
+        }
         // accept()
         addrlen = sizeof(clientaddr);
         client_sock = accept(listen_sock, (struct sockaddr*)&clientaddr, &addrlen);
@@ -253,27 +257,28 @@ DWORD WINAPI ServerMain(LPVOID arg)
         printf("\r\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\r\n",
             addr, ntohs(clientaddr.sin_port));
 
+      
+
         USER client;
         client.client_sock = client_sock;
-
-
-        if (!ClientOn[users])// 자리가 남았을때
+        for (size_t i = 0; i < 3; i++)
         {
-            ClientOn[users] = true;
-            client.id = users++;
+            if (player[i] == nullptr) {
+                client.id == i;
+                break;
+            }
         }
 
-
+        if (client.id < 0) {
+            cout << client.id << " : id 생성 실패" << endl;
+            continue;
+        }
+       
         // 스레드 생성
         hThread = CreateThread(NULL, 0, ProcessClient,
             (LPVOID)&client, 0, NULL);
-        if (hThread == NULL) {
-            closesocket(client_sock);
-        }
-        else { CloseHandle(hThread); 
-        users--;
-        }
-
+        if (hThread == NULL) { closesocket(client_sock); }
+        else { CloseHandle(hThread); }
     }
 
     // 소켓 닫기
@@ -295,7 +300,6 @@ DWORD WINAPI SleepCls(LPVOID arg)
       
     }
 }
-
 
 
 // 클라이언트와 데이터 통신
@@ -328,14 +332,18 @@ DWORD WINAPI ProcessClient(LPVOID arg)
         if (!updateOn) continue;
         // send/recv 순서  꼭 지킬것!
 
+        // ====================================
         monsterManager->SendBuf(player_sock);
         waveManager->SendBuf(player_sock);
         turretManager->SendBuf(player_sock);
         buildingManager->SendBuf(player_sock);
         bulletManager->SendBuf(player_sock);
+        // ====================================
 
+        // ====================================
         player[id]->PlayerRecv(player_sock);
         player[id]->PlayerSend(player_sock);
+        // ====================================
 
         // ====================================
         SendAllPlayersInfo(player_sock);
@@ -343,6 +351,28 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 
         //Sleep(1000/60);
     }
+
+    // 소켓 닫기
+    closesocket(player_sock);
+    
+    printf("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n",
+        addr, ntohs(Tclientaddr.sin_port));
+
+    for (size_t i = 0; i < users; i++)
+    {
+        if (player[i] == nullptr && id != i)
+        {
+            player[i] = new Player(*player[id]);
+            break;
+        }
+    }
+
+    delete player[id];
+    player[id] = nullptr;
+
+    if (users > 0)users--;
+
+    return 0;
 } 
 
 struct PlayersInfo

@@ -268,6 +268,72 @@ Player::Player(const glm::vec3& position)
 	mHP = 50.f;
 	ChangeState(State::Idle);
 }
+
+Player::Player(const Player& other)
+{
+	mPosition = other.GetPosition();
+	mTpCameraPosition = other.GetPosition();
+	mHead = new SharedObject(GetIdentityTextureObject(Textures::Player_Head));
+	mBody = new SharedObject(GetIdentityTextureObject(Textures::Player_Body));
+	mArms = new SharedObject(GetIdentityTextureObject(Textures::Player_Arms));
+	mLegL = new SharedObject(GetIdentityTextureObject(Textures::Player_Leg_L));
+	mLegR = new SharedObject(GetIdentityTextureObject(Textures::Player_Leg_R));
+
+	mHead->SetPivot(mBody->GetRefPos());
+	mArms->SetPivot(mBody->GetRefPos());
+	mLegL->SetPivot(mBody->GetRefPos());
+	mLegR->SetPivot(mBody->GetRefPos());
+
+	mHead->MoveY(31, GL_FALSE);
+	mArms->MoveY(28, GL_FALSE);
+	mLegL->MoveY(16, GL_FALSE);
+	mLegR->MoveY(16, GL_FALSE);
+
+	mFpCamera = new Camera();
+	mFpCamera->SetPivot(&mPosition);
+	mFpCamera->SetPosY(38);
+	mFpCamera->SetFovY(110.0f);
+	mFpCamera->SetLook(mBody->GetLook());
+
+	mTpCamera = new Camera();
+	mTpCamera->SetPivot(&mPosition);
+	mTpCamera->SetPosY(100);
+	mTpCamera->SetPosZ(-75);
+	mTpCamera->SetFovY(110.0f);
+	mTpCamera->Look(mBody->GetPosition());
+
+
+	mZoomFPCamera = new Camera();
+	mZoomFPCamera->SetPivot(&mPosition);
+	mZoomFPCamera->SetPosY(38);
+	mZoomFPCamera->SetPosZ(100);
+	mZoomFPCamera->SetFovY(110.0f);
+	mZoomFPCamera->SetLook(mBody->GetLook());
+
+	mHead->SetRotationPivot(mFpCamera->GetRefPos());
+	mArms->SetRotationPivot(mFpCamera->GetRefPos());
+
+	glm::vec3 gunPosition = glm::vec3(-PLAYER_RADIUS + 1.0f, mFpCamera->GetPviotedPosition().y - 18, 0);
+
+	mRifle = new Rifle(gunPosition, &mPosition);
+	mSniper = new Sniper(gunPosition, &mPosition);
+	mShotGun = new ShotGun(gunPosition, &mPosition);
+	mLauncher = new Launcher(gunPosition, &mPosition);
+
+
+	mCrntGun = mRifle;
+	mBoundingCircle = new Circle(mBody->GetRefPos(), PLAYER_RADIUS, GL_TRUE);
+	mBoundingCircle->SetColor(BLUE);
+
+	Rotate(0, 180, 0);
+
+	mHP = other.GetHp();
+	ChangeState(State::Idle);
+
+
+}
+
+
 Player::~Player()
 {
 	delete mHead;

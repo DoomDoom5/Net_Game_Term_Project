@@ -132,7 +132,10 @@ private:
 	GLfloat mPitch = 0.0f;
 
 public:
-	Player(const glm::vec3& position);
+	Player(const glm::vec3& position);    
+	
+	// 복사 생성자 정의
+	Player(const Player& other);
 	~Player();
 
 	Cuboid* mCuboid = nullptr;
