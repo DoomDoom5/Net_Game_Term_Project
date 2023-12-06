@@ -324,7 +324,7 @@ DWORD WINAPI SleepCls(LPVOID arg)
     }
 }
 
-
+int deleteMember[MAXUSER] = { -1, -1, -1 };
 
 // 클라이언트와 데이터 통신
 DWORD WINAPI ProcessClient(LPVOID arg)
@@ -355,6 +355,11 @@ DWORD WINAPI ProcessClient(LPVOID arg)
     {
         if (!updateOn) continue;
 
+        if (deleteMember[id] != -1)
+        {
+            if (deleteMember[id] < id)
+                id--;
+        }
         monsterManager->SendBuf(player_sock);
         //waveManager->SendBuf(player_sock);
         turretManager->SendBuf(player_sock);
@@ -363,9 +368,12 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 
         bool result = player[id]->PlayerRecv(player_sock);
         if (!result) {
+            delete player[id];
             if(id != 2)
-                memcpy(player[id], player[id + 1], sizeof(player[0]));
+                player[id] = player[id + 1];
             users--;
+            memset(deleteMember, id, sizeof(deleteMember));
+            monsterManager->DeletePlayer(id);
             return 0;
         }
         if (player[id]->IsInstalled())

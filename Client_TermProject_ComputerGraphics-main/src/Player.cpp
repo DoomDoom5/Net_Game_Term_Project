@@ -761,6 +761,7 @@ GLint Player::PlayerRecv(SOCKET& sock)
 	memcpy(&mHoldTurret, &playerSubInfo.holdturret, sizeof(GLint));
 	memcpy(&mHP, &playerSubInfo.hp, sizeof(GLfloat));
 #ifdef DEBUG
+	cout << "RECV ID : " << myid << endl;
 	cout << "RECV HP : " << mHP << '\n'; 
 	cout << "RECV HOLD TURRET : " << mHoldTurret << '\n';
 #endif

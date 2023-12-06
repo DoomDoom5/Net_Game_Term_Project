@@ -523,6 +523,14 @@ GLvoid MonsterManager::AddPlayer(Player* player)
 	nPlayer += 1;
 }
 
+GLvoid MonsterManager::DeletePlayer(int num)
+{
+	if (nPlayer <= 0) return;
+	if (num != 2)
+		mPlayer[num] = mPlayer[num + 1];
+	nPlayer -= 1;
+}
+
 bool MonsterManager::CheckEnemyEmpty()
 {
 	return mMonsterList.empty(); 

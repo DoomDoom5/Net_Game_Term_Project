@@ -117,6 +117,7 @@ public:
 	GLvoid Update();
 	GLvoid Draw() const;
 	GLvoid AddPlayer(Player* player);
+	GLvoid DeletePlayer(int num);
 	GLboolean GetShortestMonsterPos(const glm::vec3& srcPos, const GLfloat& radius, glm::vec3& targetPos) const;
 	GLvoid CheckCollision(Monster* monster);
 	bool CheckEnemyEmpty();

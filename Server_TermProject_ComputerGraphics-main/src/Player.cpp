@@ -700,6 +700,7 @@ GLvoid Player::PlayerSend(SOCKET& client_sock, GLint id)
 	// ======= ========== ======
 	//SetConsoleCursor(0, 12);
 #ifdef  DEBUG
+	cout << "SEND ID : " << id << endl;
 	cout << "SEND HP : " << mHP << endl;
 	cout << "SEND HOLD TURRET : " << mHoldTurret << '\n';
 #endif //  DEBUG
