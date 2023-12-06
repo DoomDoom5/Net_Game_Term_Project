@@ -213,8 +213,8 @@ public:
 	GLvoid ChaingeGun();
 
 	// send / recv
-	GLvoid PlayerSend(SOCKET& client_sock);
-	GLvoid PlayerRecv(SOCKET& client_sock);
+	GLvoid PlayerSend(SOCKET& client_sock, GLint id);
+	bool PlayerRecv(SOCKET& client_sock);
 
 
 	// ======= Set ======

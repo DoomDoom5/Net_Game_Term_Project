@@ -401,7 +401,7 @@ GLvoid Update()
 
 	for (int i = 0; i < users; ++i) player[i]->Update();
 	if (player[myid] != nullptr) player[myid]->PlayerSend(sock);
-	if (player[myid] != nullptr) player[myid]->PlayerRecv(sock);
+	if (player[myid] != nullptr) myid = player[myid]->PlayerRecv(sock);
 	if (player[myid] != nullptr) UpdateplayersPos(sock);
 	
 	constexpr GLfloat cameraMovement = 100.0f;

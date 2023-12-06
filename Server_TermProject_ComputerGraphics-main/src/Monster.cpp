@@ -379,7 +379,7 @@ GLvoid MonsterManager::Create(const MonsterType& monsterType, const glm::vec3& p
 GLvoid MonsterManager::Update()
 {
 #ifdef DEBUG
-	//printf("Monster:\n");
+	printf("Monster:\n");
 #endif
 	MonsterInfo monsterInfo{};
 	for (auto it = mMonsterList.begin(); it != mMonsterList.end();)
@@ -426,22 +426,22 @@ GLvoid MonsterManager::Update()
 		nTarget[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&xyz[1]);
 		nTarget[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&xyz[2]);
 #ifdef DEBUG
-		//printf("%d Position: %.1f, %.1f, %.1f / ", i, pos.x, pos.y, pos.z);
-		//switch (types[i]) {
-		//case MonsterType::Blooper:
-		//	printf("Type: Blooper / ");
-		//	break;
-		//case MonsterType::Egg:
-		//	printf("Type: Egg / ");
-		//	break;
-		//case MonsterType::Koromon:
-		//	printf("Type: Koromon / ");
-		//	break;
-		//case MonsterType::None:
-		//	printf("Type: None / ");
-		//	break;
-		//};
-		//printf("Target: %.1f, %.1f, %.1f\n", xyz[0], xyz[1], xyz[2]);
+		printf("%d Position: %.1f, %.1f, %.1f / ", i, pos.x, pos.y, pos.z);
+		switch (types[i]) {
+		case MonsterType::Blooper:
+			printf("Type: Blooper / ");
+			break;
+		case MonsterType::Egg:
+			printf("Type: Egg / ");
+			break;
+		case MonsterType::Koromon:
+			printf("Type: Koromon / ");
+			break;
+		case MonsterType::None:
+			printf("Type: None / ");
+			break;
+		};
+		printf("Target: %.1f, %.1f, %.1f\n", xyz[0], xyz[1], xyz[2]);
 #endif
 	}
 	memcpy(&monsterInfo.monsterPosBuf, &nPos, sizeof(uint32_t) * 3 * nMonsters);
