@@ -57,7 +57,8 @@ DWORD WINAPI ServerMain(LPVOID arg);
 DWORD WINAPI ProcessClient(LPVOID arg); 
 vector <string> Current(MAXUSER);
 vector <bool> ClientOn(MAXUSER);
-bool updateOn = false;
+
+
 
 struct  USER
 {
@@ -172,30 +173,26 @@ GLvoid DrawScene()
 ///// [ HANDLE EVENTS ] /////
 GLvoid Update()
 {
+    EnterCriticalSection(&cs);
 	if (IsGameOver() == GL_TRUE)
 	{
 	//	glutPostRedisplay();
-        cout << "게임 오버" << endl;
         DeleteCriticalSection(&cs);
         return;
 	}
     if (player[0] == nullptr) return;
 
-    EnterCriticalSection(&cs);
-    updateOn = false;
-
+    
     timer::CalculateFPS();
     timer::Update();
 
-    SetConsoleCursor(0, 1);
     printf("서버 접속자 수 %d / %d\n", users, MAXUSER);
 	monsterManager->Update();
     for (size_t i = 0; i < users; i++)  if (player[i] != nullptr) player[i]->Update();
-	buildingManager->Update();
+	//buildingManager->Update();
 	turretManager->Update();
-	waveManager->Update();
+	//waveManager->Update();
 
-    updateOn = true;
     LeaveCriticalSection(&cs);
     glutPostRedisplay();
 }
@@ -234,6 +231,7 @@ DWORD WINAPI ServerMain(LPVOID arg)
     int addrlen;
     HANDLE hThread;
 
+
     // 화면 초기화 쓰레드
     HANDLE h_cThread = CreateThread(NULL, 0, SleepCls,
         NULL, 0, NULL);
@@ -269,10 +267,9 @@ DWORD WINAPI ServerMain(LPVOID arg)
             (LPVOID)&client, 0, NULL);
         if (hThread == NULL) {
             closesocket(client_sock);
+            users--;
         }
-        else { CloseHandle(hThread); 
-        users--;
-        }
+        else { CloseHandle(hThread); }
 
     }
 
@@ -290,9 +287,8 @@ DWORD WINAPI SleepCls(LPVOID arg)
     while (true)
     {
         Sleep(2000);
-        SetConsoleCursor(0, 1);
+        system("cls");
         printf("서버 접속자 수 %d / %d\n", users, MAXUSER);
-      
     }
 }
 
@@ -325,16 +321,20 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 
     while (1)
     {
-        if (!updateOn) continue;
-        // send/recv 순서  꼭 지킬것!
-
         monsterManager->SendBuf(player_sock);
-        waveManager->SendBuf(player_sock);
+        //waveManager->SendBuf(player_sock);
         turretManager->SendBuf(player_sock);
-        buildingManager->SendBuf(player_sock);
-        bulletManager->SendBuf(player_sock);
+        //buildingManager->SendBuf(player_sock);
+        //bulletManager->SendBuf(player_sock);
 
         player[id]->PlayerRecv(player_sock);
+        if (player[id]->IsInstalled())
+        {
+            for (int i = 0; i < users; ++i) {
+                player[i]->TeamInstall_Turret();
+            }
+            player[id]->InstallDone();
+        }
         player[id]->PlayerSend(player_sock);
 
         // ====================================
@@ -343,22 +343,31 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 
         //Sleep(1000/60);
     }
+    /*
+    send/recv 순서  [꼭 지킬것!]
+
+    1. player[0]->Update(client_sock()); -> 클라에서 변환된 부분 받음
+
+    7. player[0]->recv(client_sock(); -> 플레이어 변화된 부분 클라에게 전달
+
+    */
 } 
 
 struct PlayersInfo
 {
     char gameover[sizeof(bool)];
     char num[sizeof(int)];
-    char pos[sizeof(uint32_t) * 3 * MAXUSER];
-    char bodylook[sizeof(uint32_t) * 3 * MAXUSER];
-    char headlook[sizeof(uint32_t) * 3 * MAXUSER];
-    char gunpos[sizeof(uint32_t) * 3 * MAXUSER];
-    char gunlook[sizeof(uint32_t) * 3 * MAXUSER];
+    char pos[sizeof(glm::vec3) * MAXUSER];
+    char bodylook[sizeof(glm::vec3) * MAXUSER];
+    char headlook[sizeof(glm::vec3) * MAXUSER];
+    char legRlook[sizeof(glm::vec3) * MAXUSER];
+    char legLlook[sizeof(glm::vec3) * MAXUSER];
+    char gunlook[sizeof(glm::vec3) * MAXUSER];
     char guntype[sizeof(GunType) * MAXUSER];
     char gunquat[sizeof(glm::quat) * MAXUSER];
-    char state[sizeof(Player::State) * MAXUSER];
 };
 
+bool print = false;
 GLvoid SendAllPlayersInfo(SOCKET& sock)
 {
     PlayersInfo playersInfo;
@@ -368,80 +377,53 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
     bool isover = IsGameOver();
     memcpy(playersInfo.gameover, &isover, sizeof(bool));
     
-    uint32_t nPos[MAXUSER * 3]; // 최대 3명 플레이어 xyz(3) 전달
-    uint32_t nBodyLook[MAXUSER * 3]; // 최대 3명 플레이어 xyz(3) 전달
-    uint32_t nHeadLook[MAXUSER * 3]; // 최대 3명 플레이어 xyz(3) 전달
-    uint32_t nGunPos[MAXUSER * 3]; // 최대 3명 플레이어 xyz(3) 전달
-    uint32_t nGunLook[MAXUSER * 3]; // 최대 3명 플레이어 xyz(3) 전달
+    glm::vec3 vPos[MAXUSER]; 
+    glm::vec3 vBodyLook[MAXUSER];
+    glm::vec3 vHeadLook[MAXUSER];
+    glm::vec3 vGunLook[MAXUSER]; 
+    glm::vec3 vLegLLook[MAXUSER];
+    glm::vec3 vLegRLook[MAXUSER];
     GunType gunType[MAXUSER];
     glm::quat gunRotation[MAXUSER];
-    Player::State currentStates[MAXUSER];
 
-    SetConsoleCursor(0, 7);
-#ifdef  DEBUG
+    SetConsoleCursor(0, 10);
     cout << "SendToClient: " << endl;
-#endif
     for (size_t i = 0; i < users; i++)
     {
-        glm::vec3 playerPos = player[i]->GetPosition();
-        glm::vec3 playerBodyLook = player[i]->GetBodyLook();
-        glm::vec3 playerHeadLook = player[i]->GetHeadLook();
-        glm::vec3 playerGunPos = player[i]->GetGunPos();
-        glm::vec3 playerGunLook = player[i]->GetGunLook();
-        glm::quat playerGunRotation = player[i]->GetGunRotation();
-        GunType guntype = player[i]->GetGunType();
-        Player::State currentState = player[i]->state;
-        nPos[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&playerPos.x);
-        nPos[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&playerPos.y);
-        nPos[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&playerPos.z);
-        nBodyLook[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&playerBodyLook.x);
-        nBodyLook[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&playerBodyLook.y);
-        nBodyLook[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&playerBodyLook.z);
-        nHeadLook[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&playerHeadLook.x);
-        nHeadLook[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&playerHeadLook.y);
-        nHeadLook[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&playerHeadLook.z);
-        nGunPos[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&playerGunPos.x);
-        nGunPos[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&playerGunPos.y);
-        nGunPos[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&playerGunPos.z);
-        nGunLook[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&playerGunLook.x);
-        nGunLook[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&playerGunLook.y);
-        nGunLook[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&playerGunLook.z);
-        gunType[i] = guntype;
-        gunRotation[i] = playerGunRotation;
-        currentStates[i] = currentState;
+        vPos[i] = player[i]->GetPosition();
+        vBodyLook[i] = player[i]->GetBodyLook();
+        vHeadLook[i] = player[i]->GetHeadLook();
+        vLegLLook[i] = player[i]->GetLegLLook();
+        vLegRLook[i] = player[i]->GetLegRLook();
+        vGunLook[i] = player[i]->GetGunLook();
+        gunRotation[i] = player[i]->GetGunRotation();
+        gunType[i] = player[i]->GetGunType();
 
 #ifdef  DEBUG
-        cout << i << " Pos: (" << playerPos.x << ", " << playerPos.y << ", " << playerPos.z << ")" << endl;
-        cout << i << " BodyLook: (" << playerBodyLook.x << ", " << playerBodyLook.y << ", " << playerBodyLook.z << ")" << endl;
-        cout << i << " HeadLook: (" << playerHeadLook.x << ", " << playerHeadLook.y << ", " << playerHeadLook.z << ")" << endl;
-        cout << i << " GunPos: (" << playerGunPos.x << ", " << playerGunPos.y << ", " << playerGunPos.z << ")" << endl;
-        cout << i << " GunLook: (" << playerGunLook.x << ", " << playerGunLook.y << ", " << playerGunLook.z << ")" << endl;
-        cout << i << " State: ";
-        switch (currentState) {
-        case Player::State::Idle:
-            cout << "Idle" << endl;
-            break;
-        case Player::State::Jump:
-            cout << "Jump" << endl;
-            break;
-        case Player::State::Run:
-            cout << "Run" << endl;
-            break;
-        case Player::State::Walk:
-            cout << "Walk" << endl;
-            break;
+        if (!print) {
+            print = !print;
+            cout << i << " Pos: (" << vPos[i].x << ", " << vPos[i].y << ", " << vPos[i].z << ")" << endl;
+            cout << i << " BodyLook: (" << vBodyLook[i].x << ", " << vBodyLook[i].y << ", " << vBodyLook[i].z << ")" << endl;
+            cout << i << " HeadLook: (" << vHeadLook[i].x << ", " << vHeadLook[i].y << ", " << vHeadLook[i].z << ")" << endl;
+            cout << i << " GunLook: (" << vGunLook[i].x << ", " << vGunLook[i].y << ", " << vGunLook[i].z << ")" << endl;
+            cout << i << " LegLeftLook: (" << vLegLLook[i].x << ", " << vLegLLook[i].y << ", " << vLegLLook[i].z << ")" << endl;
+            cout << i << " LegRightLook: (" << vLegRLook[i].x << ", " << vLegRLook[i].y << ", " << vLegRLook[i].z << ")" << endl;
+            cout << i << " State: ";
+            print = !print;
+            system("cls");
         }
 #endif
 
+     
     }
-    memcpy(playersInfo.pos, nPos, sizeof(uint32_t) * 3 * users);
-    memcpy(playersInfo.bodylook, nBodyLook, sizeof(uint32_t) * 3 * users);
-    memcpy(playersInfo.headlook, nHeadLook, sizeof(uint32_t) * 3 * users);
-    memcpy(playersInfo.gunpos, nGunPos, sizeof(uint32_t) * 3 * users);
-    memcpy(playersInfo.gunlook, nGunLook, sizeof(uint32_t) * 3 * users);
+    memcpy(playersInfo.pos, vPos, sizeof(glm::vec3) * users);
+    memcpy(playersInfo.bodylook, vBodyLook, sizeof(glm::vec3) * users);
+    memcpy(playersInfo.headlook, vHeadLook, sizeof(glm::vec3) * users);
+    memcpy(playersInfo.legLlook, vLegLLook, sizeof(glm::vec3) * users);
+    memcpy(playersInfo.legRlook, vLegRLook, sizeof(glm::vec3) * users);
+    memcpy(playersInfo.gunlook, vGunLook, sizeof(glm::vec3) * users);
     memcpy(playersInfo.guntype, gunType, sizeof(GunType) * users);
     memcpy(playersInfo.gunquat, &gunRotation, sizeof(glm::quat) * users);
-    memcpy(playersInfo.state, &currentStates, sizeof(Player::State) * users);
 
     memcpy(buf, &playersInfo, sizeof(PlayersInfo));
     send(sock, buf, sizeof(PlayersInfo), 0);

@@ -655,6 +655,26 @@ glm::vec3 Player::GetHeadLook() const
 	return mHead->GetLook();
 }
 
+glm::vec3 Player::GetLegRLook() const
+{
+	return mLegR->GetLook();
+}
+
+glm::vec3 Player::GetLegLLook() const
+{
+	return mLegL->GetLook();
+}
+
+GLvoid Player::SetLegRLook(glm::vec3 newPos)
+{
+	mLegR->SetLook(newPos);
+}
+
+GLvoid Player::SetLegLLook(glm::vec3 newPos)
+{
+	mLegL->SetLook(newPos);
+}
+
 glm::vec3 Player::GetGunPos() const
 {
 	return mCrntGun->GetPosition();
@@ -694,65 +714,53 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	PlayerInfo playerInfo;
 	memset(&playerInfo, 0, sizeof(playerInfo));
 
-	uint32_t nPos[3]; 
-	uint32_t nBodyLook[3];
-	uint32_t nHeadLook[3];
-	uint32_t nGunPos[3];
-	uint32_t nGunLook[3];
 	char buf[sizeof(PlayerInfo)];
 	memset(buf, 0, sizeof(buf));
 
 	glm::vec3 pos = GetPosition();
 	glm::vec3 bodylook = GetBodyLook();
 	glm::vec3 headlook = GetHeadLook();
-	glm::vec3 playerGunPos = GetGunPos();
 	glm::vec3 playerGunLook = GetGunLook();
+	glm::vec3 legLlook = GetLegLLook();
+	glm::vec3 legRlook = GetLegRLook();
 	glm::quat rotation = GetGunRotation();
 	GunType guntype = GetGunType();
-	Player::State currentState = state;
-	nPos[0] = *reinterpret_cast<uint32_t*>(&pos.x);
-	nPos[1] = *reinterpret_cast<uint32_t*>(&pos.y);
-	nPos[2] = *reinterpret_cast<uint32_t*>(&pos.z);
-	nBodyLook[0] = *reinterpret_cast<uint32_t*>(&bodylook.x);
-	nBodyLook[1] = *reinterpret_cast<uint32_t*>(&bodylook.y);
-	nBodyLook[2] = *reinterpret_cast<uint32_t*>(&bodylook.z);
-	nHeadLook[0] = *reinterpret_cast<uint32_t*>(&headlook.x);
-	nHeadLook[1] = *reinterpret_cast<uint32_t*>(&headlook.y);
-	nHeadLook[2] = *reinterpret_cast<uint32_t*>(&headlook.z);
-	nGunPos[0] = *reinterpret_cast<uint32_t*>(&playerGunPos.x);
-	nGunPos[1] = *reinterpret_cast<uint32_t*>(&playerGunPos.y);
-	nGunPos[2] = *reinterpret_cast<uint32_t*>(&playerGunPos.z);
-	nGunLook[0] = *reinterpret_cast<uint32_t*>(&playerGunLook.x);
-	nGunLook[1] = *reinterpret_cast<uint32_t*>(&playerGunLook.y);
-	nGunLook[2] = *reinterpret_cast<uint32_t*>(&playerGunLook.z);
 
-	//memcpy(playerInfo.key, nPos, sizeof(uint32_t) * 3);
-	memcpy(playerInfo.bodylook, nBodyLook, sizeof(uint32_t) * 3);
-	memcpy(playerInfo.headlook, nHeadLook, sizeof(uint32_t) * 3);
+	memcpy(playerInfo.pos, &pos, sizeof(glm::vec3));
+	memcpy(playerInfo.bodylook, &bodylook, sizeof(glm::vec3));
+	memcpy(playerInfo.headlook, &headlook, sizeof(glm::vec3));
+	memcpy(playerInfo.legLlook, &legLlook, sizeof(glm::vec3));
+	memcpy(playerInfo.legRlook, &legRlook, sizeof(glm::vec3));
 	memcpy(playerInfo.isFired, &mlsFire, sizeof(bool));
 	memcpy(playerInfo.isInstall, &mIsInstall, sizeof(bool));
-	memcpy(playerInfo.gunpos, nGunPos, sizeof(uint32_t) * 3);
-	memcpy(playerInfo.gunlook, nGunLook, sizeof(uint32_t) * 3 );
+	memcpy(playerInfo.gunlook, &playerGunLook, sizeof(glm::vec3));
 	memcpy(playerInfo.guntype, &guntype, sizeof(GunType));
 	memcpy(playerInfo.gunrotate, &rotation, sizeof(glm::quat));
-	memcpy(playerInfo.state, &currentState, sizeof(Player::State));
 	// 데이터 보내기
 	memcpy(buf, &playerInfo, sizeof(PlayerInfo));
 	retval = send(sock, buf, sizeof(PlayerInfo), 0);
 	mIsInstall = false;
 }
 
+struct PlayerSubInfo {
+	char holdturret[sizeof(GLint)];
+	char hp[sizeof(GLfloat)];
+};
+
 GLvoid Player::PlayerRecv(SOCKET& sock)
 {
+	PlayerSubInfo playerSubInfo{};
 	int retval = 0;
 	// ==============클라이언트 정보 송신====================
-	char HPbuf[sizeof(GLfloat)];
-	retval = recv(sock, HPbuf, sizeof(HPbuf), 0);
-	memcpy(&mHP, &HPbuf, sizeof(HPbuf));
-
+	char buf[sizeof(PlayerSubInfo)];
+	retval = recv(sock, buf, sizeof(buf), 0);
+	memcpy(&playerSubInfo, &buf, sizeof(buf));
+	memcpy(&mHoldTurret, &playerSubInfo.holdturret, sizeof(GLint));
+	memcpy(&mHP, &playerSubInfo.hp, sizeof(GLfloat));
 #ifdef DEBUG
-	cout << "RECV HP : " << mHP << '\n';
-#endif // DEBUG
+	cout << "RECV HP : " << mHP << '\n'; 
+	cout << "RECV HOLD TURRET : " << mHoldTurret << '\n';
+#endif
 
 	if (mHP <= 0)
 	{
@@ -768,8 +776,6 @@ GLvoid Player::SetPosition(glm::vec3 newPos)
 GLvoid Player::SetBodyLook(glm::vec3 newPos)
 {
 	mBody->SetLook(newPos);
-	mLegL->SetLook(newPos);
-	mLegR->SetLook(newPos);
 }
 
 GLvoid Player::SetHeadLook(glm::vec3 newPos)
@@ -846,7 +852,6 @@ GLvoid Player::Install_Turret()
 	if (mHoldTurret > 0)
 	{
 		mIsInstall = true;
-		mHoldTurret--;
 	}
 }
 

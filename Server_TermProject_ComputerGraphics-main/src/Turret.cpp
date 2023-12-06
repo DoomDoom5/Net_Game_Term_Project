@@ -111,26 +111,20 @@ GLvoid TurretManager::Update()
 	memcpy(&turretInfo.num, &nTurret, sizeof(int));
 	printf("%d\n", nTurret);
 
-	uint32_t nPos[MAX_TURRET * 3];
-	uint32_t nLook[MAX_TURRET * 3];
+	glm::vec3 vPos[MAX_TURRET];
+	glm::vec3 vLook[MAX_TURRET];
 	for (int i = 0; i < nTurret; ++i)
 	{
-		Turret* turret = turrets[i];
-		glm::vec3 pos = turret->GetPosition();
-		glm::vec3 look = turret->GetLook();
-		nPos[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&pos.x);
-		nPos[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&pos.y);
-		nPos[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&pos.z);
-		nLook[i * 3 + 0] = *reinterpret_cast<uint32_t*>(&look.x);
-		nLook[i * 3 + 1] = *reinterpret_cast<uint32_t*>(&look.y);
-		nLook[i * 3 + 2] = *reinterpret_cast<uint32_t*>(&look.z);
+		vPos[i] = turrets[i]->GetPosition();
+		vLook[i] = turrets[i]->GetLook();
 #ifdef DEBUG
-		printf("%d Position: %.1f, %.1f, %.1f / ", i, pos.x, pos.y, pos.z);
-		printf("Look: %.1f, %.1f, %.1f\n", look.x, look.y, look.z);
+		printf("%d Position: %.1f, %.1f, %.1f / ", i, vPos[i].x, vPos[i].y, vPos[i].z);
+		printf("Look: %.1f, %.1f, %.1f\n", vLook[i].x, vLook[i].y, vLook[i].z);
 #endif
 	}
-	memcpy(&turretInfo.look, &nLook, sizeof(uint32_t) * 3 * nTurret);
-	memcpy(&turretInfo.pos, &nPos, sizeof(uint32_t) * 3 * nTurret);
+	memcpy(&turretInfo.look, &vLook, sizeof(glm::vec3) * nTurret);
+	memcpy(&turretInfo.pos, &vPos, sizeof(glm::vec3) * nTurret);
+	memcpy(m_cBuf, &turretInfo, sizeof(TurretInfo));
 }
 GLvoid TurretManager::Draw() const
 {
