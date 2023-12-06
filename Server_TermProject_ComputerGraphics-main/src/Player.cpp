@@ -369,8 +369,6 @@ GLvoid Player::ChangeState(const State& playerState, const Event& e, const GLint
 GLvoid Player::Update()
 {
 	mCrntState->Update();
-	mCrntGun->SetYaw(mYaw);
-	mCrntGun->SetPitch(mPitch);
 	if (mlsFire) mCrntGun->StartFire();
 	else mCrntGun->StopFire();
 	mPosition = mBody->GetPviotedPosition();
@@ -708,6 +706,8 @@ struct PlayerInfo {
 	char gunlook[sizeof(uint32_t) * 3];
 	char guntype[sizeof(GunType)];
 	char gunrotate[sizeof(glm::quat)];
+	char yaw[sizeof(uint32_t)];
+	char pitch[sizeof(uint32_t)];
 };
 
 GLvoid Player::PlayerRecv(SOCKET& client_sock)
@@ -725,6 +725,8 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	GunType gunType;
 	glm::quat rotate;
 	bool isFire , isInstall = false;
+	uint32_t nYaw;
+	uint32_t nPitch;
 
 	retval = recv(client_sock, buf, sizeof(PlayerInfo), 0);
 	memcpy(&playerInfo, buf, sizeof(PlayerInfo));
@@ -737,12 +739,17 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	memcpy(nGunLook, playerInfo.gunlook, sizeof(uint32_t) * 3);
 	memcpy(&gunType, playerInfo.guntype, sizeof(GunType));
 	memcpy(&rotate, playerInfo.gunrotate, sizeof(glm::quat));
+	memcpy(&nYaw, playerInfo.yaw, sizeof(glm::uint32_t));
+	memcpy(&nPitch, playerInfo.pitch, sizeof(glm::uint32_t));
 
 	glm::vec3 playerPos;
 	glm::vec3 playerBodyLook;
 	glm::vec3 playerHeadLook;
 	glm::vec3 fGunPos;
 	glm::vec3 fGunLook;
+	GLfloat yaw;
+	GLfloat pitch;
+
 	playerPos.x = *reinterpret_cast<float*>(&pos[0]);
 	playerPos.y = *reinterpret_cast<float*>(&pos[1]);
 	playerPos.z = *reinterpret_cast<float*>(&pos[2]);
@@ -758,6 +765,10 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	fGunLook.x = *reinterpret_cast<float*>(&nGunLook[0]);
 	fGunLook.y = *reinterpret_cast<float*>(&nGunLook[1]);
 	fGunLook.z = *reinterpret_cast<float*>(&nGunLook[2]);
+	yaw = *reinterpret_cast<float*>(&nYaw);
+	pitch = *reinterpret_cast<float*>(&nPitch);
+
+
 	SetGunType(gunType);
 	SetPosition(playerPos);
 	SetBodyLook(playerBodyLook);
@@ -767,6 +778,12 @@ GLvoid Player::PlayerRecv(SOCKET& client_sock)
 	SetGunRotation(rotate);
 	mIsInstall = isInstall;
 	mlsFire = isFire;
+
+	cout<<'\n' << "Recv Yaw : " << yaw << '\n';
+	cout<<'\n' << "Recv Pitch : " << pitch << '\n'; //정상적으로 작동
+
+	mCrntGun->SetYaw(yaw);
+	mCrntGun->SetPitch(pitch);
 
 
 	if (mIsInstall) Install_Turret();

@@ -303,7 +303,7 @@ GLvoid BulletManager::Update()
 	int netbyte = 0;
 	if (!mBulletList.empty())
 		nbullets = mBulletList.size();
-	std::cout << nbullets << "개의 총알 위치가 있음" << std::endl;
+	//std::cout << nbullets << "개의 총알 위치가 있음" << std::endl;
 	netbyte = htonl(nbullets);
 	memcpy(&bulletInfo.bulletNumBuf, &netbyte, sizeof(int));
 
@@ -317,7 +317,7 @@ GLvoid BulletManager::Update()
 		converToFloat[i * 3 + 0] = htonl(*reinterpret_cast<uint32_t*>(&pos.x));
 		converToFloat[i * 3 + 1] = htonl(*reinterpret_cast<uint32_t*>(&pos.y));
 		converToFloat[i * 3 + 2] = htonl(*reinterpret_cast<uint32_t*>(&pos.z));
-		printf("%d Position: (%f, %f, %f)\n", i, pos.x, pos.y, pos.z);
+		//printf("%d Position: (%f, %f, %f)\n", i, pos.x, pos.y, pos.z);
 	}
 	memcpy(&bulletInfo.bulletPosBuf, &converToFloat, sizeof(uint32_t) * 3 * nbullets);
 

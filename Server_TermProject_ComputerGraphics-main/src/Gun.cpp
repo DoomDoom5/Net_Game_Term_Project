@@ -19,6 +19,9 @@ Gun::Gun(const glm::vec3& gunPosition, const glm::vec3* pivot)
 
 GLvoid Gun::Update()
 {
+	cout << '\n' << "Update Yaw : " << mYaw << '\n';
+	cout << '\n' << "Update Pitch : " << mPitch << '\n';
+
 	if (IsReloading())
 	{
 		mCrntReloadTime -= timer::DeltaTime();
@@ -82,6 +85,9 @@ GLvoid Gun::RotateLocal(const GLfloat& yaw, const GLfloat& pitch)
 
 GLvoid Gun::Shot()
 {
+
+	
+
 	glm::vec3 origin = { 0, 9, 0 };
 	glm::vec3 bulletPos = { 0, 9, 38 };
 

@@ -697,6 +697,8 @@ struct PlayerInfo {
 	char gunlook[sizeof(uint32_t) * 3];
 	char guntype[sizeof(GunType)];
 	char gunrotate[sizeof(glm::quat)];
+	char yaw[sizeof(uint32_t)];
+	char pitch[sizeof(uint32_t)];
 };
 
 GLvoid Player::PlayerSend(SOCKET& sock)
@@ -713,6 +715,9 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	uint32_t nHeadLook[3];
 	uint32_t nGunPos[3];
 	uint32_t nGunLook[3];
+	uint32_t nYaw;
+	uint32_t nPitch;
+	
 	char buf[sizeof(PlayerInfo)];
 	memset(buf, 0, sizeof(buf));
 
@@ -723,6 +728,9 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	glm::vec3 playerGunLook = GetGunLook();
 	glm::quat rotation = GetGunRotation();
 	GunType guntype = GetGunType();
+	GLfloat yaw = mCrntGun->GetYaw();
+	GLfloat pitch = mCrntGun->GetPitch();
+
 	nPos[0] = *reinterpret_cast<uint32_t*>(&pos.x);
 	nPos[1] = *reinterpret_cast<uint32_t*>(&pos.y);
 	nPos[2] = *reinterpret_cast<uint32_t*>(&pos.z);
@@ -738,6 +746,9 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	nGunLook[0] = *reinterpret_cast<uint32_t*>(&playerGunLook.x);
 	nGunLook[1] = *reinterpret_cast<uint32_t*>(&playerGunLook.y);
 	nGunLook[2] = *reinterpret_cast<uint32_t*>(&playerGunLook.z);
+	nYaw = *reinterpret_cast<uint32_t*>(&yaw);
+	nPitch = *reinterpret_cast<uint32_t*>(&pitch);
+
 
 	memcpy(playerInfo.pos, nPos, sizeof(uint32_t) * 3);
 	memcpy(playerInfo.bodylook, nBodyLook, sizeof(uint32_t) * 3);
@@ -748,6 +759,9 @@ GLvoid Player::PlayerSend(SOCKET& sock)
 	memcpy(playerInfo.gunlook, nGunLook, sizeof(uint32_t) * 3 );
 	memcpy(playerInfo.guntype, &guntype, sizeof(GunType));
 	memcpy(playerInfo.gunrotate, &rotation, sizeof(glm::quat));
+	memcpy(playerInfo.yaw, &nYaw, sizeof(glm::uint32_t));
+	memcpy(playerInfo.pitch, &nPitch, sizeof(glm::uint32_t));
+
 
 	// 데이터 보내기
 	memcpy(buf, &playerInfo, sizeof(PlayerInfo));
