@@ -258,17 +258,13 @@ Player::Player(const glm::vec3& position)
 	glm::vec3 gunPosition = glm::vec3(-PLAYER_RADIUS + 1.0f, mFpCamera->GetPviotedPosition().y - 18, 0);
 
 	mRifle = new Rifle(gunPosition, &mPosition);
+	mSniper = new Sniper(gunPosition, &mPosition);
+	mShotGun = new ShotGun(gunPosition, &mPosition);
+	mLauncher = new Launcher(gunPosition, &mPosition);
 
 
 	// Gun* mPlayGun = nullptr
 	mCrntGun = mRifle;
-	// 총 교체에 따라 
-	// mPlayGun =  mShotgun
-	// mPlayGun =  mPistol
-	// mplayGun  = mSniper 해서
-	// 
-	// mPlayGun->StartFire();
-	// 으로 되도록
 
 	mBoundingCircle = new Circle(mBody->GetRefPos(), PLAYER_RADIUS, GL_TRUE);
 	mBoundingCircle->SetColor(BLUE);
