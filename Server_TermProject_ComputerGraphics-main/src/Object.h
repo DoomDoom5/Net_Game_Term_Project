@@ -462,9 +462,13 @@ public:
 /************************************************** [ OTHER OBJECTS ] **************************************************/
 class PaintPlane : public SharedObject {
 	GLfloat dt = 0.0f;
+	Textures mTexture;
+	glm::vec3 mNormal;
 public:
-	PaintPlane(const IdentityObject* object, const COLORREF& color, const glm::vec3& pos, const glm::vec3& normal);
+	PaintPlane(const IdentityObject* object, const COLORREF& color, const glm::vec3& pos, const glm::vec3& normal, Textures texture);
 	GLboolean Update();
+	glm::vec3 GetNormal() { return mNormal; }
+	Textures GetTexture() { return mTexture; }
 };
 
 

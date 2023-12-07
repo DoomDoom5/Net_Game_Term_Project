@@ -1331,18 +1331,21 @@ GLvoid DrawDebugWireXZ(const set<glm::vec2, CompareSet>& vertices, GLfloat yPos,
 
 
 
-PaintPlane::PaintPlane(const IdentityObject* object, const COLORREF& color, const glm::vec3& pos, const glm::vec3& normal) : SharedObject(object)
+PaintPlane::PaintPlane(const IdentityObject* object, const COLORREF& color, const glm::vec3& pos, const glm::vec3& normal, Textures texture) : SharedObject(object)
 {
 	SetPosition(pos);
 	SetColor(color);
 	
 	SetLook(normal);
+	mNormal = normal;
 
 	GLfloat randZ = ((rand() % 1000)*0.0001f) + 0.2f;	// 0.2 ~ 0.0999 + 0.2
 	MoveZ(randZ, GL_FALSE);
 
 	GLfloat randRotation = rand() % 720 * 0.5f;
 	RotateLocal(0, 0, randRotation);
+
+	mTexture = texture;
 }
 GLboolean PaintPlane::Update()
 {

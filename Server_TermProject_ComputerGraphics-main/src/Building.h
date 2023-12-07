@@ -57,6 +57,4 @@ public:
 	GLboolean CheckCollision(const Circle* boundingCircle) const;
 	const glm::vec3* GetCorePos() const;
 	inline Building* GetCore() const { return mCore; }
-
-	GLvoid SendBuf(const SOCKET& sock) { send(sock, m_cBuf, sizeof(BuildingInfo), 0); }
 };

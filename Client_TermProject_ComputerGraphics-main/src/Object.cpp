@@ -1340,9 +1340,6 @@ PaintPlane::PaintPlane(const IdentityObject* object, const COLORREF& color, cons
 
 	GLfloat randZ = ((rand() % 1000)*0.0001f) + 0.2f;	// 0.2 ~ 0.0999 + 0.2
 	MoveZ(randZ, GL_FALSE);
-
-	GLfloat randRotation = rand() % 720 * 0.5f;
-	RotateLocal(0, 0, randRotation);
 }
 GLboolean PaintPlane::Update()
 {

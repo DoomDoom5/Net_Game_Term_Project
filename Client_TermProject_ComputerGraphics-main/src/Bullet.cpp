@@ -151,20 +151,37 @@ GLvoid BulletManager::Draw() const
 	{
 		particle->Draw();
 	}
+	//for (const PaintPlane* paint : mPaints)
+	//{
+	//	paint->Draw();
+	//}
 }
 
-
+#define MAXBULLET 100
 
 struct BulletInfo {
-	char bulletNumBuf[sizeof(int)];
-	char bulletPosBuf[sizeof(float) * 3 * 90];
-	char bulletTypeBuf[sizeof(BulletType) * 90];
-	char bulletColorBuf[sizeof(unsigned long) * 90];
-	char bulletScaleBuf[sizeof(float) * 90];
+	char bulletNum[sizeof(int)];
+	char bulletPos[sizeof(glm::vec3) * MAXBULLET];
+	char bulletType[sizeof(BulletType) * MAXBULLET];
+	char bulletColor[sizeof(unsigned long) * MAXBULLET];
+	char bulletScale[sizeof(uint32_t) * MAXBULLET];
+
+	char particleNum[sizeof(int)];
+	char particlePos[sizeof(glm::vec3) * MAXBULLET];
+	char particleRadius[sizeof(uint32_t) * MAXBULLET];
+	char particleColor[sizeof(unsigned long) * MAXBULLET];
+
+	char paintNum[sizeof(int)];
+	char paintTexture[sizeof(Textures) * MAXBULLET];
+	char painthitPoint[sizeof(glm::vec3) * MAXBULLET];
+	char paintColor[sizeof(unsigned long) * MAXBULLET];
+	char paintNormal[sizeof(glm::vec3) * MAXBULLET];
+	char paintScale[sizeof(glm::vec3) * MAXBULLET];
 };
 
-GLvoid BulletManager::Update(SOCKET& sock) {
-	BulletInfo bulletInfo{};
+GLvoid BulletManager::Update(SOCKET& sock)
+{
+	BulletInfo bulletInfo;
 	char buf[sizeof(BulletInfo)];
 	char nBulletBuf[sizeof(int)];
 
@@ -175,350 +192,96 @@ GLvoid BulletManager::Update(SOCKET& sock) {
 	}
 	memcpy(&bulletInfo, &buf, sizeof(BulletInfo));
 	int nbullets;
-	memcpy(&nbullets, &bulletInfo.bulletNumBuf, sizeof(int));
-	nbullets = ntohl(nbullets);
-#ifdef DEBUG
-	cout << nbullets << "개의 데이터를 받을게요" << endl;
-#endif
-	// 데이터 받기
-	uint32_t nScale[90];
-	COLORREF nColor[90];
-	unsigned long cColor[90];
-	BulletType types[90];
+	int nParticles = 0;
+	int nPaints = 0;
 
-	uint32_t convertToFloat[1000];
+	memcpy(&nbullets, &bulletInfo.bulletNum, sizeof(int));
+	memcpy(&nParticles, &bulletInfo.particleNum, sizeof(int));
+	memcpy(&nPaints, &bulletInfo.paintNum, sizeof(int));
+	//#ifdef DEBUG
+	cout << "Bullet : " << endl;
+	cout << "Bullet 갯수: " << nbullets << endl;
+	cout << "Particle 갯수: " << nParticles << endl;
+	cout << "Paint 갯수: " << nPaints << endl;
+	//#endif
+		// 데이터 받기
+	uint32_t nScale[MAXBULLET];
+	unsigned long cColor[MAXBULLET];
+	BulletType types[MAXBULLET];
+	glm::vec3 vPos[MAXBULLET];
 
-	memcpy(&types, &bulletInfo.bulletTypeBuf, sizeof(BulletType) * nbullets);
-	memcpy(&cColor, &bulletInfo.bulletColorBuf, sizeof(unsigned long) * nbullets);
-	memcpy(&convertToFloat, &bulletInfo.bulletPosBuf, sizeof(uint32_t) * 3 * nbullets);
-	memcpy(&nScale, &bulletInfo.bulletScaleBuf, sizeof(uint32_t) * nbullets);
-	float fBulletPos[1000]{ 0 };
-	GLfloat scale[90];
-	BulletData data[90];
+	memcpy(&types, &bulletInfo.bulletType, sizeof(BulletType) * nbullets);
+	memcpy(&cColor, &bulletInfo.bulletColor, sizeof(unsigned long) * nbullets);
+	memcpy(&vPos, &bulletInfo.bulletPos, sizeof(glm::vec3) * nbullets);
+	memcpy(&nScale, &bulletInfo.bulletScale, sizeof(uint32_t) * nbullets);
+	GLfloat scale[MAXBULLET];
+	COLORREF nColor[MAXBULLET];
 
-
-
-	for (int i = 0; i < nbullets * 3; ++i) {
+	for (int i = 0; i < nbullets; ++i) {
 		nColor[i] = static_cast<COLORREF>(cColor[i]);
-
-		convertToFloat[i] = ntohl(convertToFloat[i]);
-		fBulletPos[i] = *reinterpret_cast<float*>(&convertToFloat[i]);
-
-		nScale[i] = ntohl(nScale[i]);
 		scale[i] = *reinterpret_cast<float*>(&nScale[i]);
 	}
 
-#ifdef DEBUG
-	for (int i = 0; i < nbullets; ++i) {
-		printf("%d번째 총알Position: (%f, %f, %f)\n", i, fBulletPos[i * 3 + 0],
-			fBulletPos[i * 3 + 1], fBulletPos[i * 3 + 2]);
-		std::cout << "Bullet " << i << " Sclae : "<< scale[i] << std::endl;
-		
-		switch (nColor[i]) {
-		case RGB(255, 0, 0): // 빨간색인 경우
-			// 빨간색일 때 수행할 동작
-			std::cout << "Red color selected." << std::endl;
-			break;
-		case RGB(0, 255, 0): // 초록색인 경우
-			// 초록색일 때 수행할 동작
-			std::cout << "Green color selected." << std::endl;
-			break;
-		case RGB(0, 0, 255): // 파란색인 경우
-			// 파란색일 때 수행할 동작
-			std::cout << "Blue color selected." << std::endl;
-			break;
-		case RGB(255, 255, 255): // 흰색인 경우
-			// 파란색일 때 수행할 동작
-			std::cout << "WHITE color selected." << std::endl;
-			break;
-		default:
-			// 위의 case에 해당하지 않는 경우
-			std::cout << "Unknown color." << std::endl;
-			break;
-		}
+	// --- Particle
+	uint32_t nPartRadius[MAXBULLET];
+	GLfloat fPartRadius[MAXBULLET];
+	unsigned long cPartColor[MAXBULLET];
+	glm::vec3 vPartPos[MAXBULLET];
+	memcpy(&nPartRadius, &bulletInfo.particleRadius, sizeof(uint32_t) * nParticles);
+	memcpy(&cPartColor, &bulletInfo.particleColor, sizeof(unsigned long) * nParticles);
+	memcpy(&vPartPos, &bulletInfo.particlePos, sizeof(glm::vec3) * nParticles);
+	COLORREF nPartColor[MAXBULLET];
 
-		switch (types[i]) {
-		case BulletType::Normal:
-			printf("Type: Normal / ");
-			break;
-		case BulletType::Particle_Explosion:
-			printf("Type: Particle_Explosion / ");
-			break;
-		case BulletType::Rocket:
-			printf("Type: Rocket / ");
-			break;
-		case BulletType::Sniper:
-			printf("Type: Sniper / ");
-			break;
-		};
-
+	for (int i = 0; i < nParticles; ++i) {
+		fPartRadius[i] = *reinterpret_cast<GLfloat*>(&nPartRadius[i]);
+		nPartColor[i] = static_cast<COLORREF>(cPartColor[i]);
 	}
-#endif
+
+	// --- paints
+	Textures texture[MAXBULLET];
+	unsigned long nPaintColor[MAXBULLET];
+	COLORREF paintcolor[MAXBULLET];
+	glm::vec3 vHitPoint[MAXBULLET];
+	glm::vec3 vNormal[MAXBULLET];
+	glm::vec3 vScale[MAXBULLET];
+	memcpy(&texture, &bulletInfo.paintTexture, sizeof(Textures) * nPaints);
+	memcpy(&nPaintColor, &bulletInfo.paintColor, sizeof(unsigned long) * nPaints);
+	memcpy(&vHitPoint, &bulletInfo.painthitPoint, sizeof(glm::vec3) * nPaints);
+	memcpy(&vNormal, &bulletInfo.paintNormal, sizeof(glm::vec3) * nPaints);
+	memcpy(&vScale, &bulletInfo.paintScale, sizeof(glm::vec3) * nPaints);
+
+	for (int i = 0; i < nPaints; ++i) {
+		paintcolor[i] = static_cast<COLORREF>(nPaintColor[i]);
+	}
 
 	mCrntInkSoundDelay += timer::DeltaTime();
 
-	glm::vec3 origin = { 0, 9, 0 };	
+	glm::vec3 origin = { 0, 9, 0 };
 
 	mBulletList.clear();
+	mParticles.clear();
+	mPaints.clear();
+
 	for (int i = 0; i < nbullets; ++i) {
-		glm::vec3 bulletPos = glm::vec3(fBulletPos[3 * i + 0], fBulletPos[3 * i + 1], fBulletPos[3 * i + 2]);
-		if (types[i]== BulletType::Rocket)
-			data[i] = { BulletType::Rocket, nColor[i], 0, scale[i],0,0, Models::GeoSphere };
-		else data[i] = { types[i], nColor[i], 0, scale[i],0,0, Models::LowSphere};
-		Create(data[i], origin, bulletPos, 0,0);
+		BulletData data;
+		if (types[i] == BulletType::Rocket)
+			data = { BulletType::Rocket, nColor[i], 0, scale[i],0,0, Models::GeoSphere };
+		else data = { types[i], nColor[i], 0, scale[i],0,0, Models::LowSphere };
+		Create(data, origin, vPos[i], 0, 0);
 	}
-
-	/*
-	int cnt2 = 0;
-	for (auto iter = mBulletList.begin(); iter != mBulletList.end();)
-	{
-		Bullet* bullet = (*iter);
-
-		if (bullet->IsDestroyed())
-		{
-			iter = mBulletList.erase(iter);
-		}
-		else
-		{
-
-			glm::vec3 v = glm::vec3(fBulletPos[3 * cnt2 + 0], fBulletPos[3 * cnt2 + 1], fBulletPos[3 * cnt2 + 2]);
-			bullet->SetPosition(v);
-#ifdef DEBUG
-			std::cout << "Bullet " << cnt2 << " Position: "
-				<< fBulletPos[3 * cnt2 + 0] << ", " << fBulletPos[3 * cnt2 + 1] << ", " << fBulletPos[3 * cnt2 + 2] << std::endl;
-#endif
-			//bullet->Update();
-			++iter;
-			++cnt2;
-			if (nbullets < cnt2) bullet->Destroy();
-		}
+	for (int i = 0; i < nParticles; ++i) {
+		BulletData data = { BulletType::Particle_Explosion, 
+			nPartColor[i], 0, 0.1f,0,0, Models::GeoSphere };
+		Create(data, origin, vPartPos[i], 0, 0);
 	}
-	*/
-	/*
-	for (auto iter = mParticles.begin(); iter != mParticles.end();)
-	{
-		Bullet* bullet = (*iter);
-
-		for (IBulletCollisionable* object : mParticleCollisions)
-		{
-			if (ProcessCollision(bullet, object, mPaints, mCrntInkSoundDelay) == GL_TRUE)
-			{
-				break;
-			}
-		}
-
-		if (bullet->IsDestroyed())
-		{
-			iter = mParticles.erase(iter);
-		}
-		else
-		{
-			bullet->Update();
-			++iter;
-		}
+	for (int i = 0; i < nPaints; ++i) {
+		cout << "Texture: " << static_cast<GLuint>(texture[i]) << endl;
+		const IdentityObject* object = GetIdentityTextureObject(texture[i]);
+		PaintPlane* plane = new PaintPlane(object, paintcolor[i], vHitPoint[i], vNormal[i]);
+		plane->SetScale(vScale[i]);
+		mPaints.emplace_back(plane);
 	}
-
-	for (auto iter = mPaints.begin(); iter != mPaints.end();)
-	{
-		PaintPlane* paint = *iter;
-		if (paint->Update() == GL_FALSE)
-		{
-			delete paint;
-			iter = mPaints.erase(iter);
-		}
-		else
-		{
-			++iter;
-		}
-	}
-	*/
-
 }
-
-/*
-GLvoid BulletManager::Send(SOCKET sock) {
-	int retval;
-
-
-
-	retval = send(sock, (char*)&len, sizeof(GunType), 0);
-}
-GLvoid BulletManager::Recv(SOCKET sock) {
-
-}
-*/
-
-//GLvoid ProcessCollision(Bullet* bullet, IBulletCollisionable* object, vector<PaintPlane*>& paints)
-//{
-//	constexpr GLfloat NO_NORMAL = 9;
-//
-//	glm::vec3 hitPoint;
-//	glm::vec3 normal = { NO_NORMAL, NO_NORMAL, NO_NORMAL };
-//
-//	if (object->CheckCollisionBullet(bullet->GetAttribute(), hitPoint, normal) == GL_TRUE)
-//	{
-//		/* create paint */
-//		if (normal.x != NO_NORMAL)
-//		{
-//			GLuint randPaint = rand() % NUM_PAINT;
-//			Textures texture = static_cast<Textures>(static_cast<GLuint>(Textures::Paint) + randPaint);
-//			const IdentityObject* object = GetIdentityTextureObject(texture);
-//			if (bullet->GetType() != BulletType::Rocket)
-//			{
-//				soundManager->PlayEffectSound(EffectSound::Drawing_ink, 0.05f, GL_TRUE);
-//			}
-//			else
-//			{
-//				soundManager->PlayEffectSound(EffectSound::Drawing_Bigink, 0.05f, GL_TRUE);
-//			}
-//			PaintPlane* plane = new PaintPlane(object, bullet->GetColor(), hitPoint, normal);
-//			plane->SetScale(BULLET_RADIUS * bullet->GetScale());
-//			paints.emplace_back(plane);
-//		}
-//
-//		if (bullet->GetType() == BulletType::Rocket)
-//		{
-//			bulletManager->CreateExplosion(RED, bullet->GetCenterPos(), bullet->GetRadius());
-//		}
-//
-//		bullet->Destroy();
-//	}
-//}
-//GLvoid Thread_BulletCollision(Bullet* bullet, const vector<IBulletCollisionable*>& obectList, const GLuint& begin, const GLuint& end, vector<PaintPlane*>& paints)
-//{
-//	if (bullet == nullptr)
-//	{
-//		return;
-//	}
-//
-//
-//	for (auto iter = obectList.begin() + begin; iter != obectList.begin() + end; ++iter)
-//	{
-//		IBulletCollisionable* object = *iter;
-//
-//		ProcessCollision(bullet, object, paints);
-//		if (bullet->IsDestroyed())
-//		{
-//			return;
-//		}
-//	}
-//}
-//GLvoid Single_BulletCollision(Bullet* bullet, const vector<IBulletCollisionable*>& obectList, vector<Bullet*>& bulletList, vector<Bullet*>::iterator& iter, vector<PaintPlane*>& paints)
-//{
-//	for (IBulletCollisionable* object : obectList)
-//	{
-//		ProcessCollision(bullet, object, paints);
-//		if (bullet->IsDestroyed())
-//		{
-//			break;
-//		}
-//	}
-//
-//	if (bullet->IsDestroyed())
-//	{
-//		delete bullet;
-//		iter = bulletList.erase(iter);
-//	}
-//	else
-//	{
-//		bullet->Update();
-//		++iter;
-//	}
-//}
-//
-//GLvoid BulletManager::Update()
-//{
-//	constexpr GLfloat NO_NORMAL = 9;
-//
-//	if (mCollisionObjectList.size() < NUM_CORE)
-//	{
-//		for (auto iter = mBulletList.begin(); iter != mBulletList.end();)
-//		{
-//			Bullet* bullet = (*iter);
-//
-//			Single_BulletCollision(bullet, mCollisionObjectList, mBulletList, iter, mPaints);
-//		}
-//	}
-//	else
-//	{
-//		vector<thread*> threads;
-//		threads.resize(NUM_CORE);
-//		vector<PaintPlane*>* paints = new vector<PaintPlane*>[NUM_CORE];
-//
-//		timer::StartRecord();
-//		for (auto iter = mBulletList.begin(); iter != mBulletList.end();)
-//		{
-//			Bullet* bullet = (*iter);
-//			GLuint begin = 0;
-//			GLuint end = 0;
-//
-//			GLuint size = mCollisionObjectList.size();
-//
-//			if (size < NUM_CORE)
-//			{
-//				Single_BulletCollision(bullet, mCollisionObjectList, mBulletList, iter, mPaints);
-//				continue;
-//			}
-//
-//			GLuint split = size / NUM_CORE;
-//			GLuint lastSplit = size - (NUM_CORE * split) + 1;
-//
-//			for (GLuint i = 0; i < NUM_CORE - 1; ++i)
-//			{
-//				begin = i * split;
-//				end = begin + (split - 1);
-//
-//				threads[i] = new thread(Thread_BulletCollision, bullet, ref(mCollisionObjectList), begin, end, ref(paints[i]));
-//			}
-//
-//			begin = (NUM_CORE - 1) * split;
-//			end = begin + (lastSplit - 1);
-//			threads[NUM_CORE - 1] = new thread(Thread_BulletCollision, bullet, ref(mCollisionObjectList), begin, end, ref(paints[NUM_CORE - 1]));
-//
-//			for (GLuint i = 0; i < NUM_CORE; ++i)
-//			{
-//				threads[i]->join();
-//				for (auto paint : paints[i])
-//				{
-//					mPaints.emplace_back(paint);
-//				}
-//				paints[i].clear();
-//			}
-//			ClearStack();
-//
-//			if (bullet->IsDestroyed())
-//			{
-//				delete bullet;
-//				iter = mBulletList.erase(iter);
-//			}
-//			else
-//			{
-//				bullet->Update();
-//				++iter;
-//			}
-//		}
-//		delete[] paints;
-//
-//		SetConsoleCursor(0, 0);
-//		timer::PrintDuration();
-//	}
-//
-//	
-//
-//	for (auto iter = mPaints.begin(); iter != mPaints.end();)
-//	{
-//		PaintPlane* paint = *iter;
-//		if (paint->Update() == GL_FALSE)
-//		{
-//			delete paint;
-//			iter = mPaints.erase(iter);
-//		}
-//		else
-//		{
-//			++iter;
-//		}
-//	}
-//}
 
 GLvoid BulletManager::AddCollisionObject(IBulletCollisionable* object)
 {

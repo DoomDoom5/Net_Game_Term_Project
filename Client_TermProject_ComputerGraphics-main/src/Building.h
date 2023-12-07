@@ -29,12 +29,6 @@ public:
 	GLvoid SetHP(GLfloat newHp) { mHP = newHp; };
 };
 
-struct BuildingInfo {
-	char numBuf[sizeof(int)];
-	char posBuf[sizeof(float) * 3 * 20];
-	char typeBuf[sizeof(BuildingType) * 20];
-};
-
 class BuildingManager {
 private:
 	vector<Building*> buildings;
@@ -44,7 +38,6 @@ public:
 	BuildingManager();
 	~BuildingManager();
 
-	GLvoid Update(SOCKET& sock);
 	GLvoid Draw() const;
 
 	GLvoid Create(const BuildingType& type, const glm::vec3& position, const glm::vec3 look = Vector3::Front());

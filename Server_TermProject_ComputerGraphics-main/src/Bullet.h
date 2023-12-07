@@ -79,12 +79,25 @@ public:
 	inline constexpr BulletType GetType() const { return mType; }
 };
 
+#define MAXBULLET 100
 struct BulletInfo {
-	char bulletNumBuf[sizeof(int)];
-	char bulletPosBuf[sizeof(float) * 3 * 90];	
-	char bulletTypeBuf[sizeof(BulletType) * 90];
-	char bulletColorBuf[sizeof(unsigned long) * 90];
-	char bulletScaleBuf[sizeof(float) * 90];
+	char bulletNum[sizeof(int)];
+	char bulletPos[sizeof(glm::vec3) * MAXBULLET];
+	char bulletType[sizeof(BulletType) * MAXBULLET];
+	char bulletColor[sizeof(unsigned long) * MAXBULLET];
+	char bulletScale[sizeof(uint32_t) * MAXBULLET];
+
+	char particleNum[sizeof(int)];
+	char particlePos[sizeof(glm::vec3) * MAXBULLET];
+	char particleRadius[sizeof(uint32_t) * MAXBULLET];
+	char particleColor[sizeof(unsigned long) * MAXBULLET];
+
+	char paintNum[sizeof(int)];
+	char paintTexture[sizeof(Textures) * MAXBULLET];
+	char painthitPoint[sizeof(glm::vec3) * MAXBULLET];
+	char paintColor[sizeof(unsigned long) * MAXBULLET];
+	char paintNormal[sizeof(glm::vec3) * MAXBULLET];
+	char paintScale[sizeof(glm::vec3) * MAXBULLET];
 };
 
 class BulletManager {

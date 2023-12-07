@@ -272,7 +272,7 @@ DWORD WINAPI ServerMain(LPVOID arg)
     while (1) {
 
         if (users > 3) {
-            cout << "소캣 생성 실패, 사람이 꽉 찻습니다" << endl;
+            cout << "소캣 생성 실패, 사람이 꽉 찼습니다" << endl;
             continue;
         }
         // accept()
@@ -326,7 +326,7 @@ DWORD WINAPI SleepCls(LPVOID arg)
     while (true)
     {
         Sleep(2000);
-        system("cls");
+        //system("cls");
         printf("서버 접속자 수 %d / %d\n", users, MAXUSER);
     }
 }
@@ -364,7 +364,6 @@ DWORD WINAPI ProcessClient(LPVOID arg)
         bulletManager->SendBuf(player_sock);
         monsterManager->SendBuf(player_sock);
         turretManager->SendBuf(player_sock);
-        buildingManager->SendBuf(player_sock);
         // ====================================
 
         bool result = player[id]->PlayerRecv(player_sock);

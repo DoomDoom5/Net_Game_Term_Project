@@ -180,7 +180,7 @@ GLboolean ProcessCollision(Bullet* bullet, IBulletCollisionable* object, vector<
 			else
 			{
 			}
-			PaintPlane* plane = new PaintPlane(object, bullet->GetColor(), hitPoint, normal);
+			PaintPlane* plane = new PaintPlane(object, bullet->GetColor(), hitPoint, normal, texture);
 			plane->SetScale(BULLET_RADIUS * bullet->GetScale());
 			paints.emplace_back(plane);
 		}
@@ -269,56 +269,94 @@ GLvoid BulletManager::Update()
 		}
 	}
 
-
-	int num = 0;
-	BulletInfo bulletInfo{};
-	BulletData data[90];
-	
+	BulletInfo bulletInfo;
+	memset(&bulletInfo, 0, sizeof(bulletInfo));
 
 	int nbullets = 0;
-	int netbyte = 0;
-	if (!mBulletList.empty())
+	int nParticles = 0;
+	int nPaints = 0;
+	if (!mBulletList.empty()) {
 		nbullets = mBulletList.size();
+	}
+	if (!mParticles.empty()) {
+		nParticles = mParticles.size();
+	}
+	if (!mPaints.empty()) {
+		nPaints = mPaints.size();
+	}
 
 	//메모리 카피
-	uint32_t nScale[90];
-	COLORREF nColor[90];
-	BulletType types[90];
+	uint32_t nScale[MAXBULLET];
+	BulletType types[MAXBULLET];
+	glm::vec3 vPos[MAXBULLET];
 
-	memset(nScale, 0, sizeof(nScale));
-	memset(nColor, 0, sizeof(nColor));
-	memset(types, 0, sizeof(types));
-	
-	//std::cout << nbullets << "개의 총알 위치가 있음" << std::endl;
-	netbyte = htonl(nbullets);
-	memcpy(&bulletInfo.bulletNumBuf, &netbyte, sizeof(int));
-
+//#ifdef DEBUG
+	cout << "Bullet : " << endl;
+	cout << "Bullet 갯수: " << nbullets << endl;
+	cout << "Particle 갯수: " << nParticles << endl;
+	cout << "Paint 갯수: " << nPaints << endl;
+//#endif
+	memcpy(&bulletInfo.bulletNum, &nbullets, sizeof(int));
+	memcpy(&bulletInfo.particleNum, &nParticles, sizeof(int));
+	memcpy(&bulletInfo.paintNum, &nPaints, sizeof(int));
 	// Postion 설정
-	uint32_t converToFloat[1000];
-	unsigned long cColor[90];
-	memset(converToFloat, 0, sizeof(converToFloat));
+	unsigned long cColor[MAXBULLET];
 	for (int i = 0; i < nbullets; ++i)
 	{
 		Bullet* bullet = mBulletList[i];
 		types[i] = bullet->GetType();
-		nColor[i] = bullet->GetColor();
-		cColor[i] = static_cast<unsigned long>(nColor[i]);
-		data[i] = bullet->Getdata();
-		nScale[i] = htonl(*reinterpret_cast<uint32_t*>(&data[i].scale));
-		glm::vec3 pos = bullet->GetPosition();
-		converToFloat[i * 3 + 0] = htonl(*reinterpret_cast<uint32_t*>(&pos.x));
-		converToFloat[i * 3 + 1] = htonl(*reinterpret_cast<uint32_t*>(&pos.y));
-		converToFloat[i * 3 + 2] = htonl(*reinterpret_cast<uint32_t*>(&pos.z));
+		cColor[i] = static_cast<unsigned long>(bullet->GetColor());
+		BulletData data = bullet->Getdata();
+		nScale[i] = *reinterpret_cast<uint32_t*>(&data.scale);
+		vPos[i] = bullet->GetPosition();
 		//printf("%d Position: (%f, %f, %f)\n", i, pos.x, pos.y, pos.z);
 	}
-	memcpy(&bulletInfo.bulletPosBuf, &converToFloat, sizeof(uint32_t) * 3 * nbullets);
-	memcpy(&bulletInfo.bulletTypeBuf, types, sizeof(BulletType) * nbullets);
-	memcpy(&bulletInfo.bulletColorBuf, cColor, sizeof(unsigned long)* nbullets);
-	memcpy(&bulletInfo.bulletScaleBuf, &nScale, sizeof(uint32_t)* nbullets);
 
+	uint32_t nPartRadius[MAXBULLET];
+	unsigned long nPartColor[MAXBULLET];
+	glm::vec3 vPartPos[MAXBULLET];
+
+	for (int i = 0; i < nParticles; ++i)
+	{
+		Bullet* particle = mParticles[i];
+		nPartColor[i] = static_cast<unsigned long>(particle->GetColor());
+		vPartPos[i] = particle->GetPosition();
+		float radius = particle->GetRadius();
+		nPartRadius[i] = *reinterpret_cast<uint32_t*>(&radius);
+	}
+
+	unsigned long paintColor[MAXBULLET];
+	glm::vec3 painthitPoint[MAXBULLET];
+	glm::vec3 paintNormal[MAXBULLET];
+	glm::vec3 paintScale[MAXBULLET];
+	Textures texture[MAXBULLET];
+	for (int i = 0; i < nPaints; ++i)
+	{
+		PaintPlane* paint = mPaints[i];
+		paintColor[i] = static_cast<unsigned long>(paint->GetColor());
+		painthitPoint[i] = paint->GetPosition();
+		paintNormal[i] = paint->GetNormal();
+		paintScale[i] = paint->GetScale();
+		texture[i] = paint->GetTexture();
+		//printf("%d Position: (%f, %f, %f)\n", i, pos.x, pos.y, pos.z);
+	}
+
+	memcpy(&bulletInfo.bulletPos, &vPos, sizeof(glm::vec3) * nbullets);
+	memcpy(&bulletInfo.bulletType, types, sizeof(BulletType) * nbullets);
+	memcpy(&bulletInfo.bulletColor, cColor, sizeof(unsigned long)* nbullets);
+	memcpy(&bulletInfo.bulletScale, &nScale, sizeof(uint32_t)* nbullets);
+
+	memcpy(&bulletInfo.particlePos, &vPartPos, sizeof(glm::vec3)* nParticles);
+	memcpy(&bulletInfo.particleColor, nPartColor, sizeof(unsigned long)* nParticles);
+	memcpy(&bulletInfo.particleRadius, nPartRadius, sizeof(uint32_t)* nParticles);
+
+	memcpy(&bulletInfo.paintTexture, texture, sizeof(Textures)* nPaints);
+	memcpy(&bulletInfo.painthitPoint, painthitPoint, sizeof(glm::vec3)* nPaints);
+	memcpy(&bulletInfo.paintColor, paintColor, sizeof(unsigned long)* nPaints);
+	memcpy(&bulletInfo.paintNormal, paintNormal, sizeof(glm::vec3) * nPaints);
+	memcpy(&bulletInfo.paintScale, paintScale, sizeof(glm::vec3)* nPaints);
 
 	memcpy(&Buf, &bulletInfo, sizeof(BulletInfo));
-
 }
 
 

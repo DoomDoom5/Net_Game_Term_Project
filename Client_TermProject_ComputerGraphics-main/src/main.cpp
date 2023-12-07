@@ -401,7 +401,6 @@ GLvoid Update()
 	bulletManager->Update(sock);
 	monsterManager->Update(sock);
 	turretManager->Update(sock);
-	buildingManager->Update(sock);
 
 	for (int i = 0; i < MAXUSER; ++i)
 	{
@@ -410,7 +409,7 @@ GLvoid Update()
 	}
 	if (player[myid] != nullptr) player[myid]->PlayerSend(sock);
 	if (player[myid] != nullptr) myid = player[myid]->PlayerRecv(sock);
-	if (player[myid] != nullptr) UpdateplayersPos(sock);
+ 	if (player[myid] != nullptr) UpdateplayersPos(sock);
 	
 	constexpr GLfloat cameraMovement = 100.0f;
 	GLfloat cameraSpeed = cameraMovement;
