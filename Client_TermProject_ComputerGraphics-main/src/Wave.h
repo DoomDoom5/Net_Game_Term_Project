@@ -15,7 +15,7 @@ public:
 	WaveManager();
 
 	GLvoid Start();
-	GLvoid Update(SOCKET& sock);
+	// GLvoid Update(SOCKET& sock); Update필요없음
 
 	inline constexpr GLvoid SetPlayer(Player* player) { mPlayer = player; }
 
