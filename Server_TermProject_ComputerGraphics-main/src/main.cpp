@@ -192,9 +192,9 @@ GLvoid Update()
     bulletManager->Update();
     monsterManager->Update();
     for (size_t i = 0; i < MAXUSER; i++)  if (player[i] != nullptr) player[i]->Update();
-    //buildingManager->Update();
+    buildingManager->Update();
     turretManager->Update();
-    //waveManager->Update();
+    waveManager->Update();
 
 #ifdef  DEBUG
     cout << "SendToClient: " << endl;
@@ -363,9 +363,8 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 
         bulletManager->SendBuf(player_sock);
         monsterManager->SendBuf(player_sock);
-        //waveManager->SendBuf(player_sock);
         turretManager->SendBuf(player_sock);
-        //buildingManager->SendBuf(player_sock);
+        buildingManager->SendBuf(player_sock);
         // ====================================
 
         bool result = player[id]->PlayerRecv(player_sock);

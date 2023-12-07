@@ -103,7 +103,6 @@ GLvoid UIManager::Draw()
 	mMax_ammo_Tens.texture = (static_cast<Textures>(static_cast<GLint>(Textures::UI_NUM_0) + max_ammo_ten));
 	mMax_ammo_Units.texture = (static_cast<Textures>(static_cast<GLint>(Textures::UI_NUM_0) + max_ammo_units));
 
-
 	GLint hold_turret = mPlayer->GetHoldTullet();
 	mHoldTurret.texture = (static_cast<Textures>(static_cast<GLint>(Textures::UI_NUM_0) + hold_turret));
 

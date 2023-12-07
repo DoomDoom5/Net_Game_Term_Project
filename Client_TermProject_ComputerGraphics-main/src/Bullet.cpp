@@ -177,9 +177,9 @@ GLvoid BulletManager::Update(SOCKET& sock) {
 	int nbullets;
 	memcpy(&nbullets, &bulletInfo.bulletNumBuf, sizeof(int));
 	nbullets = ntohl(nbullets);
-//#ifdef DEBUG
+#ifdef DEBUG
 	cout << nbullets << "개의 데이터를 받을게요" << endl;
-//#endif
+#endif
 	// 데이터 받기
 	uint32_t nScale[90];
 	COLORREF nColor[90];
@@ -208,7 +208,7 @@ GLvoid BulletManager::Update(SOCKET& sock) {
 		scale[i] = *reinterpret_cast<float*>(&nScale[i]);
 	}
 
-//#ifdef DEBUG
+#ifdef DEBUG
 	for (int i = 0; i < nbullets; ++i) {
 		printf("%d번째 총알Position: (%f, %f, %f)\n", i, fBulletPos[i * 3 + 0],
 			fBulletPos[i * 3 + 1], fBulletPos[i * 3 + 2]);
@@ -253,7 +253,7 @@ GLvoid BulletManager::Update(SOCKET& sock) {
 		};
 
 	}
-//#endif
+#endif
 
 	mCrntInkSoundDelay += timer::DeltaTime();
 

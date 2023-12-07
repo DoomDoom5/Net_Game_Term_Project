@@ -46,7 +46,6 @@ GLvoid Gun::Update()
 		Reload();
 	}
 	 
-
 	mCrntFireDelay = 0.0f;
 	Shot();
 }
