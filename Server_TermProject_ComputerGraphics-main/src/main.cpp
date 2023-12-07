@@ -306,16 +306,17 @@ DWORD WINAPI ServerMain(LPVOID arg)
         if (hThread == NULL) {
             closesocket(client_sock);
         }
-        else { 
-            CloseHandle(hThread); 
+        else {
+            CloseHandle(hThread);
         }
 
-    // 소켓 닫기
-    closesocket(listen_sock);
+        // 소켓 닫기
+        closesocket(listen_sock);
 
-    // 윈속 종료
-    WSACleanup();
-    return 0;
+        // 윈속 종료
+        WSACleanup();
+        return 0;
+    }
 }
 
 // 화면 초기화
@@ -353,7 +354,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
     delete player[id];
     player[id] = new Player({ 0,0,0 });
     monsterManager->AddPlayer(player[id], id);
-    waveManager->SetPlayer(player[id]);
+    waveManager->AddPlayer(player[id], id);
 
     while (1)
     {
@@ -371,6 +372,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
             delete player[id];
             player[id] = NULL;
             monsterManager->DeletePlayer(id);
+            waveManager->DeletePlayer(id);
             users--;
             return 0;
         }

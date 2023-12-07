@@ -255,7 +255,7 @@ GLvoid BulletManager::Update(SOCKET& sock) {
 		};
 
 	}
-
+#endif
 
 	mCrntInkSoundDelay += timer::DeltaTime();
 

@@ -8,7 +8,7 @@ class Player;
 class WaveManager {
 private:
 	GLint mCrntWave = 0;
-	Player* mPlayer = nullptr;
+	Player* mPlayer[3] = { nullptr,nullptr,nullptr };
 
 	glm::vec2 GetRandomMonsterPos(const GLint& mapWidth, const GLfloat& mapTop);
 public:
@@ -17,7 +17,8 @@ public:
 	GLvoid Start();
 	GLvoid Update();
 
-	inline constexpr GLvoid SetPlayer(Player* player) { mPlayer = player; }
+	inline constexpr GLvoid AddPlayer(Player* player, int n) { mPlayer[n] = player; }
+	inline constexpr GLvoid DeletePlayer(int n) { mPlayer[n] = nullptr; }
 
 	inline constexpr GLint GetWave() const { return mCrntWave; }
 

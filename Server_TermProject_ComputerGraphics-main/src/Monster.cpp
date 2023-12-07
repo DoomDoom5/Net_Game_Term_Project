@@ -286,9 +286,6 @@ GLvoid Koromon::Update(const glm::vec3* target)
 	mObject->MoveY(mSpeed * mAngleY - (0.5f * GRAVITY * t * t * weight));
 }
 
-
-
-
 const glm::vec3* MonsterManager::FindTargetPos(const glm::vec3& monsterPos, const GLfloat& radius) const
 {
 	const glm::vec3* target = nullptr;
@@ -523,9 +520,9 @@ GLvoid MonsterManager::AddPlayer(Player* player, int n)
 	mPlayer[n] = player;
 }
 
-GLvoid MonsterManager::DeletePlayer(int num)
+GLvoid MonsterManager::DeletePlayer(int n)
 {
-	mPlayer[num] = NULL;
+	mPlayer[n] = NULL;
 }
 
 bool MonsterManager::CheckEnemyEmpty()

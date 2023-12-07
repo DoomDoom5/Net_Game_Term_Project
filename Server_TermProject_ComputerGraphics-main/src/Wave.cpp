@@ -53,8 +53,10 @@ GLvoid WaveManager::Update()
 	if (monsterManager->CheckEnemyEmpty())
 	{
 		mCrntWave++;
-		mPlayer->AddHoldturret(1);
-
+		for (int i = 0; i < MAXUSER; ++i) {
+			if (mPlayer[i] != nullptr)
+				mPlayer[i]->AddHoldturret(1);
+		}
 		WaveManager::Start();
 	}
 	char buf[sizeof(GLint)];
