@@ -212,6 +212,7 @@ GLvoid Update()
         GunType gunType = player[i]->GetGunType();
 
 #ifdef  DEBUG
+        cout << i << " is ONair" << endl;
         cout << i << " Pos: (" << vPos.x << ", " << vPos.y << ", " << vPos.z << ")" << endl;
         cout << i << " BodyLook: (" << vBodyLook.x << ", " << vBodyLook.y << ", " << vBodyLook.z << ")" << endl;
         cout << i << " HeadLook: (" << vHeadLook.x << ", " << vHeadLook.y << ", " << vHeadLook.z << ")" << endl;
@@ -347,10 +348,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
     memcpy(idbuf, &id, sizeof(int));
     send(player_sock, idbuf, sizeof(int), 0);
 
-#ifdef DEBUG
-    cout << "ID " << id << " is ON" << endl;
-#endif // DEBUG
-
+    delete player[id];
     player[id] = new Player({ 0,0,0 });
     monsterManager->AddPlayer(player[id], id);
     waveManager->SetPlayer(player[id]);
@@ -370,6 +368,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
             delete player[id];
             player[id] = NULL;
             monsterManager->DeletePlayer(id);
+            users--;
             return 0;
         }
         if (player[id]->IsInstalled())
@@ -412,23 +411,22 @@ struct PlayersInfo
     char gunquat[sizeof(glm::quat) * MAXUSER];
 };
 
-bool print = false;
 GLvoid SendAllPlayersInfo(SOCKET& sock)
 {
     PlayersInfo playersInfo;
     char buf[sizeof(PlayersInfo)];
 
-    int playerOn[MAXUSER];
+    bool isover = IsGameOver();
+    memcpy(playersInfo.gameover, &isover, sizeof(bool));
+
+    bool playerOn[MAXUSER];
     for (int i = 0; i < MAXUSER; ++i) {
         if (player[i] != nullptr)
             playerOn[i] = true;
         else
             playerOn[i] = false;
     }
-    memcpy(playersInfo.playerOn, &playerOn, sizeof(bool) * MAXUSER);
-    bool isover = IsGameOver();
-    memcpy(playersInfo.gameover, &isover, sizeof(bool));
-    
+    memcpy(playersInfo.playerOn, &playerOn, sizeof(bool)* MAXUSER);
     glm::vec3 vPos[MAXUSER]; 
     glm::vec3 vBodyLook[MAXUSER];
     glm::vec3 vHeadLook[MAXUSER];

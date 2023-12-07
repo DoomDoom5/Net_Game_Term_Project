@@ -258,6 +258,9 @@ Player::Player(const glm::vec3& position)
 	glm::vec3 gunPosition = glm::vec3(-PLAYER_RADIUS + 1.0f, mFpCamera->GetPviotedPosition().y - 18, 0);
 
 	mRifle = new Rifle(gunPosition, &mPosition);
+	mSniper = new Sniper(gunPosition, &mPosition);
+	mShotGun = new ShotGun(gunPosition, &mPosition);
+	mLauncher = new Launcher(gunPosition, &mPosition);
 
 
 	// Gun* mPlayGun = nullptr

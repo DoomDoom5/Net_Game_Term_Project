@@ -298,7 +298,8 @@ const glm::vec3* MonsterManager::FindTargetPos(const glm::vec3& monsterPos, cons
 	int minDistancePlayerIdx = 0;
 
 	glm::vec2 monsterCenter = { monsterPos.x, monsterPos.z };
-	for (int i = 0; i < nPlayer; ++i) {
+	for (int i = 0; i < MAXUSER; ++i) {
+		if (mPlayer[i] == nullptr) continue;
 		glm::vec2 playerCenter = ConvertVec2(mPlayer[i]->GetPosition());
 		GLfloat distanceToPlayer = glm::length(playerCenter - monsterCenter);
 		if (distanceToPlayer < minDistanceToPlayer)
@@ -492,8 +493,9 @@ GLvoid MonsterManager::CheckCollision(Monster* monster)
 
 	glm::vec2 monsterCenter = ConvertVec2(monster->GetPosition());
 	GLfloat monsterRadius = monster->GetRadius();
-	for (int i = 0; i < nPlayer; ++i)
+	for (int i = 0; i < MAXUSER; ++i)
 	{
+		if (mPlayer[i] == nullptr) continue;
 		glm::vec2 playerCenter = ConvertVec2(mPlayer[i]->GetPosition());
 		GLfloat playerRadius = mPlayer[i]->GetRadius();
 
