@@ -30,7 +30,7 @@ protected:
 public:
 	Gun(const glm::vec3& gunPosition, const glm::vec3* pivot);
 
-	GLvoid Update();
+	GLboolean Update();
 	virtual GLvoid Shot();
 	GLvoid Draw();
 

@@ -18,7 +18,7 @@ Gun::Gun(const glm::vec3& gunPosition, const glm::vec3* pivot)
 	mGunPosition = gunPosition;
 }
 
-GLvoid Gun::Update()
+GLboolean Gun::Update()
 {
 	if (IsReloading())
 	{
@@ -28,17 +28,17 @@ GLvoid Gun::Update()
 			mAmmo = mMaxAmmo;
 			soundManager->PlayEffectSound(EffectSound::Reload, 0.2f, GL_TRUE);
 		}
-		return;
+		return false;
 	}
 	else if (mIsFire == GL_FALSE)
 	{
-		return;
+		return false;
 	}
 
 	mCrntFireDelay += timer::DeltaTime();
 	if (mCrntFireDelay < mFireDelay)
 	{
-		return;
+		return false;
 	}
 
 	if (--mAmmo <= 0)
@@ -46,9 +46,8 @@ GLvoid Gun::Update()
 		Reload();
 	}
 	 
-
 	mCrntFireDelay = 0.0f;
-	Shot();
+	return true;
 }
 
 GLvoid Gun::Draw()

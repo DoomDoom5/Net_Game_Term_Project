@@ -265,7 +265,7 @@ Player::Player(const glm::vec3& position)
 
 	Rotate(0, 180, 0);
 
-	mHP = 50.f;
+	mHP = 100.f;
 	ChangeState(State::Idle);
 }
 

@@ -438,7 +438,7 @@ GLvoid Player::Update()
 	mCrntState->Update();
 	mPosition = mBody->GetPviotedPosition();
 
-	mCrntGun->Update();
+	mlsFire = 	mCrntGun->Update();
 }
 GLvoid Player::Draw(const CameraMode& cameraMode) const
 {
@@ -492,12 +492,12 @@ GLvoid Player::ProcessMouse(GLint button, GLint state, GLint x, GLint y)
 	case GLUT_LEFT_BUTTON:
 		if (state == GLUT_DOWN)
 		{
-			//mCrntGun->StartFire();
+			mCrntGun->StartFire();
 			mlsFire = true;
 		}
 		else if (state == GLUT_UP)
 		{
-			//mCrntGun->StopFire();
+			mCrntGun->StopFire();
 			mlsFire = false;
 		}
 		
