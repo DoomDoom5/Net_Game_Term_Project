@@ -198,12 +198,12 @@ GLvoid BulletManager::Update(SOCKET& sock)
 	memcpy(&nbullets, &bulletInfo.bulletNum, sizeof(int));
 	memcpy(&nParticles, &bulletInfo.particleNum, sizeof(int));
 	memcpy(&nPaints, &bulletInfo.paintNum, sizeof(int));
-	//#ifdef DEBUG
+#ifdef DEBUG
 	cout << "Bullet : " << endl;
 	cout << "Bullet 偎熱: " << nbullets << endl;
 	cout << "Particle 偎熱: " << nParticles << endl;
 	cout << "Paint 偎熱: " << nPaints << endl;
-	//#endif
+#endif
 		// 等檜攪 嫡晦
 	uint32_t nScale[MAXBULLET];
 	unsigned long cColor[MAXBULLET];

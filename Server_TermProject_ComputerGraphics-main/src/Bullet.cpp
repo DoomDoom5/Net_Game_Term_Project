@@ -290,12 +290,12 @@ GLvoid BulletManager::Update()
 	BulletType types[MAXBULLET];
 	glm::vec3 vPos[MAXBULLET];
 
-//#ifdef DEBUG
+#ifdef DEBUG
 	cout << "Bullet : " << endl;
 	cout << "Bullet °¹¼ö: " << nbullets << endl;
 	cout << "Particle °¹¼ö: " << nParticles << endl;
 	cout << "Paint °¹¼ö: " << nPaints << endl;
-//#endif
+#endif
 	memcpy(&bulletInfo.bulletNum, &nbullets, sizeof(int));
 	memcpy(&bulletInfo.particleNum, &nParticles, sizeof(int));
 	memcpy(&bulletInfo.paintNum, &nPaints, sizeof(int));

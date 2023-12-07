@@ -26,8 +26,8 @@ static DWORD fps_lastTime = 0;
 
 inline GLvoid PrintFPS(const GLfloat& fps)
 {
-	//system("cls");
-	//SetConsoleCursor(0, 0);
+	system("cls");
+	SetConsoleCursor(0, 0);
 	printf("fps : %.3f\n", fps);
 }
 GLvoid timer::CalculateFPS()

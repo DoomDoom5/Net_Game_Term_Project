@@ -163,7 +163,9 @@ GLboolean Building::CheckCollisionBullet(const BulletAtt& bullet, glm::vec3& hit
 GLvoid Building::Damage(const GLfloat& damage)
 {
 	mHP -= damage;
+#ifdef DEBUG
 	cout << "Building HP: " << mHP << endl;
+#endif
 	if (mHP <= 0)
 	{
 		GameOver();
@@ -209,7 +211,9 @@ GLvoid BuildingManager::Update()
 		else
 		{
 			building->Update();
+#ifdef DEBUG
 			cout << "Building HP: " << building->GetHP() << endl;
+#endif
 			if (building->GetHP() <= 0)
 				GameOver();
 			++it;
