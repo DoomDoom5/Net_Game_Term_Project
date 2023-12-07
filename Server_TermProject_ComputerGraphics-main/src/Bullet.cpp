@@ -17,6 +17,7 @@ GLvoid IBulletCollisionable::Destroy()
 
 Bullet::Bullet(const BulletData& data, const glm::vec3& origin, const glm::vec3& position, const GLfloat& yaw, const GLfloat& pitch) : SharedObject()
 {
+	mdata = data;
 	mType = data.type;
 	mWeight = data.weight;
 	mVelocity = data.velocity;
@@ -268,66 +269,60 @@ GLvoid BulletManager::Update()
 		}
 	}
 
-	/*
-	char numbuf[5]; // 총알 99999 를 max로
 
-	int num = 0;
-	if (!mBulletList.empty())
-		num = mBulletList.size();
-	else num = 0;
-
-	std::ostringstream oss;
-
-
-
-	for (int i = 0; i < num; ++i) {
-		Bullet* bullet = mBulletList[i];
-		oss << std::fixed << std::setprecision(2)
-			<< bullet->GetPosition().x << " "
-			<< bullet->GetPosition().y << " "
-			<< bullet->GetPosition().z << " ";
-	}
-
-
-	std::string buf = oss.str();
-	const char* sendbuf = buf.c_str();
-
-	std::cout << buf; // 버퍼에 저장된 문자열 출력
-	send(sock, sendbuf, (int)strlen(sendbuf), 0);
-	*/
-
-	char numbuf[10];
 	int num = 0;
 	BulletInfo bulletInfo{};
+	BulletData data[90];
+	
 
 	int nbullets = 0;
 	int netbyte = 0;
 	if (!mBulletList.empty())
 		nbullets = mBulletList.size();
-	std::cout << nbullets << "개의 몬스터 위치가 있음" << std::endl;
+
+	//메모리 카피
+	uint32_t nScale[90];
+	COLORREF nColor[90];
+	BulletType types[90];
+
+	memset(nScale, 0, sizeof(nScale));
+	memset(nColor, 0, sizeof(nColor));
+	memset(types, 0, sizeof(types));
+	
+	//std::cout << nbullets << "개의 총알 위치가 있음" << std::endl;
 	netbyte = htonl(nbullets);
 	memcpy(&bulletInfo.bulletNumBuf, &netbyte, sizeof(int));
 
 	// Postion 설정
 	uint32_t converToFloat[1000];
+	unsigned long cColor[90];
 	memset(converToFloat, 0, sizeof(converToFloat));
 	for (int i = 0; i < nbullets; ++i)
 	{
 		Bullet* bullet = mBulletList[i];
+		types[i] = bullet->GetType();
+		nColor[i] = bullet->GetColor();
+		cColor[i] = static_cast<unsigned long>(nColor[i]);
+		data[i] = bullet->Getdata();
+		nScale[i] = htonl(*reinterpret_cast<uint32_t*>(&data[i].scale));
 		glm::vec3 pos = bullet->GetPosition();
 		converToFloat[i * 3 + 0] = htonl(*reinterpret_cast<uint32_t*>(&pos.x));
 		converToFloat[i * 3 + 1] = htonl(*reinterpret_cast<uint32_t*>(&pos.y));
 		converToFloat[i * 3 + 2] = htonl(*reinterpret_cast<uint32_t*>(&pos.z));
-		printf("%d Position: (%f, %f, %f)\n", i, pos.x, pos.y, pos.z);
+		//printf("%d Position: (%f, %f, %f)\n", i, pos.x, pos.y, pos.z);
 	}
 	memcpy(&bulletInfo.bulletPosBuf, &converToFloat, sizeof(uint32_t) * 3 * nbullets);
+	memcpy(&bulletInfo.bulletTypeBuf, types, sizeof(BulletType) * nbullets);
+	memcpy(&bulletInfo.bulletColorBuf, cColor, sizeof(unsigned long)* nbullets);
+	memcpy(&bulletInfo.bulletScaleBuf, &nScale, sizeof(uint32_t)* nbullets);
 
-	memcpy(&m_cBuf, &bulletInfo, sizeof(BulletInfo));
-	
-	
-	//send(sock, buf, sizeof(BulletInfo), 0);
+
+
+	memcpy(&Buf, &bulletInfo, sizeof(BulletInfo));
 
 }
+
+
 //GLvoid ProcessCollision(Bullet* bullet, IBulletCollisionable* object, vector<PaintPlane*>& paints)
 //{
 //	constexpr GLfloat NO_NORMAL = 9;

@@ -190,6 +190,7 @@ GLvoid Update()
 
     SetConsoleCursor(0, 1);
 	monsterManager->Update();
+    bulletManager->Update();
     for (size_t i = 0; i < users; i++)  if (player[i] != nullptr) player[i]->Update();
     //buildingManager->Update();
     turretManager->Update();

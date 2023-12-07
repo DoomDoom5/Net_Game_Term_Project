@@ -392,6 +392,7 @@ GLvoid Update()
 	timer::CalculateFPS();
 	timer::Update();
 
+	bulletManager->Update(sock);
 	monsterManager->Update(sock);
 	//waveManager->Update(sock);
 	turretManager->Update(sock);

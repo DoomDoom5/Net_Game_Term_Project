@@ -157,13 +157,19 @@ GLvoid BulletManager::Draw() const
 
 struct BulletInfo {
 	char bulletNumBuf[sizeof(int)];
-	char bulletPosBuf[sizeof(float) * 3 * 20];		// num은 10이 최대
+	char bulletPosBuf[sizeof(float) * 3 * 90];
+	char bulletTypeBuf[sizeof(BulletType) * 90];
+	char bulletColorBuf[sizeof(unsigned long) * 90];
+	char bulletScaleBuf[sizeof(float) * 90];
 };
 
 GLvoid BulletManager::Update(SOCKET& sock) {
 	BulletInfo bulletInfo{};
 	char buf[sizeof(BulletInfo)];
 	char nBulletBuf[sizeof(int)];
+
+
+
 	int retval = recv(sock, buf, sizeof(BulletInfo), 0);
 	if (retval == SOCKET_ERROR) {
 		printf("SOCKET_ERROR\n");
@@ -177,66 +183,94 @@ GLvoid BulletManager::Update(SOCKET& sock) {
 	cout << nbullets << "개의 데이터를 받을게요" << endl;
 #endif
 	// 데이터 받기
+	uint32_t nScale[90];
+	COLORREF nColor[90];
+	unsigned long cColor[90];
+	BulletType types[90];
+
 	uint32_t convertToFloat[1000];
+
+	memcpy(&types, &bulletInfo.bulletTypeBuf, sizeof(BulletType) * nbullets);
+	memcpy(&cColor, &bulletInfo.bulletColorBuf, sizeof(unsigned long) * nbullets);
 	memcpy(&convertToFloat, &bulletInfo.bulletPosBuf, sizeof(uint32_t) * 3 * nbullets);
+	memcpy(&nScale, &bulletInfo.bulletScaleBuf, sizeof(uint32_t) * nbullets);
 	float fBulletPos[1000]{ 0 };
+	GLfloat scale[90];
+	BulletData data[90];
+
+
+
 	for (int i = 0; i < nbullets * 3; ++i) {
+		nColor[i] = static_cast<COLORREF>(cColor[i]);
+
 		convertToFloat[i] = ntohl(convertToFloat[i]);
 		fBulletPos[i] = *reinterpret_cast<float*>(&convertToFloat[i]);
+
+		nScale[i] = ntohl(nScale[i]);
+		scale[i] = *reinterpret_cast<float*>(&nScale[i]);
 	}
 
 #ifdef DEBUG
 	for (int i = 0; i < nbullets; ++i) {
-		printf("%d Position: (%f, %f, %f)\n", i, fBulletPos[i * 3 + 0],
-			fBulletPos[i * 3 + 1], fBulletPos[i * 3 + 2]);
+		//printf("%d번째 총알Position: (%f, %f, %f)\n", i, fBulletPos[i * 3 + 0],
+			//fBulletPos[i * 3 + 1], fBulletPos[i * 3 + 2]);
+		std::cout << "Bullet " << i << " Sclae : "<< scale[i] << std::endl;
+		
+		switch (nColor[i]) {
+		case RGB(255, 0, 0): // 빨간색인 경우
+			// 빨간색일 때 수행할 동작
+			std::cout << "Red color selected." << std::endl;
+			break;
+		case RGB(0, 255, 0): // 초록색인 경우
+			// 초록색일 때 수행할 동작
+			std::cout << "Green color selected." << std::endl;
+			break;
+		case RGB(0, 0, 255): // 파란색인 경우
+			// 파란색일 때 수행할 동작
+			std::cout << "Blue color selected." << std::endl;
+			break;
+		case RGB(255, 255, 255): // 흰색인 경우
+			// 파란색일 때 수행할 동작
+			std::cout << "WHITE color selected." << std::endl;
+			break;
+		default:
+			// 위의 case에 해당하지 않는 경우
+			std::cout << "Unknown color." << std::endl;
+			break;
+		}
+
+		switch (types[i]) {
+		case BulletType::Normal:
+			printf("Type: Normal / ");
+			break;
+		case BulletType::Particle_Explosion:
+			printf("Type: Particle_Explosion / ");
+			break;
+		case BulletType::Rocket:
+			printf("Type: Rocket / ");
+			break;
+		case BulletType::Sniper:
+			printf("Type: Sniper / ");
+			break;
+		};
+
 	}
-#endif
-	//memset(convertToFloat, 0, sizeof(uint32_t));
 
-
-	/*
->>>>>>> bullet
-	int retval = 0;
-	const char* numbuf;
-	int num;
-	int BUFSIZE = 512;
-	char buffer[1000];
-
-	// 첫 번째 데이터 받기
-	//retval = recv(sock, buffer, BUFSIZE, 0);
-	memcpy(&num, &buffer, sizeof(int)); // numbuf 대신 buffer를 사용해야 합니다.
-
-	// 두 번째 데이터 받기
-	retval = recv(sock, buffer, BUFSIZE, 0);
-
-	// 데이터 출력
-	std::istringstream iss(buffer);
-	float x, y, z;
-	int bulletCount = 0;
-	struct Bulletinfo {
-		float x, y, z;
-	}bulletinfo[1000];
-	while (iss >> x >> y >> z) {
-		bulletinfo[bulletCount].x = x;
-		bulletinfo[bulletCount].y = y;
-		bulletinfo[bulletCount].z = z;
-		//Bullet* bullet = mBulletList[bulletCount];
-		//glm::vec3 v = glm::vec3(x, y, z);
-		//bullet->SetPosition(v);
-		bulletCount++;
-		//std::cout << "Bullet " << bulletCount << " Position: "
-			//<< x << ", " << y << ", " << z << std::endl;
-
-
-	}
-	if (bulletCount == 0) {
-		std::cout << "No bullets found." << std::endl;
-	}
-	*/
-	/////////////////////////////////////////////////////////////////
 
 	mCrntInkSoundDelay += timer::DeltaTime();
 
+	glm::vec3 origin = { 0, 9, 0 };	
+
+	mBulletList.clear();
+	for (int i = 0; i < nbullets; ++i) {
+		glm::vec3 bulletPos = glm::vec3(fBulletPos[3 * i + 0], fBulletPos[3 * i + 1], fBulletPos[3 * i + 2]);
+		if (types[i]== BulletType::Rocket)
+			data[i] = { BulletType::Rocket, nColor[i], 0, scale[i],0,0, Models::GeoSphere };
+		else data[i] = { types[i], nColor[i], 0, scale[i],0,0, Models::LowSphere};
+		Create(data[i], origin, bulletPos, 0,0);
+	}
+
+	/*
 	int cnt2 = 0;
 	for (auto iter = mBulletList.begin(); iter != mBulletList.end();)
 	{
@@ -261,7 +295,7 @@ GLvoid BulletManager::Update(SOCKET& sock) {
 			if (nbullets < cnt2) bullet->Destroy();
 		}
 	}
-
+	*/
 	/*
 	for (auto iter = mParticles.begin(); iter != mParticles.end();)
 	{

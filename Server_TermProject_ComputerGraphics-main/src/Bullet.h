@@ -64,12 +64,15 @@ class Bullet : public SharedObject {
 	GLfloat mVelocity = 0.0f;
 
 	GLboolean mDestroyed = GL_FALSE;
+	BulletData mdata;
+
 public:
 	Bullet(const BulletData& data, const glm::vec3& origin, const glm::vec3& position, const GLfloat& yaw, const GLfloat& pitch);
 	~Bullet();
 	GLvoid Update();
 	inline constexpr GLvoid Destroy() { mDestroyed = GL_TRUE; }
 	inline constexpr GLboolean IsDestroyed() const { return mDestroyed; }
+	inline constexpr BulletData Getdata() const { return mdata; }
 
 	BulletAtt GetAttribute() const;
 	COLORREF GetColor() const;
@@ -78,7 +81,10 @@ public:
 
 struct BulletInfo {
 	char bulletNumBuf[sizeof(int)];
-	char bulletPosBuf[sizeof(float) * 3 * 20];		// num은 10이 최대
+	char bulletPosBuf[sizeof(float) * 3 * 90];	
+	char bulletTypeBuf[sizeof(BulletType) * 90];
+	char bulletColorBuf[sizeof(unsigned long) * 90];
+	char bulletScaleBuf[sizeof(float) * 90];
 };
 
 class BulletManager {
@@ -91,7 +97,7 @@ private:
 	vector<IBulletCollisionable*> mParticleCollisions;
 
 	GLfloat mCrntInkSoundDelay = 0.0f;
-	char m_cBuf[sizeof(BulletInfo)];
+	char Buf[sizeof(BulletInfo)];
 
 public:
 	BulletManager();
@@ -109,5 +115,5 @@ public:
 	GLvoid DelCollisionObject(IBulletCollisionable* object);
 	GLvoid DelParticleCollision(IBulletCollisionable* object);
 
-	GLvoid SendBuf(const SOCKET& sock) { send(sock, m_cBuf, sizeof(BulletInfo), 0); }
+	GLvoid SendBuf(const SOCKET& sock) { send(sock, Buf, sizeof(BulletInfo), 0); }
 };
