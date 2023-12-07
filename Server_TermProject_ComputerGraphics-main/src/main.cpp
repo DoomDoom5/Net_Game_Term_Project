@@ -188,6 +188,8 @@ GLvoid Update()
     timer::Update();
 
     printf("서버 접속자 수 %d / %d\n", users, MAXUSER);
+
+    bulletManager->Update();
     monsterManager->Update();
     for (size_t i = 0; i < MAXUSER; i++)  if (player[i] != nullptr) player[i]->Update();
     //buildingManager->Update();

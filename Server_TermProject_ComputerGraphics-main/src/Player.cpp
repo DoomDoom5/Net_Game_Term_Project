@@ -434,10 +434,11 @@ GLvoid Player::ChangeState(const State& playerState, const Event& e, const GLint
 
 GLvoid Player::Update()
 {
-	/*if (mlsFire)
-		mCrntGun->StartFire();*/
 	//mCrntState->Update(); 다리가 계속 Rotate하는 버그.
 	mPosition = mBody->GetPviotedPosition();
+	if (mlsFire)
+		mCrntGun->StartFire();
+	else mCrntGun->StopFire();
 	mCrntGun->Update();
 }
 

@@ -309,13 +309,12 @@ GLvoid BulletManager::Update()
 		converToFloat[i * 3 + 0] = htonl(*reinterpret_cast<uint32_t*>(&pos.x));
 		converToFloat[i * 3 + 1] = htonl(*reinterpret_cast<uint32_t*>(&pos.y));
 		converToFloat[i * 3 + 2] = htonl(*reinterpret_cast<uint32_t*>(&pos.z));
-		//printf("%d Position: (%f, %f, %f)\n", i, pos.x, pos.y, pos.z);
+		printf("%d Position: (%f, %f, %f)\n", i, pos.x, pos.y, pos.z);
 	}
 	memcpy(&bulletInfo.bulletPosBuf, &converToFloat, sizeof(uint32_t) * 3 * nbullets);
 	memcpy(&bulletInfo.bulletTypeBuf, types, sizeof(BulletType) * nbullets);
 	memcpy(&bulletInfo.bulletColorBuf, cColor, sizeof(unsigned long)* nbullets);
 	memcpy(&bulletInfo.bulletScaleBuf, &nScale, sizeof(uint32_t)* nbullets);
-
 
 
 	memcpy(&Buf, &bulletInfo, sizeof(BulletInfo));

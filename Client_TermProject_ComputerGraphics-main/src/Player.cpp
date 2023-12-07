@@ -437,6 +437,7 @@ GLvoid Player::Update()
 {
 	mCrntState->Update();
 	mPosition = mBody->GetPviotedPosition();
+
 	mCrntGun->Update();
 }
 GLvoid Player::Draw(const CameraMode& cameraMode) const
