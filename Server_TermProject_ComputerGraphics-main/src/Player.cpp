@@ -440,6 +440,8 @@ GLvoid Player::Update()
 		mCrntGun->StartFire();
 	else mCrntGun->StopFire();
 	mCrntGun->Update();
+
+
 }
 
 GLvoid Player::Draw(const CameraMode& cameraMode) const
@@ -819,6 +821,14 @@ bool Player::PlayerRecv(SOCKET& client_sock)
 	SetGunRotation(rotate);
 	mIsInstall = isInstall;
 	mlsFire = isFire;
+
+	
+	glm::vec3 a = rotate * vGunLook;
+	GLfloat yaw = 0.0f;
+	GLfloat pitch = 0.0f;
+	GetYawPitch(a, yaw, pitch);
+	mCrntGun->SetYaw(yaw);
+	mCrntGun->SetPitch(pitch);
 
 	if (mIsInstall)
 		Install_Turret();

@@ -2,7 +2,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 //#define DEBUG
 
-
 #include <cmath>
 #include <random>
 #include <queue>
