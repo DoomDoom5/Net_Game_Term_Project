@@ -168,8 +168,6 @@ GLvoid BulletManager::Update(SOCKET& sock) {
 	char buf[sizeof(BulletInfo)];
 	char nBulletBuf[sizeof(int)];
 
-
-
 	int retval = recv(sock, buf, sizeof(BulletInfo), 0);
 	if (retval == SOCKET_ERROR) {
 		printf("SOCKET_ERROR\n");

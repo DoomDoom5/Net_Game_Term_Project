@@ -309,14 +309,13 @@ DWORD WINAPI ServerMain(LPVOID arg)
         else {
             CloseHandle(hThread);
         }
-
-        // 소켓 닫기
-        closesocket(listen_sock);
-
-        // 윈속 종료
-        WSACleanup();
-        return 0;
     }
+    // 소켓 닫기
+    closesocket(listen_sock);
+
+    // 윈속 종료
+    WSACleanup();
+    return 0;
 }
 
 // 화면 초기화
@@ -360,11 +359,11 @@ DWORD WINAPI ProcessClient(LPVOID arg)
     {
         if (!updateOn) continue;
 
+        bulletManager->SendBuf(player_sock);
         monsterManager->SendBuf(player_sock);
         //waveManager->SendBuf(player_sock);
         turretManager->SendBuf(player_sock);
-        buildingManager->SendBuf(player_sock);
-        bulletManager->SendBuf(player_sock);
+        //buildingManager->SendBuf(player_sock);
         // ====================================
 
         bool result = player[id]->PlayerRecv(player_sock);

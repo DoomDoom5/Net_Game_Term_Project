@@ -403,7 +403,6 @@ GLvoid Update()
 	//waveManager->Update(sock);
 	turretManager->Update(sock);
 	//buildingManager->Update(sock);
-	//bulletManager->Update(sock);
 
 	for (int i = 0; i < MAXUSER; ++i)
 	{
