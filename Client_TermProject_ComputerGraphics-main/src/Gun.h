@@ -34,7 +34,6 @@ public:
 	virtual GLvoid Shot();
 	GLvoid Draw();
 
-
 	inline constexpr GLvoid StartFire() { mIsFire = GL_TRUE; }
 	inline constexpr GLvoid StopFire() { mIsFire = GL_FALSE; }
 

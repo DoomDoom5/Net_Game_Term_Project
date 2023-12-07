@@ -109,7 +109,9 @@ GLvoid TurretManager::Update()
 	TurretInfo turretInfo{};
 	int nTurret = turrets.size();
 	memcpy(&turretInfo.num, &nTurret, sizeof(int));
-	printf("%d\n", nTurret);
+#ifdef DEBUG
+	printf("Turret°¹¼ö: %d\n", nTurret);
+#endif
 
 	glm::vec3 vPos[MAX_TURRET];
 	glm::vec3 vLook[MAX_TURRET];

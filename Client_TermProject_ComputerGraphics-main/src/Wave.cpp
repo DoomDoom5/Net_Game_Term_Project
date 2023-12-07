@@ -47,26 +47,3 @@ GLvoid WaveManager::Start()
 		monsterManager->Create(MonsterType::Koromon, glm::vec3(pos.x, 0, pos.y));
 	}
 }
-
-GLvoid WaveManager::Update(SOCKET& sock)
-{
-	int newWave = 0;
-	char buf[sizeof(GLint)];
-	int retval = recv(sock, buf, sizeof(GLint), 0);
-	if (retval == SOCKET_ERROR) {
-		printf("SOCKET_ERROR\n");
-		return;
-	}
-	memcpy(&newWave, &buf, sizeof(GLint));
-	if (newWave != mCrntWave)
-	{
-		mCrntWave = newWave;
-		mPlayer->AddHoldturret(1);
-
-		WaveManager::Start();
-	}
-
-#ifdef DEBUG
-	cout << "mCrntWave: " << mCrntWave << endl;
-#endif
-}

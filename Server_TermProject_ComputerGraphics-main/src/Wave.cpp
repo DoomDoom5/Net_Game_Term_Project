@@ -59,9 +59,6 @@ GLvoid WaveManager::Update()
 		}
 		WaveManager::Start();
 	}
-	char buf[sizeof(GLint)];
-	memcpy(&buf, &mCrntWave, sizeof(GLint));
-//	send(sock, buf, sizeof(GLint), 0);
 
 #ifdef DEBUG
 	cout << "mCrntWave: " << mCrntWave << endl;
