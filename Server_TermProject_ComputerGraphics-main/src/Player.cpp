@@ -789,7 +789,7 @@ bool Player::PlayerRecv(SOCKET& client_sock)
 	glm::quat rotate;
 	bool isFire , isInstall = false;
 
-	int SOCKET_READ_TIMEOUT_SEC = 1;
+	int SOCKET_READ_TIMEOUT_SEC = 3;
 
 	DWORD timeout = SOCKET_READ_TIMEOUT_SEC * 1000;
 	setsockopt(client_sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));

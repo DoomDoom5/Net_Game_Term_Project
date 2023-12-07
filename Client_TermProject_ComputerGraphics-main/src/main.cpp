@@ -412,7 +412,6 @@ GLvoid Update()
 	}
 	if (player[myid] != nullptr) player[myid]->PlayerSend(sock);
 	if (player[myid] != nullptr) myid = player[myid]->PlayerRecv(sock);
-	cout << "myid: " << myid << endl;
 	if (player[myid] != nullptr) UpdateplayersPos(sock);
 	
 	constexpr GLfloat cameraMovement = 100.0f;
@@ -736,6 +735,7 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 	if (isover) GameOver();
 	memcpy(&playerOn, playerInfo.playerOn, sizeof(bool) * MAXUSER);
 #ifdef DEBUG
+	cout << playerOn[0] << playerOn[1] << playerOn[2] << endl;
 	cout << "myID: " << myid << endl;
 	cout << "RecvFromServer: " << endl;
 #endif
@@ -763,6 +763,7 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 		if (!playerOn[i]) continue;
 		
 #ifdef DEBUG
+		cout << i << " is ONair" << endl;
 		cout << i << " Pos: ( " << vPos[i].x << ", " << vPos[i].y << ", " << vPos[i].z << " )" << endl;
 		cout << i << " BodyLook: ( " << vBodyLook[i].x << ", " << vBodyLook[i].y << ", " << vBodyLook[i].z << " )" << endl;
 		cout << i << " HeadLook: ( " << vHeadLook[i].x << ", " << vHeadLook[i].y << ", " << vHeadLook[i].z << " )" << endl;
