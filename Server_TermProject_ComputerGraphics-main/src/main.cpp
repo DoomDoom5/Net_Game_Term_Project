@@ -63,7 +63,7 @@ bool updateOn = false;
 struct  USER
 {
     SOCKET client_sock = NULL;
-    int id;
+    int id = -1;
 };
 int users = 0;
 
@@ -96,7 +96,6 @@ GLint main(GLint argc, GLchar** argv)
 MyColor backColor;
 GLvoid Init()
 {
-
     glewInit();
     InitMeshes();
     timer::Init();
@@ -122,7 +121,6 @@ GLvoid InitMeshes()
 
     buildingManager->Create(BuildingType::Core, { 0, 0, 550 });
     turretManager->Create(glm::vec3(100,0,450));
-
 	crntMap = new Map();
 
 }
@@ -152,6 +150,7 @@ GLvoid Reset()
         delete crntMap;
         crntMap = nullptr;
     }
+
     for (int i = 0; i < users; ++i)
     {
         if (player[i] != nullptr)
@@ -173,14 +172,14 @@ GLvoid DrawScene()
 ///// [ HANDLE EVENTS ] /////
 GLvoid Update()
 {
-    if (IsGameOver() == GL_TRUE)
-    {
-        //	glutPostRedisplay();
-        cout << "GameOver" << endl;
+    if (users <= 0) return;
+	if (IsGameOver() == GL_TRUE)
+	{
+	//	glutPostRedisplay();
+        cout << "게임 오버" << endl;
         DeleteCriticalSection(&cs);
         return;
-    }
-    if (player[0] == nullptr) return;
+	}
 
 
     EnterCriticalSection(&cs);
@@ -189,8 +188,8 @@ GLvoid Update()
     timer::CalculateFPS();
     timer::Update();
 
-    printf("서버 접속자 수 %d / %d\n", users, MAXUSER);
-    monsterManager->Update();
+    SetConsoleCursor(0, 1);
+	monsterManager->Update();
     for (size_t i = 0; i < users; i++)  if (player[i] != nullptr) player[i]->Update();
     //buildingManager->Update();
     turretManager->Update();
@@ -224,6 +223,7 @@ GLvoid Update()
     updateOn = true;
 
     LeaveCriticalSection(&cs);
+
     glutPostRedisplay();
 }
 
@@ -267,6 +267,11 @@ DWORD WINAPI ServerMain(LPVOID arg)
         NULL, 0, NULL);
 
     while (1) {
+
+        if (users > 3) {
+            cout << "소캣 생성 실패, 사람이 꽉 찻습니다" << endl;
+            continue;
+        }
         // accept()
         addrlen = sizeof(clientaddr);
         client_sock = accept(listen_sock, (struct sockaddr*)&clientaddr, &addrlen);
@@ -281,28 +286,28 @@ DWORD WINAPI ServerMain(LPVOID arg)
         printf("\r\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\r\n",
             addr, ntohs(clientaddr.sin_port));
 
+      
+
         USER client;
         client.client_sock = client_sock;
-
-
-        if (!ClientOn[users])// 자리가 남았을때
+        for (size_t i = 0; i < 3; i++)
         {
-            ClientOn[users] = true;
-            client.id = users++;
+            if (player[i] == nullptr) {
+                client.id == i;
+                break;
+            }
         }
 
-
+        if (client.id < 0) {
+            cout << client.id << " : id 생성 실패" << endl;
+            continue;
+        }
+       
         // 스레드 생성
         hThread = CreateThread(NULL, 0, ProcessClient,
             (LPVOID)&client, 0, NULL);
-        if (hThread == NULL) {
-            closesocket(client_sock);
-            users--;
-        }
-        else { 
-            CloseHandle(hThread); 
-        }
-
+        if (hThread == NULL) { closesocket(client_sock); }
+        else { CloseHandle(hThread); }
     }
 
     // 소켓 닫기
@@ -355,35 +360,18 @@ DWORD WINAPI ProcessClient(LPVOID arg)
     {
         if (!updateOn) continue;
 
-        if (deleteMember[id] != -1)
-        {
-            if (deleteMember[id] < id)
-                id--;
-        }
+        // ====================================
         monsterManager->SendBuf(player_sock);
         //waveManager->SendBuf(player_sock);
         turretManager->SendBuf(player_sock);
-        //buildingManager->SendBuf(player_sock);
-        //bulletManager->SendBuf(player_sock);
+        buildingManager->SendBuf(player_sock);
+        bulletManager->SendBuf(player_sock);
+        // ====================================
 
-        bool result = player[id]->PlayerRecv(player_sock);
-        if (!result) {
-            delete player[id];
-            if(id != 2)
-                player[id] = player[id + 1];
-            users--;
-            memset(deleteMember, id, sizeof(deleteMember));
-            monsterManager->DeletePlayer(id);
-            return 0;
-        }
-        if (player[id]->IsInstalled())
-        {
-            for (int i = 0; i < users; ++i) {
-                player[i]->TeamInstall_Turret();
-            }
-            player[id]->InstallDone();
-        }
-        player[id]->PlayerSend(player_sock, id);
+        // ====================================
+        player[id]->PlayerRecv(player_sock);
+        player[id]->PlayerSend(player_sock);
+        // ====================================
 
         // ====================================
         SendAllPlayersInfo(player_sock);
@@ -391,14 +379,28 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 
         //Sleep(1000/60);
     }
-    /*
-    send/recv 순서  [꼭 지킬것!]
 
-    1. player[0]->Update(client_sock()); -> 클라에서 변환된 부분 받음
+    // 소켓 닫기
+    closesocket(player_sock);
+    
+    printf("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n",
+        addr, ntohs(Tclientaddr.sin_port));
 
-    7. player[0]->recv(client_sock(); -> 플레이어 변화된 부분 클라에게 전달
+    for (size_t i = 0; i < users; i++)
+    {
+        if (player[i] == nullptr && id != i)
+        {
+            player[i] = new Player(*player[id]);
+            break;
+        }
+    }
 
-    */
+    delete player[id];
+    player[id] = nullptr;
+
+    if (users > 0)users--;
+
+    return 0;
 } 
 
 struct PlayersInfo
