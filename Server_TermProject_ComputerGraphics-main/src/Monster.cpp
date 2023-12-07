@@ -516,19 +516,14 @@ GLvoid MonsterManager::CheckCollision(Monster* monster)
 	}
 }
 
-GLvoid MonsterManager::AddPlayer(Player* player)
+GLvoid MonsterManager::AddPlayer(Player* player, int n)
 {
-	if (nPlayer >= MAXUSER) return;
-	mPlayer[nPlayer] = player;
-	nPlayer += 1;
+	mPlayer[n] = player;
 }
 
 GLvoid MonsterManager::DeletePlayer(int num)
 {
-	if (nPlayer <= 0) return;
-	if (num != 2)
-		mPlayer[num] = mPlayer[num + 1];
-	nPlayer -= 1;
+	mPlayer[num] = NULL;
 }
 
 bool MonsterManager::CheckEnemyEmpty()

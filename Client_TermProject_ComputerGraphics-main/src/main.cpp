@@ -90,6 +90,7 @@ GLboolean isRightDown = GL_FALSE;
 // temp
 ModelObject* cubeMap = nullptr;
 
+bool playerOn[3] = { false, false, false };
 // extern
 GLint main(GLint argc, GLchar** argv)
 {
@@ -209,13 +210,18 @@ GLvoid InitMeshes()
 	crntMap = new Map();
 }
 
+
 GLvoid InitPlayer()
 {
 	char buf[sizeof(int)];
 	retval = recv(sock, buf, sizeof(int), 0);
 	memcpy(&myid, buf, sizeof(int));
+#ifdef DEBUG
+	cout << "myID: " << myid << endl;
+#endif // DEBUG
 
-	for (int i = 0; i < 3; ++i)
+	playerOn[myid] = true;
+	for (int i = 0; i < MAXUSER; ++i)
 	{
 		if (i != myid)player[i] = new Player({ 10 * i,0,10 * i });
 		else player[i] = new Player({ 0,0,0 }, &cameraMode);
@@ -328,9 +334,9 @@ GLvoid DrawScene()
 	monsterManager->Draw();
 	buildingManager->Draw();
 
-	for (int i = 0; i < users; ++i)
+	for (int i = 0; i < MAXUSER; ++i)
 	{
-		if (player[i] == nullptr) continue;
+		if (!playerOn[i]) continue;
 		if (myid == i)
 			player[i]->Draw(cameraMode);
 		else
@@ -399,7 +405,11 @@ GLvoid Update()
 	//buildingManager->Update(sock);
 	//bulletManager->Update(sock);
 
-	for (int i = 0; i < users; ++i) player[i]->Update();
+	for (int i = 0; i < MAXUSER; ++i)
+	{
+		if (!playerOn[i]) continue;
+		player[i]->Update();
+	}
 	if (player[myid] != nullptr) player[myid]->PlayerSend(sock);
 	if (player[myid] != nullptr) myid = player[myid]->PlayerRecv(sock);
 	cout << "myid: " << myid << endl;
@@ -698,7 +708,7 @@ GLvoid SetCameraMode(const CameraMode& mode)
 struct PlayersInfo
 {
 	char gameover[sizeof(bool)];
-	char num[sizeof(int)];
+	char playerOn[sizeof(bool) * 3];
 	char pos[sizeof(glm::vec3) * MAXUSER];
 	char bodylook[sizeof(glm::vec3) * MAXUSER];
 	char headlook[sizeof(glm::vec3) * MAXUSER];
@@ -720,7 +730,7 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 	bool isover;
 	memcpy(&isover, playerInfo.gameover, sizeof(bool));
 	if (isover) GameOver();
-	memcpy(&users, playerInfo.num, sizeof(int));
+	memcpy(&playerOn, playerInfo.playerOn, sizeof(bool) * MAXUSER);
 #ifdef DEBUG
 	cout << "myID: " << myid << endl;
 	cout << "RecvFromServer: " << endl;
@@ -734,19 +744,19 @@ GLvoid UpdateplayersPos(SOCKET& sock)
 	GunType gunType[MAXUSER];
 	glm::quat gunRotation[MAXUSER];
 
-	memcpy(vPos, playerInfo.pos, sizeof(glm::vec3) * users);
-	memcpy(vBodyLook, playerInfo.bodylook, sizeof(glm::vec3) * users);
-	memcpy(vHeadLook, playerInfo.headlook, sizeof(glm::vec3) * users);
-	memcpy(vLegLLook, playerInfo.legLlook, sizeof(glm::vec3) * users);
-	memcpy(vLegRLook, playerInfo.legRlook, sizeof(glm::vec3) * users);
-	memcpy(vGunLook, playerInfo.gunlook, sizeof(glm::vec3) * users);
-	memcpy(gunType, playerInfo.guntype, sizeof(GunType) * users);
-	memcpy(gunRotation, playerInfo.gunquat, sizeof(glm::quat) * users);
+	memcpy(vPos, playerInfo.pos, sizeof(glm::vec3) * MAXUSER);
+	memcpy(vBodyLook, playerInfo.bodylook, sizeof(glm::vec3) * MAXUSER);
+	memcpy(vHeadLook, playerInfo.headlook, sizeof(glm::vec3) * MAXUSER);
+	memcpy(vLegLLook, playerInfo.legLlook, sizeof(glm::vec3) * MAXUSER);
+	memcpy(vLegRLook, playerInfo.legRlook, sizeof(glm::vec3) * MAXUSER);
+	memcpy(vGunLook, playerInfo.gunlook, sizeof(glm::vec3) * MAXUSER);
+	memcpy(gunType, playerInfo.guntype, sizeof(GunType) * MAXUSER);
+	memcpy(gunRotation, playerInfo.gunquat, sizeof(glm::quat) * MAXUSER);
 
 	int id = 0;
-	for (size_t i = 0; i < users; i++)
+	for (size_t i = 0; i < MAXUSER; i++)
 	{
-		if (player[i] == nullptr) return;
+		if (!playerOn[i]) continue;
 		
 #ifdef DEBUG
 		cout << i << " Pos: ( " << vPos[i].x << ", " << vPos[i].y << ", " << vPos[i].z << " )" << endl;

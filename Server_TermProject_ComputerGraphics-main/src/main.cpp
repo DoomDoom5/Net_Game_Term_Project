@@ -152,7 +152,7 @@ GLvoid Reset()
         delete crntMap;
         crntMap = nullptr;
     }
-    for (int i = 0; i < users; ++i)
+    for (int i = 0; i < MAXUSER; ++i)
     {
         if (player[i] != nullptr)
         {
@@ -191,7 +191,7 @@ GLvoid Update()
 
     printf("서버 접속자 수 %d / %d\n", users, MAXUSER);
     monsterManager->Update();
-    for (size_t i = 0; i < users; i++)  if (player[i] != nullptr) player[i]->Update();
+    for (size_t i = 0; i < MAXUSER; i++)  if (player[i] != nullptr) player[i]->Update();
     //buildingManager->Update();
     turretManager->Update();
     //waveManager->Update();
@@ -199,8 +199,9 @@ GLvoid Update()
 #ifdef  DEBUG
     cout << "SendToClient: " << endl;
 #endif
-    for (size_t i = 0; i < users; i++)
+    for (size_t i = 0; i < MAXUSER; i++)
     {
+        if (player[i] == nullptr) continue;
         glm::vec3 vPos = player[i]->GetPosition();
         glm::vec3 vBodyLook = player[i]->GetBodyLook();
         glm::vec3 vHeadLook = player[i]->GetHeadLook();
@@ -284,20 +285,21 @@ DWORD WINAPI ServerMain(LPVOID arg)
         USER client;
         client.client_sock = client_sock;
 
-
-        if (!ClientOn[users])// 자리가 남았을때
+        for (int i = 0; i < MAXUSER; ++i)
         {
-            ClientOn[users] = true;
-            client.id = users++;
+            if (player[i] == NULL)
+            {
+                client.id = i;
+                users++;
+                break;
+            }
         }
-
 
         // 스레드 생성
         hThread = CreateThread(NULL, 0, ProcessClient,
             (LPVOID)&client, 0, NULL);
         if (hThread == NULL) {
             closesocket(client_sock);
-            users--;
         }
         else { 
             CloseHandle(hThread); 
@@ -324,8 +326,6 @@ DWORD WINAPI SleepCls(LPVOID arg)
     }
 }
 
-int deleteMember[MAXUSER] = { -1, -1, -1 };
-
 // 클라이언트와 데이터 통신
 DWORD WINAPI ProcessClient(LPVOID arg)
 {
@@ -347,19 +347,18 @@ DWORD WINAPI ProcessClient(LPVOID arg)
     memcpy(idbuf, &id, sizeof(int));
     send(player_sock, idbuf, sizeof(int), 0);
 
+#ifdef DEBUG
+    cout << "ID " << id << " is ON" << endl;
+#endif // DEBUG
+
     player[id] = new Player({ 0,0,0 });
-    monsterManager->AddPlayer(player[id]);
+    monsterManager->AddPlayer(player[id], id);
     waveManager->SetPlayer(player[id]);
 
     while (1)
     {
         if (!updateOn) continue;
 
-        if (deleteMember[id] != -1)
-        {
-            if (deleteMember[id] < id)
-                id--;
-        }
         monsterManager->SendBuf(player_sock);
         //waveManager->SendBuf(player_sock);
         turretManager->SendBuf(player_sock);
@@ -369,17 +368,15 @@ DWORD WINAPI ProcessClient(LPVOID arg)
         bool result = player[id]->PlayerRecv(player_sock);
         if (!result) {
             delete player[id];
-            if(id != 2)
-                player[id] = player[id + 1];
-            users--;
-            memset(deleteMember, id, sizeof(deleteMember));
+            player[id] = NULL;
             monsterManager->DeletePlayer(id);
             return 0;
         }
         if (player[id]->IsInstalled())
         {
-            for (int i = 0; i < users; ++i) {
-                player[i]->TeamInstall_Turret();
+            for (int i = 0; i < MAXUSER; ++i) {
+                if (player[i] != NULL)
+                    player[i]->TeamInstall_Turret();
             }
             player[id]->InstallDone();
         }
@@ -404,7 +401,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 struct PlayersInfo
 {
     char gameover[sizeof(bool)];
-    char num[sizeof(int)];
+    char playerOn[sizeof(bool) * 3];
     char pos[sizeof(glm::vec3) * MAXUSER];
     char bodylook[sizeof(glm::vec3) * MAXUSER];
     char headlook[sizeof(glm::vec3) * MAXUSER];
@@ -421,7 +418,14 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
     PlayersInfo playersInfo;
     char buf[sizeof(PlayersInfo)];
 
-    memcpy(playersInfo.num, &users, sizeof(int));
+    int playerOn[MAXUSER];
+    for (int i = 0; i < MAXUSER; ++i) {
+        if (player[i] != nullptr)
+            playerOn[i] = true;
+        else
+            playerOn[i] = false;
+    }
+    memcpy(playersInfo.playerOn, &playerOn, sizeof(bool) * MAXUSER);
     bool isover = IsGameOver();
     memcpy(playersInfo.gameover, &isover, sizeof(bool));
     
@@ -434,8 +438,9 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
     GunType gunType[MAXUSER];
     glm::quat gunRotation[MAXUSER];
 
-    for (size_t i = 0; i < users; i++)
+    for (size_t i = 0; i < MAXUSER; i++)
     {
+        if (player[i] == nullptr) continue;
         vPos[i] = player[i]->GetPosition();
         vBodyLook[i] = player[i]->GetBodyLook();
         vHeadLook[i] = player[i]->GetHeadLook();
@@ -445,14 +450,14 @@ GLvoid SendAllPlayersInfo(SOCKET& sock)
         gunRotation[i] = player[i]->GetGunRotation();
         gunType[i] = player[i]->GetGunType();     
     }
-    memcpy(playersInfo.pos, vPos, sizeof(glm::vec3) * users);
-    memcpy(playersInfo.bodylook, vBodyLook, sizeof(glm::vec3) * users);
-    memcpy(playersInfo.headlook, vHeadLook, sizeof(glm::vec3) * users);
-    memcpy(playersInfo.legLlook, vLegLLook, sizeof(glm::vec3) * users);
-    memcpy(playersInfo.legRlook, vLegRLook, sizeof(glm::vec3) * users);
-    memcpy(playersInfo.gunlook, vGunLook, sizeof(glm::vec3) * users);
-    memcpy(playersInfo.guntype, gunType, sizeof(GunType) * users);
-    memcpy(playersInfo.gunquat, &gunRotation, sizeof(glm::quat) * users);
+    memcpy(playersInfo.pos, vPos, sizeof(glm::vec3) * MAXUSER);
+    memcpy(playersInfo.bodylook, vBodyLook, sizeof(glm::vec3) * MAXUSER);
+    memcpy(playersInfo.headlook, vHeadLook, sizeof(glm::vec3) * MAXUSER);
+    memcpy(playersInfo.legLlook, vLegLLook, sizeof(glm::vec3) * MAXUSER);
+    memcpy(playersInfo.legRlook, vLegRLook, sizeof(glm::vec3) * MAXUSER);
+    memcpy(playersInfo.gunlook, vGunLook, sizeof(glm::vec3) * MAXUSER);
+    memcpy(playersInfo.guntype, gunType, sizeof(GunType) * MAXUSER);
+    memcpy(playersInfo.gunquat, &gunRotation, sizeof(glm::quat) * MAXUSER);
 
     memcpy(buf, &playersInfo, sizeof(PlayersInfo));
     send(sock, buf, sizeof(PlayersInfo), 0);
