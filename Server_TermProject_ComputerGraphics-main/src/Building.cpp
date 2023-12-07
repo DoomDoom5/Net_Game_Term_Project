@@ -212,8 +212,9 @@ GLvoid BuildingManager::Update()
 		else
 		{
 			building->Update();
-			cout << building->GetHP() << endl;
-
+			cout << "Building HP: " << building->GetHP() << endl;
+			if (building->GetHP() <= 0)
+				GameOver();
 			++it;
 		}
 	}
