@@ -275,7 +275,6 @@ GLvoid BulletManager::Update(SOCKET& sock)
 		Create(data, origin, vPartPos[i], 0, 0);
 	}
 	for (int i = 0; i < nPaints; ++i) {
-		cout << "Texture: " << static_cast<GLuint>(texture[i]) << endl;
 		const IdentityObject* object = GetIdentityTextureObject(texture[i]);
 		PaintPlane* plane = new PaintPlane(object, paintcolor[i], vHitPoint[i], vNormal[i]);
 		plane->SetScale(vScale[i]);
