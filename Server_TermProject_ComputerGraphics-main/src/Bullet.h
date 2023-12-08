@@ -79,7 +79,7 @@ public:
 	inline constexpr BulletType GetType() const { return mType; }
 };
 
-#define MAXBULLET 100
+#define MAXBULLET 300
 struct BulletInfo {
 	char bulletNum[sizeof(int)];
 	char bulletPos[sizeof(glm::vec3) * MAXBULLET];

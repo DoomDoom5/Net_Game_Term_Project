@@ -157,7 +157,7 @@ GLvoid BulletManager::Draw() const
 	//}
 }
 
-#define MAXBULLET 100
+#define MAXBULLET 300
 
 struct BulletInfo {
 	char bulletNum[sizeof(int)];
